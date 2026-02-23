@@ -47,6 +47,12 @@ class PlanningScreen extends StatelessWidget {
               'Create a project to start tracking tasks',
               style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
             ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () => _showAddProjectDialog(context),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('New Project'),
+            ),
           ],
         ),
       );
