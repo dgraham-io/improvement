@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter config --enable-macos-desktop
+      - run: flutter pub get
+      - run: flutter build macos --release
+
+      - name: Create ZIP
+        run: |
+          cd build/macos/Build/Products/Release
+          zip -r -y "$GITHUB_WORKSPACE/improvement-macos.zip" improvement.app
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: improvement-macos
+          path: improvement-macos.zip
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter config --enable-windows-desktop
+      - run: flutter pub get
+      - run: flutter build windows --release
+
+      - name: Create ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath improvement-windows.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: improvement-windows
+          path: improvement-windows.zip
+
+  release:
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: improvement-macos
+          path: artifacts/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: improvement-windows
+          path: artifacts/
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=v0.1.0-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Improvement ${{ steps.version.outputs.tag }}
+          body: |
+            ## Downloads
+
+            - **macOS**: `improvement-macos.zip` — Unzip and move `improvement.app` to Applications
+            - **Windows**: `improvement-windows.zip` — Unzip and run `improvement.exe`
+          files: |
+            artifacts/improvement-macos.zip
+            artifacts/improvement-windows.zip
+          generate_release_notes: true

@@ -4,9 +4,10 @@ An AI-powered personal improvement app for focus, motivation, and health. Track 
 
 ## Download
 
-**macOS:** [Download the latest macOS build](https://nightly.link/dgraham-io/improvement/workflows/build-macos.yml/main/improvement-macos.zip)
+Download the latest release for your platform from the [Releases page](https://github.com/dgraham-io/improvement/releases/latest):
 
-**Windows:** [Download the latest Windows build](https://nightly.link/dgraham-io/improvement/workflows/build-windows.yml/main/improvement-windows.zip)
+- **macOS** — `improvement-macos.zip` — Unzip and move `improvement.app` to Applications
+- **Windows** — `improvement-windows.zip` — Unzip and run `improvement.exe`
 
 ## Features
 
