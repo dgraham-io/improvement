@@ -4,9 +4,9 @@ An AI-powered personal improvement app for focus, motivation, and health. Track 
 
 ## Download
 
-**Windows:** Download the latest build from [GitHub Actions](https://github.com/dgraham-io/improvement/actions/workflows/build-windows.yml) — click the most recent successful run, then download the **improvement-windows** artifact.
+**macOS:** [Download the latest macOS build](https://nightly.link/dgraham-io/improvement/workflows/build-macos.yml/main/improvement-macos.zip)
 
-**macOS:** Build from source (see below).
+**Windows:** [Download the latest Windows build](https://nightly.link/dgraham-io/improvement/workflows/build-windows.yml/main/improvement-windows.zip)
 
 ## Features
 
