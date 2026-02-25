@@ -1,6 +1,6 @@
 # Improvement
 
-An AI-powered perso nal improvement app for focus, motivation, and health. Track projects and tasks on a Kanban-style planning board, keep a daily journal, and stay focused with a built-in Pomodoro timer.
+An AI-powered personal improvement app for focus, motivation, and health. Track projects and tasks on a Kanban-style planning board, keep a daily journal, and stay focused with a built-in Pomodoro timer.
 
 This app was created entirely by AI... its a work in progress.
 
