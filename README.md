@@ -2,7 +2,9 @@
 
 A journalling app for self improvement, knowledge enhancement, and staying focused on the tasks that matter.
 
-Built with Godot 4.6 — readable typography, scrollable journal and task panes, and local storage planned via SQLite.
+Built with Godot 4.6 — readable typography, scrollable journal and task panes, and local storage via SQLite.
+
+![Improvement — journal composer and mission sidebar](docs/screenshots/Screenshot_20260521_093840.png)
 
 **Architecture:** [docs/architecture.md](docs/architecture.md) · **Data model:** [docs/data-model.md](docs/data-model.md)
 
