@@ -49,25 +49,26 @@ func create_todo(
 	return item
 
 
-func save_todo(item: TodoItem) -> bool:
+func save_todo(item: TodoItem, emit_updated: bool = true) -> bool:
 	if item.id <= 0:
 		return false
 	if not DbConstants.todo_status_values().has(item.status):
 		item.status = DbConstants.TODO_PENDING
 	if not Database.update_todo(item):
 		return false
-	var updated := get_todo(item.id)
-	if updated:
-		todo_updated.emit(updated)
+	if emit_updated:
+		var updated := get_todo(item.id)
+		if updated:
+			todo_updated.emit(updated)
 	return true
 
 
-func set_status(todo_id: int, status: String) -> bool:
+func set_status(todo_id: int, status: String, emit_updated: bool = true) -> bool:
 	var item := get_todo(todo_id)
 	if item == null:
 		return false
 	item.status = status
-	return save_todo(item)
+	return save_todo(item, emit_updated)
 
 
 func delete_todo(todo_id: int) -> bool:

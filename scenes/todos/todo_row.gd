@@ -1,15 +1,25 @@
-## One todo row; checkbox toggles done state, emits edit/delete.
+## One mission card with priority strip and progress placeholder for gamification.
 class_name TodoRow
 extends PanelContainer
 
 signal edit_requested(item: TodoItem)
 signal delete_requested(todo_id: int)
 
+const PRIORITY_COLORS := [
+	Color(0.45, 0.5, 0.62, 0.7),
+	Color(0.133333, 0.866667, 1, 0.9),
+	Color(0.658824, 0.333333, 0.968627, 0.9),
+	Color(0.92549, 0.282353, 0.6, 0.95),
+]
+
 var item: TodoItem
 
-@onready var _check_box: CheckBox = %DoneCheckBox
+@onready var _check_box: MissionLedCheck = %DoneCheckBox
 @onready var _title_label: Label = %TitleLabel
 @onready var _notes_label: Label = %NotesLabel
+@onready var _priority_label: Label = %PriorityLabel
+@onready var _priority_strip: ColorRect = %PriorityStrip
+@onready var _progress_bar: ProgressBar = %MissionProgressBar
 
 
 func setup(todo_item: TodoItem) -> void:
@@ -17,17 +27,36 @@ func setup(todo_item: TodoItem) -> void:
 	_check_box.set_block_signals(true)
 	_check_box.button_pressed = todo_item.is_done()
 	_check_box.set_block_signals(false)
+	_check_box.queue_redraw()
 	_title_label.text = todo_item.title
 	_notes_label.text = todo_item.notes.strip_edges()
 	_notes_label.visible = not _notes_label.text.is_empty()
+	_apply_priority_visuals(todo_item.priority)
+	_apply_progress_placeholder(todo_item)
 	_apply_done_style(todo_item.is_done())
+
+
+func _apply_priority_visuals(priority: int) -> void:
+	var tier := clampi(priority, 0, PRIORITY_COLORS.size() - 1)
+	_priority_label.text = "P%d" % priority
+	_priority_strip.color = PRIORITY_COLORS[tier]
+
+
+func _apply_progress_placeholder(todo_item: TodoItem) -> void:
+	# Reserved for sub-task / XP progress; completion drives the bar for now.
+	var value := 1.0 if todo_item.is_done() else 0.15
+	if todo_item.status == DbConstants.TODO_IN_PROGRESS:
+		value = 0.55
+	_progress_bar.value = value
 
 
 func _apply_done_style(done: bool) -> void:
 	if done:
-		_title_label.modulate = Color(0.55, 0.55, 0.55, 1.0)
+		_title_label.modulate = Color(0.55, 0.58, 0.68, 1.0)
+		_priority_label.modulate = Color(0.5, 0.5, 0.55, 1.0)
 	else:
 		_title_label.modulate = Color(1, 1, 1, 1)
+		_priority_label.modulate = Color(1, 1, 1, 1)
 
 
 func _on_done_toggled(toggled_on: bool) -> void:
@@ -38,7 +67,8 @@ func _on_done_toggled(toggled_on: bool) -> void:
 		return
 	item.status = new_status
 	_apply_done_style(toggled_on)
-	TodoService.save_todo(item)
+	_apply_progress_placeholder(item)
+	TodoService.save_todo(item, false)
 
 
 func _on_edit_pressed() -> void:

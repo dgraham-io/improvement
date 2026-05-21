@@ -1,56 +1,91 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8todorow00001"]
+[gd_scene load_steps=3 format=3 uid="uid://c8todorow00001"]
 
 [ext_resource type="Script" path="res://scenes/todos/todo_row.gd" id="1_row"]
+[ext_resource type="Script" path="res://scenes/todos/mission_led_check.gd" id="2_led"]
 
 [node name="TodoRow" type="PanelContainer"]
-custom_minimum_size = Vector2(0, 56)
+custom_minimum_size = Vector2(0, 72)
 size_flags_horizontal = 3
+theme_type_variation = &"PanelContainer_card"
 script = ExtResource("1_row")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="DoneCheckBox" type="CheckBox" parent="MarginContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Toggle mission complete"
+script = ExtResource("2_led")
+
+[node name="PriorityStrip" type="ColorRect" parent="MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+size_flags_vertical = 3
+color = Color(0.133333, 0.866667, 1, 0.85)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 
-[node name="TitleLabel" type="Label" parent="MarginContainer/HBoxContainer/VBoxContainer"]
+[node name="TitleRow" type="HBoxContainer" parent="MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/HBoxContainer/VBoxContainer/TitleRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Todo title"
+text = "Mission title"
+
+[node name="PriorityLabel" type="Label" parent="MarginContainer/HBoxContainer/VBoxContainer/TitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_accent"
+text = "P0"
+
+[node name="MissionProgressBar" type="ProgressBar" parent="MarginContainer/HBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+max_value = 1.0
+value = 0.0
+show_percentage = false
 
 [node name="NotesLabel" type="Label" parent="MarginContainer/HBoxContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.45, 0.45, 0.45, 1)
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"Label_muted"
+theme_override_font_sizes/font_size = 14
 text = "Notes"
 autowrap_mode = 3
 
-[node name="EditButton" type="Button" parent="MarginContainer/HBoxContainer"]
+[node name="ActionsColumn" type="VBoxContainer" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="EditButton" type="Button" parent="MarginContainer/HBoxContainer/ActionsColumn"]
+layout_mode = 2
+theme_type_variation = &"Button_ghost"
 text = "Edit"
 
-[node name="DeleteButton" type="Button" parent="MarginContainer/HBoxContainer"]
+[node name="DeleteButton" type="Button" parent="MarginContainer/HBoxContainer/ActionsColumn"]
 layout_mode = 2
-text = "Delete"
+theme_type_variation = &"Button_danger"
+text = "Del"
 
 [connection signal="toggled" from="MarginContainer/HBoxContainer/DoneCheckBox" to="." method="_on_done_toggled"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/EditButton" to="." method="_on_edit_pressed"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/DeleteButton" to="." method="_on_delete_pressed"]
+[connection signal="pressed" from="MarginContainer/HBoxContainer/ActionsColumn/EditButton" to="." method="_on_edit_pressed"]
+[connection signal="pressed" from="MarginContainer/HBoxContainer/ActionsColumn/DeleteButton" to="." method="_on_delete_pressed"]
