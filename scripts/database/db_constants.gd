@@ -35,3 +35,8 @@ static func pomodoro_target_values() -> PackedStringArray:
 # app_settings keys (stored in app_settings table)
 const SETTING_UI_SCALE := "ui_scale"
 const SETTING_JOURNAL_SORT_NEWEST_FIRST := "journal_sort_newest_first"
+const SETTING_WINDOW_WIDTH := "window_width"
+const SETTING_WINDOW_HEIGHT := "window_height"
+const SETTING_WINDOW_X := "window_x"
+const SETTING_WINDOW_Y := "window_y"
+const SETTING_WINDOW_MODE := "window_mode"
