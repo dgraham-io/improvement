@@ -1,7 +1,9 @@
-[gd_scene format=3 uid="uid://d4bhhy4ln2jhd"]
+[gd_scene load_steps=5 format=3 uid="uid://d4bhhy4ln2jhd"]
 
 [ext_resource type="Theme" uid="uid://bjs7igpj47wt0" path="res://assets/themes/improvement_theme.tres" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://c6al7vxlnqgfi" path="res://scenes/main.gd" id="1_ig7tw"]
+[ext_resource type="PackedScene" uid="uid://c8journaldlg01" path="res://scenes/dialogs/journal_entry_dialog.tscn" id="2_jdlg"]
+[ext_resource type="PackedScene" uid="uid://c8tododlg00001" path="res://scenes/dialogs/todo_item_dialog.tscn" id="3_tdlg"]
 
 [node name="Main" type="Control" unique_id=1570611385]
 layout_mode = 3
@@ -23,27 +25,97 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
 
 [node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer" unique_id=1148909567]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 split_offsets = PackedInt32Array(600)
 split_offset = 600
 
-[node name="JournalScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer" unique_id=585607780]
+[node name="JournalColumn" type="VBoxContainer" parent="MarginContainer/HSplitContainer" unique_id=1111111111]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HSplitContainer/JournalScrollContainer" unique_id=893476682]
+[node name="JournalHeader" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalColumn" unique_id=1111111112]
+layout_mode = 2
+
+[node name="JournalTitle" type="Label" parent="MarginContainer/HSplitContainer/JournalColumn/JournalHeader" unique_id=1111111113]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "Journal"
+
+[node name="NewJournalButton" type="Button" parent="MarginContainer/HSplitContainer/JournalColumn/JournalHeader" unique_id=1111111114]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+ New entry"
+
+[node name="JournalScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer/JournalColumn" unique_id=585607780]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="ToDoScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer" unique_id=1717890739]
-custom_minimum_size = Vector2(100, 0)
+[node name="JournalEntriesVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/JournalColumn/JournalScrollContainer" unique_id=893476682]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HSplitContainer/ToDoScrollContainer" unique_id=1375568282]
+[node name="JournalEmptyLabel" type="Label" parent="MarginContainer/HSplitContainer/JournalColumn/JournalScrollContainer/JournalEntriesVBox" unique_id=1111111115]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No journal entries yet. Add one to start your timeline."
+autowrap_mode = 3
+
+[node name="TodoColumn" type="VBoxContainer" parent="MarginContainer/HSplitContainer" unique_id=2222222221]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="TodoHeader" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoColumn" unique_id=2222222222]
+layout_mode = 2
+
+[node name="TodoTitle" type="Label" parent="MarginContainer/HSplitContainer/TodoColumn/TodoHeader" unique_id=2222222223]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "Todos"
+
+[node name="NewTodoButton" type="Button" parent="MarginContainer/HSplitContainer/TodoColumn/TodoHeader" unique_id=2222222224]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+ New todo"
+
+[node name="ToDoScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer/TodoColumn" unique_id=1717890739]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="TodoEntriesVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoColumn/ToDoScrollContainer" unique_id=1375568282]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="TodoEmptyLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoColumn/ToDoScrollContainer/TodoEntriesVBox" unique_id=2222222225]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No todos yet. Add a task to stay focused."
+autowrap_mode = 3
+
+[node name="JournalEntryDialog" parent="." instance=ExtResource("2_jdlg")]
+unique_name_in_owner = true
+
+[node name="TodoItemDialog" parent="." instance=ExtResource("3_tdlg")]
+unique_name_in_owner = true
+
+[connection signal="pressed" from="MarginContainer/HSplitContainer/JournalColumn/JournalHeader/NewJournalButton" to="." method="_on_new_journal_pressed"]
+[connection signal="pressed" from="MarginContainer/HSplitContainer/TodoColumn/TodoHeader/NewTodoButton" to="." method="_on_new_todo_pressed"]

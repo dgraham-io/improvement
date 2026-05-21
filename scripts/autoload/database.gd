@@ -1,0 +1,422 @@
+## Autoload: opens user://improvement.db, runs migrations, exposes typed data access.
+## UI and feature code should use JournalService / TodoService, not query SQL directly.
+extends Node
+
+signal ready_changed(is_ready: bool)
+
+var is_ready: bool = false
+
+var _db: SQLite
+
+
+func _ready() -> void:
+	_open()
+	_migrate()
+	_apply_default_settings()
+	_seed_if_empty()
+	is_ready = true
+	ready_changed.emit(true)
+
+
+func _open() -> void:
+	_db = SQLite.new()
+	_db.path = DbConstants.DB_PATH
+	_db.foreign_keys = true
+	_db.default_extension = "db"
+	_db.verbosity_level = SQLite.QUIET if not OS.is_debug_build() else SQLite.NORMAL
+	if not _db.open_db():
+		push_error("Database.open_db failed: %s" % _db.error_message)
+		return
+	if not _db.query("PRAGMA foreign_keys = ON;"):
+		push_error("Database: failed to enable foreign_keys: %s" % _db.error_message)
+
+
+func _migrate() -> void:
+	var version := _get_user_version()
+	if version < 1:
+		_migrate_to_v1()
+		_set_user_version(1)
+		version = 1
+	if version < 2:
+		_migrate_to_v2()
+		_set_user_version(2)
+		version = 2
+	if version < 3:
+		_migrate_to_v3()
+		_set_user_version(3)
+
+
+func _get_user_version() -> int:
+	if not _db.query("PRAGMA user_version;"):
+		return 0
+	if _db.query_result.is_empty():
+		return 0
+	return int(_db.query_result[0].get("user_version", 0))
+
+
+func _set_user_version(version: int) -> void:
+	_db.query("PRAGMA user_version = %d;" % version)
+
+
+func _migrate_to_v1() -> void:
+	var statements: PackedStringArray = [
+		"""CREATE TABLE IF NOT EXISTS journal_entries (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			created_at INTEGER NOT NULL,
+			updated_at INTEGER NOT NULL,
+			body TEXT NOT NULL DEFAULT '',
+			deleted_at INTEGER
+		);""",
+		"""CREATE INDEX IF NOT EXISTS idx_journal_entries_active_created
+			ON journal_entries (created_at DESC)
+			WHERE deleted_at IS NULL;""",
+		"""CREATE TABLE IF NOT EXISTS todos (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			created_at INTEGER NOT NULL,
+			updated_at INTEGER NOT NULL,
+			title TEXT NOT NULL,
+			notes TEXT NOT NULL DEFAULT '',
+			status TEXT NOT NULL DEFAULT 'pending'
+				CHECK (status IN ('pending', 'in_progress', 'done', 'cancelled')),
+			priority INTEGER NOT NULL DEFAULT 0
+				CHECK (priority >= 0 AND priority <= 3),
+			due_at INTEGER,
+			sort_order INTEGER NOT NULL DEFAULT 0,
+			journal_entry_id INTEGER REFERENCES journal_entries (id) ON DELETE SET NULL,
+			deleted_at INTEGER
+		);""",
+		"""CREATE INDEX IF NOT EXISTS idx_todos_active_sort
+			ON todos (sort_order ASC, created_at DESC)
+			WHERE deleted_at IS NULL;""",
+		"""CREATE INDEX IF NOT EXISTS idx_todos_active_due
+			ON todos (due_at ASC)
+			WHERE deleted_at IS NULL AND due_at IS NOT NULL;""",
+		"""CREATE TABLE IF NOT EXISTS pomodoro_sessions (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			started_at INTEGER NOT NULL,
+			ended_at INTEGER,
+			planned_duration_sec INTEGER NOT NULL DEFAULT 1500,
+			target_type TEXT NOT NULL DEFAULT 'none'
+				CHECK (target_type IN ('none', 'journal', 'todo')),
+			target_id INTEGER,
+			completed INTEGER NOT NULL DEFAULT 0
+				CHECK (completed IN (0, 1))
+		);""",
+		"""CREATE INDEX IF NOT EXISTS idx_pomodoro_started
+			ON pomodoro_sessions (started_at DESC);""",
+		"""CREATE TABLE IF NOT EXISTS app_settings (
+			key TEXT PRIMARY KEY,
+			value TEXT NOT NULL
+		);""",
+	]
+	for sql in statements:
+		if not _db.query(sql):
+			push_error("Migration v1 failed: %s\nSQL: %s" % [_db.error_message, sql])
+			return
+
+
+func _journal_table_has_column(column_name: String) -> bool:
+	if not _db.query("PRAGMA table_info(journal_entries);"):
+		return false
+	for row in _db.query_result:
+		if str(row.get("name", "")) == column_name:
+			return true
+	return false
+
+
+func _migrate_to_v2() -> void:
+	# Skip if mood was never present (fresh DBs created after mood removal).
+	if not _journal_table_has_column("mood"):
+		return
+	# Drop legacy mood column by rebuilding journal_entries (SQLite-safe).
+	var statements: PackedStringArray = [
+		"""CREATE TABLE journal_entries_v2 (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			created_at INTEGER NOT NULL,
+			updated_at INTEGER NOT NULL,
+			title TEXT NOT NULL DEFAULT '',
+			body TEXT NOT NULL DEFAULT '',
+			deleted_at INTEGER
+		);""",
+		"""INSERT INTO journal_entries_v2 (id, created_at, updated_at, title, body, deleted_at)
+			SELECT id, created_at, updated_at, title, body, deleted_at FROM journal_entries;""",
+		"DROP TABLE journal_entries;",
+		"ALTER TABLE journal_entries_v2 RENAME TO journal_entries;",
+		"""CREATE INDEX IF NOT EXISTS idx_journal_entries_active_created
+			ON journal_entries (created_at DESC)
+			WHERE deleted_at IS NULL;""",
+	]
+	for sql in statements:
+		if not _db.query(sql):
+			push_error("Migration v2 failed: %s\nSQL: %s" % [_db.error_message, sql])
+			return
+
+
+func _migrate_to_v3() -> void:
+	# Drop title column; journal entries are body-only.
+	if not _journal_table_has_column("title"):
+		return
+	var statements: PackedStringArray = [
+		"""CREATE TABLE journal_entries_v3 (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			created_at INTEGER NOT NULL,
+			updated_at INTEGER NOT NULL,
+			body TEXT NOT NULL DEFAULT '',
+			deleted_at INTEGER
+		);""",
+		"""INSERT INTO journal_entries_v3 (id, created_at, updated_at, body, deleted_at)
+			SELECT id, created_at, updated_at,
+				CASE
+					WHEN trim(title) = '' THEN body
+					WHEN trim(body) = '' THEN title
+					ELSE title || char(10) || char(10) || body
+				END,
+				deleted_at
+			FROM journal_entries;""",
+		"DROP TABLE journal_entries;",
+		"ALTER TABLE journal_entries_v3 RENAME TO journal_entries;",
+		"""CREATE INDEX IF NOT EXISTS idx_journal_entries_active_created
+			ON journal_entries (created_at DESC)
+			WHERE deleted_at IS NULL;""",
+	]
+	for sql in statements:
+		if not _db.query(sql):
+			push_error("Migration v3 failed: %s\nSQL: %s" % [_db.error_message, sql])
+			return
+
+
+func _apply_default_settings() -> void:
+	if get_setting(DbConstants.SETTING_UI_SCALE, "").is_empty():
+		set_setting(DbConstants.SETTING_UI_SCALE, "1.5")
+	if get_setting(DbConstants.SETTING_JOURNAL_SORT_NEWEST_FIRST, "").is_empty():
+		set_setting(DbConstants.SETTING_JOURNAL_SORT_NEWEST_FIRST, "true")
+
+
+func _seed_if_empty() -> void:
+	if count_journal_entries() > 0:
+		return
+	insert_journal_entry(
+		"Your journal timeline is stored locally in user://improvement.db."
+	)
+	insert_journal_entry(
+		"JournalService and TodoService wrap this Database autoload. UI scenes should not run raw SQL."
+	)
+	insert_todo("Explore the journal list UI", "", DbConstants.TODO_PENDING, 0, 0, 0)
+	insert_todo("Wire todo rows to TodoService", "", DbConstants.TODO_PENDING, 1, 0, 0)
+
+
+# --- Settings ----------------------------------------------------------------
+
+func get_setting(key: String, default_value: String = "") -> String:
+	if not _db.query_with_bindings(
+		"SELECT value FROM app_settings WHERE key = ?;",
+		[key]
+	):
+		return default_value
+	if _db.query_result.is_empty():
+		return default_value
+	return str(_db.query_result[0].get("value", default_value))
+
+
+func set_setting(key: String, value: String) -> bool:
+	return _db.query_with_bindings(
+		"INSERT INTO app_settings (key, value) VALUES (?, ?)
+		ON CONFLICT(key) DO UPDATE SET value = excluded.value;",
+		[key, value]
+	)
+
+
+# --- Journal -----------------------------------------------------------------
+
+func count_journal_entries(include_deleted: bool = false) -> int:
+	var where := "" if include_deleted else " WHERE deleted_at IS NULL"
+	if not _db.query("SELECT COUNT(*) AS c FROM journal_entries%s;" % where):
+		return 0
+	return int(_db.query_result[0].get("c", 0))
+
+
+func fetch_journal_entries(
+	newest_first: bool,
+	limit: int,
+	offset: int,
+	include_deleted: bool = false
+) -> Array:
+	var order := "DESC" if newest_first else "ASC"
+	var where := "" if include_deleted else " WHERE deleted_at IS NULL"
+	var sql := (
+		"SELECT id, created_at, updated_at, body, deleted_at "
+		+ "FROM journal_entries%s ORDER BY created_at %s LIMIT ? OFFSET ?;"
+	) % [where, order]
+	if not _db.query_with_bindings(sql, [limit, offset]):
+		push_error("fetch_journal_entries: %s" % _db.error_message)
+		return []
+	return _db.query_result.duplicate(true)
+
+
+func fetch_journal_entry_by_id(entry_id: int) -> Dictionary:
+	if not _db.query_with_bindings(
+		"SELECT id, created_at, updated_at, body, deleted_at "
+		+ "FROM journal_entries WHERE id = ?;",
+		[entry_id]
+	):
+		return {}
+	if _db.query_result.is_empty():
+		return {}
+	return _db.query_result[0]
+
+
+func search_journal_entries(query: String, limit: int = 50) -> Array:
+	var pattern := "%" + query.strip_edges() + "%"
+	if not _db.query_with_bindings(
+		"SELECT id, created_at, updated_at, body, deleted_at "
+		+ "FROM journal_entries WHERE deleted_at IS NULL "
+		+ "AND body LIKE ? "
+		+ "ORDER BY created_at DESC LIMIT ?;",
+		[pattern, limit]
+	):
+		return []
+	return _db.query_result.duplicate(true)
+
+
+func insert_journal_entry(body: String) -> int:
+	var now := int(Time.get_unix_time_from_system())
+	if not _db.query_with_bindings(
+		"INSERT INTO journal_entries (created_at, updated_at, body) "
+		+ "VALUES (?, ?, ?);",
+		[now, now, body]
+	):
+		push_error("insert_journal_entry: %s" % _db.error_message)
+		return -1
+	return int(_db.last_insert_rowid)
+
+
+func update_journal_entry(entry: JournalEntry) -> bool:
+	var now := int(Time.get_unix_time_from_system())
+	return _db.query_with_bindings(
+		"UPDATE journal_entries SET updated_at = ?, body = ? "
+		+ "WHERE id = ? AND deleted_at IS NULL;",
+		[now, entry.body, entry.id]
+	)
+
+
+func soft_delete_journal_entry(entry_id: int) -> bool:
+	var now := int(Time.get_unix_time_from_system())
+	return _db.query_with_bindings(
+		"UPDATE journal_entries SET deleted_at = ?, updated_at = ? WHERE id = ?;",
+		[now, now, entry_id]
+	)
+
+
+# --- Todos -------------------------------------------------------------------
+
+func count_todos(include_deleted: bool = false) -> int:
+	var where := "" if include_deleted else " WHERE deleted_at IS NULL"
+	if not _db.query("SELECT COUNT(*) AS c FROM todos%s;" % where):
+		return 0
+	return int(_db.query_result[0].get("c", 0))
+
+
+func fetch_todos(include_deleted: bool = false) -> Array:
+	var where := "" if include_deleted else " WHERE deleted_at IS NULL"
+	var sql := (
+		"SELECT id, created_at, updated_at, title, notes, status, priority, "
+		+ "due_at, sort_order, journal_entry_id, deleted_at FROM todos%s "
+		+ "ORDER BY sort_order ASC, created_at DESC;"
+	) % where
+	if not _db.query(sql):
+		push_error("fetch_todos: %s" % _db.error_message)
+		return []
+	return _db.query_result.duplicate(true)
+
+
+func fetch_todo_by_id(todo_id: int) -> Dictionary:
+	if not _db.query_with_bindings(
+		"SELECT id, created_at, updated_at, title, notes, status, priority, "
+		+ "due_at, sort_order, journal_entry_id, deleted_at FROM todos WHERE id = ?;",
+		[todo_id]
+	):
+		return {}
+	if _db.query_result.is_empty():
+		return {}
+	return _db.query_result[0]
+
+
+func insert_todo(
+	title: String,
+	notes: String,
+	status: String,
+	priority: int,
+	due_at: int,
+	journal_entry_id: int,
+	sort_order: int = -1
+) -> int:
+	var now := int(Time.get_unix_time_from_system())
+	if sort_order < 0:
+		sort_order = count_todos()
+	var due_val: Variant = due_at if due_at > 0 else null
+	var journal_val: Variant = journal_entry_id if journal_entry_id > 0 else null
+	if not _db.query_with_bindings(
+		"INSERT INTO todos (created_at, updated_at, title, notes, status, priority, "
+		+ "due_at, sort_order, journal_entry_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
+		[now, now, title, notes, status, priority, due_val, sort_order, journal_val]
+	):
+		push_error("insert_todo: %s" % _db.error_message)
+		return -1
+	return int(_db.last_insert_rowid)
+
+
+func update_todo(item: TodoItem) -> bool:
+	var now := int(Time.get_unix_time_from_system())
+	var due_val: Variant = item.due_at if item.due_at > 0 else null
+	var journal_val: Variant = item.journal_entry_id if item.journal_entry_id > 0 else null
+	return _db.query_with_bindings(
+		"UPDATE todos SET updated_at = ?, title = ?, notes = ?, status = ?, "
+		+ "priority = ?, due_at = ?, sort_order = ?, journal_entry_id = ? "
+		+ "WHERE id = ? AND deleted_at IS NULL;",
+		[
+			now,
+			item.title,
+			item.notes,
+			item.status,
+			item.priority,
+			due_val,
+			item.sort_order,
+			journal_val,
+			item.id,
+		]
+	)
+
+
+func soft_delete_todo(todo_id: int) -> bool:
+	var now := int(Time.get_unix_time_from_system())
+	return _db.query_with_bindings(
+		"UPDATE todos SET deleted_at = ?, updated_at = ? WHERE id = ?;",
+		[now, now, todo_id]
+	)
+
+
+# --- Pomodoro (minimal persistence API) --------------------------------------
+
+func insert_pomodoro_session(
+	target_type: String,
+	target_id: int,
+	planned_duration_sec: int = PomodoroSession.DEFAULT_DURATION_SEC
+) -> int:
+	var now := int(Time.get_unix_time_from_system())
+	var target_val: Variant = target_id if target_id > 0 else null
+	if not _db.query_with_bindings(
+		"INSERT INTO pomodoro_sessions "
+		+ "(started_at, planned_duration_sec, target_type, target_id) "
+		+ "VALUES (?, ?, ?, ?);",
+		[now, planned_duration_sec, target_type, target_val]
+	):
+		return -1
+	return int(_db.last_insert_rowid)
+
+
+func complete_pomodoro_session(session_id: int, completed: bool = true) -> bool:
+	var now := int(Time.get_unix_time_from_system())
+	return _db.query_with_bindings(
+		"UPDATE pomodoro_sessions SET ended_at = ?, completed = ? WHERE id = ?;",
+		[now, 1 if completed else 0, session_id]
+	)
