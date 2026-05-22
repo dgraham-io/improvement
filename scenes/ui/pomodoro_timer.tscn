@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scenes/ui/pomodoro_timer.gd" id="1_pomo"]
 
 [node name="PomodoroTimer" type="HBoxContainer"]
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 alignment = 1
 script = ExtResource("1_pomo")
 

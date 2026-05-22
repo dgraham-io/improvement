@@ -2,7 +2,7 @@
 
 SQLite **schema version 1** (`PRAGMA user_version = 1`). Canonical SQL: [`schema.sql`](schema.sql).
 
-**Runtime file:** `user://improvement.db` (see [`scripts/autoload/database.gd`](../scripts/autoload/database.gd)).
+**Runtime file:** `<chosen_folder>/improvement.db`. First-run setup stores the folder in `user://app_config.json` (see [`scripts/app/app_config.gd`](../scripts/app/app_config.gd)); the path is also mirrored in `app_settings.db_directory` after open.
 
 ## Entity relationship
 
@@ -97,7 +97,8 @@ Key/value store in the same database (no separate `settings.cfg` in v1).
 
 | Key | Default | Purpose |
 |-----|---------|---------|
-| `ui_scale` | `1.5` | Applied to `content_scale_factor` on startup |
+| `db_directory` | (from setup) | Absolute folder chosen at first run |
+| `ui_scale` | `1.0` | Stored for future Settings UI; runtime currently fixed at 1.0 (**TODO:** apply from setting) |
 | `journal_sort_newest_first` | `true` | Timeline direction |
 
 ## GDScript models
@@ -143,10 +144,6 @@ Factory: `JournalEntry.from_row(dict)` / `TodoItem.from_row(dict)` after SQLite 
 - v2 removes legacy `mood` from `journal_entries` via table rebuild (skipped if never present).
 - v3 removes `title`; entries are body-only.
 - v4+ will add incremental `_migrate_to_vN()` functions; never edit shipped migration SQL in place.
-
-## Seed data
-
-On first run (zero journal rows), `Database` inserts two sample journal entries and two todos for development.
 
 ## Not in v1
 

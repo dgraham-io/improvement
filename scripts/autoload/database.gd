@@ -10,25 +10,52 @@ var _db: SQLite
 
 
 func _ready() -> void:
-	_open()
+	var db_directory := AppConfig.read_db_directory()
+	if db_directory.is_empty():
+		db_directory = await AppSetup.setup_completed
+	_initialize(db_directory)
+
+
+func _initialize(db_directory: String) -> void:
+	if not _open_at_directory(db_directory):
+		push_error("Database: failed to open at %s" % db_directory)
+		return
 	_migrate()
 	_apply_default_settings()
-	_seed_if_empty()
+	set_setting(DbConstants.SETTING_DB_DIRECTORY, AppConfig.normalize_directory(db_directory))
 	is_ready = true
 	ready_changed.emit(true)
 
 
-func _open() -> void:
+func get_db_directory() -> String:
+	return AppConfig.normalize_directory(get_setting(DbConstants.SETTING_DB_DIRECTORY, ""))
+
+
+func get_db_file_path() -> String:
+	return AppConfig.db_base_path(get_db_directory()) + ".db"
+
+
+func _open_at_directory(db_directory: String) -> bool:
+	var directory := AppConfig.normalize_directory(db_directory)
+	if directory.is_empty():
+		return false
+	if not DirAccess.dir_exists_absolute(directory):
+		var err_code := DirAccess.make_dir_recursive_absolute(directory)
+		if err_code != OK:
+			push_error("Database: cannot create directory %s (error %d)" % [directory, err_code])
+			return false
 	_db = SQLite.new()
-	_db.path = DbConstants.DB_PATH
+	_db.path = AppConfig.db_base_path(directory)
 	_db.foreign_keys = true
 	_db.default_extension = "db"
 	_db.verbosity_level = SQLite.QUIET if not OS.is_debug_build() else SQLite.NORMAL
 	if not _db.open_db():
 		push_error("Database.open_db failed: %s" % _db.error_message)
-		return
+		return false
 	if not _db.query("PRAGMA foreign_keys = ON;"):
 		push_error("Database: failed to enable foreign_keys: %s" % _db.error_message)
+		return false
+	return true
 
 
 func _migrate() -> void:
@@ -187,22 +214,9 @@ func _migrate_to_v3() -> void:
 
 func _apply_default_settings() -> void:
 	if get_setting(DbConstants.SETTING_UI_SCALE, "").is_empty():
-		set_setting(DbConstants.SETTING_UI_SCALE, "1.5")
+		set_setting(DbConstants.SETTING_UI_SCALE, "1.0")
 	if get_setting(DbConstants.SETTING_JOURNAL_SORT_NEWEST_FIRST, "").is_empty():
 		set_setting(DbConstants.SETTING_JOURNAL_SORT_NEWEST_FIRST, "true")
-
-
-func _seed_if_empty() -> void:
-	if count_journal_entries() > 0:
-		return
-	insert_journal_entry(
-		"Your journal timeline is stored locally in user://improvement.db."
-	)
-	insert_journal_entry(
-		"JournalService and TodoService wrap this Database autoload. UI scenes should not run raw SQL."
-	)
-	insert_todo("Explore the journal list UI", "", DbConstants.TODO_PENDING, 0, 0, 0)
-	insert_todo("Wire todo rows to TodoService", "", DbConstants.TODO_PENDING, 1, 0, 0)
 
 
 # --- Settings ----------------------------------------------------------------

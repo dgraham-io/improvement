@@ -2,7 +2,9 @@
 class_name DbConstants
 extends RefCounted
 
-const DB_PATH := "user://improvement"
+const DB_FILE_STEM := "improvement"
+## Legacy default when no `user://app_config.json` exists (setup dialog sets the real path).
+const DB_PATH_DEFAULT := "user://improvement"
 const SCHEMA_VERSION := 3
 
 const TABLE_JOURNAL := "journal_entries"
@@ -33,6 +35,7 @@ static func pomodoro_target_values() -> PackedStringArray:
 	return PackedStringArray([TARGET_NONE, TARGET_JOURNAL, TARGET_TODO])
 
 # app_settings keys (stored in app_settings table)
+const SETTING_DB_DIRECTORY := "db_directory"
 const SETTING_UI_SCALE := "ui_scale"
 const SETTING_JOURNAL_SORT_NEWEST_FIRST := "journal_sort_newest_first"
 const SETTING_WINDOW_WIDTH := "window_width"

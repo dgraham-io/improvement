@@ -17,6 +17,7 @@ config/icon="res://assets/icons/icon.svg"
 
 [autoload]
 
+AppSetup="*res://scripts/autoload/app_setup.gd"
 Database="*res://scripts/autoload/database.gd"
 WindowLayout="*res://scripts/autoload/window_layout.gd"
 JournalService="*res://scripts/autoload/journal_service.gd"

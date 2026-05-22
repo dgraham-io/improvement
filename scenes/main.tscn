@@ -34,10 +34,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
 
 [node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer" unique_id=1595956360]
 layout_mode = 2
@@ -50,7 +50,7 @@ split_offset = 380
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="JournalHeaderBlock" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea" unique_id=1468892920]
 layout_mode = 2
@@ -63,7 +63,7 @@ text = "Neural Log"
 
 [node name="XpPlaceholder" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock" unique_id=1712306731]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="XpLabel" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock/XpPlaceholder" unique_id=1117000995]
 unique_name_in_owner = true
@@ -103,16 +103,16 @@ theme_type_variation = &"PanelContainer_accent"
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 14
+theme_override_constants/margin_left = 11
+theme_override_constants/margin_top = 9
+theme_override_constants/margin_right = 11
+theme_override_constants/margin_bottom = 9
 
 [node name="ComposerVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin" unique_id=862064090]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 7
 
 [node name="ComposerHeader" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox" unique_id=785990880]
 layout_mode = 2
@@ -140,11 +140,11 @@ wrap_mode = 1
 
 [node name="ComposerActions" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox" unique_id=715288468]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 7
 
 [node name="ComposerActionsLeft" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions" unique_id=1655746442]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 7
 
 [node name="ComposerCancelButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerActionsLeft" unique_id=1629452887]
 unique_name_in_owner = true
@@ -184,7 +184,7 @@ horizontal_scroll_mode = 0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="JournalEmptyLabel" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/JournalScrollContainer/JournalEntriesVBox" unique_id=1086513199]
 unique_name_in_owner = true
@@ -201,20 +201,20 @@ theme_type_variation = &"PanelContainer_card"
 
 [node name="TodoSidebarMargin" type="MarginContainer" parent="MarginContainer/HSplitContainer/TodoSidebar" unique_id=1786773478]
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 11
+theme_override_constants/margin_top = 11
+theme_override_constants/margin_right = 11
+theme_override_constants/margin_bottom = 11
 
 [node name="TodoColumn" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin" unique_id=1645669518]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 14
+theme_override_constants/separation = 9
 
 [node name="TodoHeaderBlock" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn" unique_id=1475197694]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 7
 
 [node name="TodoTitleRow" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock" unique_id=1809733585]
 layout_mode = 2
@@ -231,7 +231,7 @@ layout_mode = 2
 
 [node name="StatsRow" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock" unique_id=1391266645]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 8
 
 [node name="TodoProgressLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/StatsRow" unique_id=959110627]
 unique_name_in_owner = true
@@ -279,16 +279,16 @@ theme_type_variation = &"PanelContainer_accent"
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
 
 [node name="MissionVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin" unique_id=365644476]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="MissionHeader" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox" unique_id=1332876248]
 layout_mode = 2
@@ -319,7 +319,7 @@ wrap_mode = 1
 
 [node name="MissionActions" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox" unique_id=1127289808]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 7
 alignment = 2
 
 [node name="MissionCancelButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions" unique_id=1259844051]
@@ -351,7 +351,7 @@ horizontal_scroll_mode = 0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 7
 
 [node name="TodoEmptyLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoScrollContainer/TodoEntriesVBox" unique_id=1781153293]
 unique_name_in_owner = true

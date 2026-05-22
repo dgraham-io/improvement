@@ -19,7 +19,7 @@ Early prototype with **SQLite-backed** journal and todo lists (create, edit, del
 | Todo list from SQLite | Shipped |
 | Create / edit / delete (dialogs) | Shipped |
 | Theme + Roboto font | Shipped |
-| UI scale (`content_scale_factor`) | Shipped (from `app_settings` or scene default) |
+| UI scale (`content_scale_factor`) | Fixed at **1.0** (settings adjustment planned) |
 | SQLite schema + migrations | Shipped (`user://improvement.db`) |
 | `JournalService` / `TodoService` | Shipped |
 | Encryption | Planned |
@@ -34,7 +34,7 @@ Early prototype with **SQLite-backed** journal and todo lists (create, edit, del
 - Lists loaded from `user://improvement.db` via **JournalService** / **TodoService**.
 - **+ New entry** / **+ New todo** dialogs; row **Edit** / **Delete**; todo checkbox marks done.
 - Global theme ([`assets/themes/improvement_theme.tres`](assets/themes/improvement_theme.tres)) with Roboto at 20px base size.
-- Optional UI scale via `app_settings` or scene `scale_factor` (default **1.5** in the editor).
+- UI scale fixed at **1.0** (`content_scale_factor`); user-adjustable scale planned in Settings.
 
 ### Planned
 
@@ -55,6 +55,9 @@ Early prototype with **SQLite-backed** journal and todo lists (create, edit, del
 1. Clone the repository and open the project folder in Godot (**Project → Import** if needed, then select [`project.godot`](project.godot)).
 2. Confirm the main scene: **Project → Project Settings → Application → Run → Main Scene** should be [`res://scenes/main.tscn`](scenes/main.tscn).
 3. Press **F5** (or **Project → Run Project**) to run.
+4. On first run, the **setup dialog** asks for a folder (e.g. under **Dropbox**); `improvement.db` is created there. The path is stored in `user://app_config.json` (Godot app user data, not inside the DB).
+
+**Reset setup (testing):** `godot --path . --headless -s res://scripts/tools/reset_app_data.gd` — or delete `%APPDATA%\Godot\app_userdata\Improvement\` on Windows.
 
 ### Running in a resizable window (recommended for layout testing)
 
@@ -67,9 +70,9 @@ Godot 4.6 often runs the game **embedded** in the editor by default, which does 
 
 Embedded **Stretch to fit** only affects the in-editor preview; it does not replace proper Control layout or a standalone window for testing.
 
-### Adjusting UI scale
+### UI scale
 
-On the root **Main** node in [`scenes/main.tscn`](scenes/main.tscn), change the exported **Scale Factor** (applied in [`scenes/main.gd`](scenes/main.gd) as `content_scale_factor`). Use this for readability on HiDPI displays until a dedicated settings screen exists.
+Runtime scale is **1.0** on all platforms ([`scenes/main.gd`](scenes/main.gd)). **TODO:** add a Settings control to read/write `app_settings.ui_scale` and apply `content_scale_factor` (see roadmap).
 
 ## Project structure
 
@@ -113,7 +116,7 @@ Next UI step: `scenes/journal/journal_entry_row.tscn` and bind lists to `Journal
 
 1. ~~SQLite schema + services~~ (done — see [docs/data-model.md](docs/data-model.md)).
 2. ~~Journal/todo UI bound to services~~ (done).
-3. User preferences UI (`app_settings`: scale, sort, theme).
+3. User preferences UI (`app_settings`: sort, theme) — **TODO:** UI scale slider bound to `ui_scale` / `content_scale_factor`.
 4. Pomodoro timer linked to active entry or task.
 5. Encryption at rest for the local database.
 6. Optional sync (Dropbox / iCloud) behind a clear export/backup flow.

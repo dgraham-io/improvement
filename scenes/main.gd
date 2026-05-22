@@ -4,7 +4,8 @@ extends Control
 const JOURNAL_ROW_SCENE := preload("res://scenes/journal/journal_entry_row.tscn")
 const TODO_ROW_SCENE := preload("res://scenes/todos/todo_row.tscn")
 
-@export var scale_factor: float = 1.0
+## Fixed at 1.0 until Settings UI can adjust `app_settings.ui_scale` (see docs).
+const UI_SCALE := 1.0
 
 var _editing_entry: JournalEntry = null
 var _editing_todo: TodoItem = null
@@ -56,11 +57,7 @@ func _ready() -> void:
 
 
 func _apply_ui_scale() -> void:
-	var ui_scale := scale_factor
-	var stored := Database.get_setting(DbConstants.SETTING_UI_SCALE, "")
-	if not stored.is_empty():
-		ui_scale = float(stored)
-	get_tree().root.content_scale_factor = ui_scale
+	get_tree().root.content_scale_factor = UI_SCALE
 
 
 func _connect_services() -> void:

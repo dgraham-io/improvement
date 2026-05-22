@@ -1,0 +1,112 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8initialsetup01"]
+
+[ext_resource type="Script" path="res://scenes/setup/initial_setup_dialog.gd" id="1_script"]
+[ext_resource type="Theme" uid="uid://bjs7igpj47wt0" path="res://assets/themes/improvement_theme.tres" id="2_theme"]
+
+[node name="InitialSetupDialog" type="CanvasLayer"]
+layer = 100
+theme = ExtResource("2_theme")
+script = ExtResource("1_script")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.0196078, 0.0392157, 0.0784314, 0.82)
+
+[node name="Center" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(580, 320)
+layout_mode = 2
+theme_type_variation = &"PanelContainer_card"
+
+[node name="MarginContainer" type="MarginContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Center/Panel/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="Center/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_type_variation = &"Label_title"
+text = "Where should your data live?"
+
+[node name="BodyLabel" type="Label" parent="Center/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Improvement stores everything in a single SQLite file (improvement.db). Pick a folder — for example inside Dropbox — so your journal and missions sync across devices."
+autowrap_mode = 3
+
+[node name="PathRow" type="HBoxContainer" parent="Center/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PathField" type="LineEdit" parent="Center/Panel/MarginContainer/VBoxContainer/PathRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "C:/Users/you/Dropbox/Improvement"
+
+[node name="BrowseButton" type="Button" parent="Center/Panel/MarginContainer/VBoxContainer/PathRow"]
+layout_mode = 2
+text = "Browse…"
+
+[node name="HintLabel" type="Label" parent="Center/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"Label_muted"
+autowrap_mode = 3
+
+[node name="ErrorLabel" type="Label" parent="Center/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"Label_muted"
+theme_override_colors/font_color = Color(0.92549, 0.4, 0.5, 1)
+autowrap_mode = 3
+
+[node name="ActionsRow" type="HBoxContainer" parent="Center/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 8
+
+[node name="LocalButton" type="Button" parent="Center/Panel/MarginContainer/VBoxContainer/ActionsRow"]
+layout_mode = 2
+theme_type_variation = &"Button_ghost"
+text = "Use local app data"
+
+[node name="ContinueButton" type="Button" parent="Center/Panel/MarginContainer/VBoxContainer/ActionsRow"]
+layout_mode = 2
+theme_type_variation = &"Button_primary"
+text = "Continue"
+
+[node name="FolderDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Choose database folder"
+size = Vector2i(700, 500)
+ok_button_text = "Select"
+file_mode = 3
+access = 2
+theme = ExtResource("2_theme")
+
+[connection signal="pressed" from="Center/Panel/MarginContainer/VBoxContainer/PathRow/BrowseButton" to="." method="_on_browse_pressed"]
+[connection signal="pressed" from="Center/Panel/MarginContainer/VBoxContainer/ActionsRow/LocalButton" to="." method="_on_local_pressed"]
+[connection signal="pressed" from="Center/Panel/MarginContainer/VBoxContainer/ActionsRow/ContinueButton" to="." method="_on_continue_pressed"]

@@ -72,12 +72,12 @@ flowchart TB
 
 - **Engine:** Godot 4.6.x  
 - **Main scene:** `res://scenes/main.tscn` (`uid://d4bhhy4ln2jhd`)  
-- **Root script:** `scenes/main.gd` — applies `content_scale_factor` from exported `scale_factor` (default **1.5** in scene)
+- **Root script:** `scenes/main.gd` — applies `content_scale_factor` at **1.0** (constant until Settings UI)
 
 ### UI scene tree (today)
 
 ```
-Main (Control, theme, scale_factor)
+Main (Control, theme)
 └── MarginContainer (full rect)
 	└── HSplitContainer (split_offset ≈ 600)
 		├── JournalScrollContainer
@@ -96,17 +96,17 @@ Main (Control, theme, scale_factor)
 | Scrollable lists | **ScrollContainer → VBoxContainer → row scenes** (not `ItemList` for multi-line body text) |
 | Text in rows | **Label** with `autowrap_mode = WORD_SMART` for read-only previews; **TextEdit** for edit surfaces when added |
 | Typography | **Theme** resource + **Roboto**; `default_font_size = 20` in `improvement_theme.tres` |
-| UI scale | `content_scale_factor` on root (editor/testing via scene export until Settings exists) |
+| UI scale | `content_scale_factor` **1.0** on root; **TODO:** Settings reads/writes `app_settings.ui_scale` |
 | Assets layout | `assets/{fonts,themes,icons}`, `scenes/`, `addons/` |
 
 ### Data layer (shipped)
 
-- **godot-sqlite** via `Database` autoload: opens `user://improvement.db`, `PRAGMA user_version = 1`.
+- **godot-sqlite** via `Database` autoload: opens `<chosen_folder>/improvement.db` (path from first-run setup → `user://app_config.json`), `PRAGMA user_version` up to 3.
 - Tables: `journal_entries`, `todos`, `pomodoro_sessions`, `app_settings` — see [data-model.md](data-model.md).
 - **JournalService** / **TodoService** autoloads: CRUD, soft delete, signals, `LIKE` search (journal).
 - **Resource** models: `JournalEntry`, `TodoItem`, `PomodoroSession`; `DbRow` for nullable SQLite fields.
 - **UI:** `main.gd` lists rows from services; dialogs for create/edit; soft delete from rows.
-- First-run **seed** data when the journal table is empty (skipped if DB already has entries).
+- First run starts with an empty journal and todo list (no sample rows).
 - **Not yet:** encryption; sync; Pomodoro UI; FTS5; settings UI.
 
 ---
@@ -162,7 +162,7 @@ Options not yet chosen:
 
 - **Theme** remains the single source for font sizes, colors, margins.  
 - **Settings autoload** should own UI scale, font step, contrast — persist to disk (format **Open**).  
-- Remove dependence on editing `scale_factor` export on `Main` for end users.
+- **TODO:** Settings screen slider (or similar) for `ui_scale` → `content_scale_factor` on root.
 
 ---
 
@@ -174,7 +174,7 @@ Full detail: **[data-model.md](data-model.md)** and **[schema.sql](schema.sql)**
 
 | Topic | Decision |
 |-------|----------|
-| Storage | Single SQLite file `user://improvement.db` |
+| Storage | Single SQLite file in a user-chosen folder (setup dialog; config in `user://app_config.json`) |
 | Settings | `app_settings` key/value table (not `settings.cfg`) |
 | Timestamps | Unix UTC seconds (`INTEGER`) |
 | Deletes | Soft delete (`deleted_at`) on journal and todos |
@@ -213,6 +213,7 @@ Conflict policy (last-write-wins vs merge) — **Open**.
 
 | Autoload | Status | Responsibility |
 |----------|--------|----------------|
+| `AppSetup` | Shipped | First-run dialog: choose folder for `improvement.db` (e.g. Dropbox) |
 | `Database` | Shipped | SQLite, migrations, repository SQL, `app_settings` |
 | `JournalService` | Shipped | Journal CRUD, search, sort preference, signals |
 | `TodoService` | Shipped | Todo CRUD, status, signals |
@@ -299,7 +300,7 @@ Wire rows to `JournalService.list_entries()` / `TodoService.list_todos()`.
 | **0** | Split UI shell, theme, scale |
 | **1** | Database + schema v1 + Journal/Todo services + models — **done** |
 | **2** | Journal/todo row scenes + UI bound to services — **done** |
-| **3** | Settings UI; layout flags; scale from `app_settings` only |
+| **3** | Settings UI; layout flags; **TODO:** user-adjustable UI scale via `app_settings.ui_scale` |
 | **4** | Pomodoro service + UI |
 | **5** | Encryption at rest |
 | **6** | Backup / sync provider |
@@ -342,7 +343,7 @@ Decisions below should be resolved before or during the corresponding phase. Own
 19. ~~Domain models~~ — **Resolved:** `Resource` + `from_row()`.  
 20. ~~Autoload names~~ — **Resolved:** `Database`, `JournalService`, `TodoService`.  
 21. **Signals vs direct calls** — services emit signals; UI controllers subscribe — **convention set**, refine per scene.  
-22. **Main.gd responsibility** — shell + UI scale from DB; list logic stays out of `main.gd`.
+22. **Main.gd responsibility** — shell + fixed UI scale 1.0 until Settings applies `ui_scale` from DB; list logic stays out of `main.gd`.
 
 ### Platform and release
 
