@@ -23,11 +23,13 @@ func _ready() -> void:
 	_status_option.set_item_metadata(2, DbConstants.TODO_DONE)
 	_status_option.add_item("Cancelled", 3)
 	_status_option.set_item_metadata(3, DbConstants.TODO_CANCELLED)
+	_title_field.text_submitted.connect(_on_title_submitted)
+	about_to_popup.connect(_on_about_to_popup)
 
 
 func open_create() -> void:
 	_editing_item = null
-	title = "New todo"
+	title = "New Mission"
 	_delete_button.visible = false
 	_title_field.text = ""
 	_notes_field.text = ""
@@ -37,7 +39,7 @@ func open_create() -> void:
 
 func open_edit(item: TodoItem) -> void:
 	_editing_item = item
-	title = "Edit todo"
+	title = "Edit Mission"
 	_delete_button.visible = true
 	_title_field.text = item.title
 	_notes_field.text = item.notes
@@ -58,22 +60,39 @@ func _selected_status() -> String:
 	return str(_status_option.get_item_metadata(idx))
 
 
+func _on_about_to_popup() -> void:
+	_title_field.call_deferred("grab_focus")
+
+
+func _on_title_submitted(_new_text: String) -> void:
+	if _try_save():
+		hide()
+
+
 func _on_confirmed() -> void:
+	if _try_save():
+		hide()
+
+
+func _try_save() -> bool:
 	var todo_title := _title_field.text.strip_edges()
 	if todo_title.is_empty():
-		return
+		return false
 	var todo_notes := _notes_field.text.strip_edges()
 	var todo_status := _selected_status()
 	if _editing_item == null:
 		var created := TodoService.create_todo(todo_title, todo_notes, todo_status)
 		if created:
 			saved.emit(created)
-	else:
-		_editing_item.title = todo_title
-		_editing_item.notes = todo_notes
-		_editing_item.status = todo_status
-		if TodoService.save_todo(_editing_item):
-			saved.emit(_editing_item)
+			return true
+		return false
+	_editing_item.title = todo_title
+	_editing_item.notes = todo_notes
+	_editing_item.status = todo_status
+	if TodoService.save_todo(_editing_item):
+		saved.emit(_editing_item)
+		return true
+	return false
 
 
 func _on_delete_pressed() -> void:

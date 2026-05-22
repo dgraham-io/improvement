@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://c8todorow00001"]
+[gd_scene load_steps=4 format=3 uid="uid://c8todorow00001"]
 
 [ext_resource type="Script" path="res://scenes/todos/todo_row.gd" id="1_row"]
 [ext_resource type="Script" path="res://scenes/todos/mission_led_check.gd" id="2_led"]
+[ext_resource type="Script" path="res://scenes/todos/todo_drag_handle.gd" id="3_drag"]
 
 [node name="TodoRow" type="PanelContainer"]
 custom_minimum_size = Vector2(0, 72)
@@ -20,6 +21,32 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
+
+[node name="DragHandle" type="Control" parent="MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(14, 0)
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("3_drag")
+
+[node name="GripLabel" type="Label" parent="MarginContainer/HBoxContainer/DragHandle"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -5.0
+offset_top = -10.0
+offset_right = 5.0
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_type_variation = &"Label_muted"
+theme_override_font_sizes/font_size = 14
+text = "⋮⋮"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="DoneCheckBox" type="CheckBox" parent="MarginContainer/HBoxContainer"]
 unique_name_in_owner = true

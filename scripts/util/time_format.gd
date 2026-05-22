@@ -25,12 +25,11 @@ static func format_timestamp(unix_seconds: int, include_seconds: bool = true) ->
 	]
 
 
-## Created and updated lines for journal list rows and editors.
+## Timestamp line(s) for journal list rows and composer (no "Created"/"Updated" labels).
 static func format_journal_timestamps(created_at: int, updated_at: int) -> String:
 	var created_text := format_timestamp(created_at)
 	if created_text.is_empty():
 		return ""
 	if updated_at <= 0 or updated_at == created_at:
-		return "Created %s" % created_text
-	var updated_text := format_timestamp(updated_at)
-	return "Created %s\nUpdated %s" % [created_text, updated_text]
+		return created_text
+	return "%s\n%s" % [created_text, format_timestamp(updated_at)]

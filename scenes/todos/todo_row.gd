@@ -4,6 +4,7 @@ extends PanelContainer
 
 signal edit_requested(item: TodoItem)
 signal delete_requested(todo_id: int)
+signal reorder_requested(dragged_id: int, target_id: int, insert_before: bool)
 
 const PRIORITY_COLORS := [
 	Color(0.45, 0.5, 0.62, 0.7),
@@ -11,6 +12,7 @@ const PRIORITY_COLORS := [
 	Color(0.658824, 0.333333, 0.968627, 0.9),
 	Color(0.92549, 0.282353, 0.6, 0.95),
 ]
+const POMODORO_FOCUS_STYLE := preload("res://assets/themes/styleboxes/panel_pomodoro_focus.tres")
 
 var item: TodoItem
 
@@ -20,6 +22,31 @@ var item: TodoItem
 @onready var _priority_label: Label = %PriorityLabel
 @onready var _priority_strip: ColorRect = %PriorityStrip
 @onready var _progress_bar: ProgressBar = %MissionProgressBar
+
+
+func create_drag_data() -> Variant:
+	if item == null:
+		return null
+	var preview := Label.new()
+	preview.text = item.title
+	preview.add_theme_font_size_override("font_size", 16)
+	set_drag_preview(preview)
+	return {"todo_id": item.id}
+
+
+func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
+	if item == null or not data is Dictionary:
+		return false
+	var dragged_id: int = int(data.get("todo_id", 0))
+	return dragged_id > 0 and dragged_id != item.id
+
+
+func _drop_data(at_position: Vector2, data: Variant) -> void:
+	var dragged_id: int = int(data.get("todo_id", 0))
+	if dragged_id <= 0 or item == null or dragged_id == item.id:
+		return
+	var insert_before := at_position.y < size.y * 0.5
+	reorder_requested.emit(dragged_id, item.id, insert_before)
 
 
 func setup(todo_item: TodoItem) -> void:
@@ -34,6 +61,14 @@ func setup(todo_item: TodoItem) -> void:
 	_apply_priority_visuals(todo_item.priority)
 	_apply_progress_placeholder(todo_item)
 	_apply_done_style(todo_item.is_done())
+	set_pomodoro_focus(false)
+
+
+func set_pomodoro_focus(focused: bool) -> void:
+	if focused:
+		add_theme_stylebox_override("panel", POMODORO_FOCUS_STYLE)
+	else:
+		remove_theme_stylebox_override("panel")
 
 
 func _apply_priority_visuals(priority: int) -> void:

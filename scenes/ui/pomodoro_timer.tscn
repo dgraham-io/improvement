@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8pomodoro01"]
+
+[ext_resource type="Script" path="res://scenes/ui/pomodoro_timer.gd" id="1_pomo"]
+
+[node name="PomodoroTimer" type="HBoxContainer"]
+theme_override_constants/separation = 8
+alignment = 1
+script = ExtResource("1_pomo")
+
+[node name="TimeLabel" type="Label" parent="."]
+layout_mode = 2
+theme_type_variation = &"Label_accent"
+theme_override_font_sizes/font_size = 16
+text = "25:00"
+
+[node name="ActionButton" type="Button" parent="."]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_type_variation = &"Button_secondary"
+text = "Start"

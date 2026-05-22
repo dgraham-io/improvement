@@ -1,27 +1,27 @@
-[gd_resource type="Theme" load_steps=25 format=3 uid="uid://bjs7igpj47wt0"]
+[gd_resource type="Theme" format=3 uid="uid://bjs7igpj47wt0"]
 
 [ext_resource type="FontFile" uid="uid://cxmva35arfxfn" path="res://assets/fonts/Roboto-Regular.ttf" id="1_font"]
-[ext_resource type="FontFile" path="res://assets/fonts/Roboto-Bold.ttf" id="2_font_bold"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/panel_surface.tres" id="3_panel_surface"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/panel_card.tres" id="4_panel_card"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/panel_card_accent.tres" id="5_panel_accent"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/button_secondary_normal.tres" id="6_btn_norm"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/button_secondary_hover.tres" id="7_btn_hover"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/button_primary_normal.tres" id="8_btn_pri_norm"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/button_primary_hover.tres" id="9_btn_pri_hover"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/button_primary_pressed.tres" id="10_btn_pri_press"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/button_ghost_normal.tres" id="11_btn_ghost_norm"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/button_ghost_hover.tres" id="12_btn_ghost_hover"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/button_danger_normal.tres" id="13_btn_danger_norm"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/button_danger_hover.tres" id="14_btn_danger_hover"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/input_field.tres" id="15_input"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/input_field_focus.tres" id="16_input_focus"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/progress_bg.tres" id="17_prog_bg"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/progress_fill.tres" id="18_prog_fill"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/scroll_grabber.tres" id="19_scroll_grab"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/scroll_grabber_hover.tres" id="20_scroll_grab_h"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/scroll_track.tres" id="21_scroll_track"]
-[ext_resource type="StyleBoxFlat" path="res://assets/themes/styleboxes/window_panel.tres" id="22_window"]
+[ext_resource type="FontFile" uid="uid://cjjbomyewcu5t" path="res://assets/fonts/Roboto-Bold.ttf" id="2_font_bold"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/panel_surface.tres" id="3_panel_surface"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/panel_card.tres" id="4_panel_card"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/panel_card_accent.tres" id="5_panel_accent"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/button_secondary_normal.tres" id="6_btn_norm"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/button_secondary_hover.tres" id="7_btn_hover"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/button_primary_normal.tres" id="8_btn_pri_norm"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/button_primary_hover.tres" id="9_btn_pri_hover"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/button_primary_pressed.tres" id="10_btn_pri_press"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/button_ghost_normal.tres" id="11_btn_ghost_norm"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/button_ghost_hover.tres" id="12_btn_ghost_hover"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/button_danger_normal.tres" id="13_btn_danger_norm"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/button_danger_hover.tres" id="14_btn_danger_hover"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/input_field.tres" id="15_input"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/input_field_focus.tres" id="16_input_focus"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/progress_bg.tres" id="17_prog_bg"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/progress_fill.tres" id="18_prog_fill"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/scroll_grabber.tres" id="19_scroll_grab"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/scroll_grabber_hover.tres" id="20_scroll_grab_h"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/scroll_track.tres" id="21_scroll_track"]
+[ext_resource type="StyleBox" path="res://assets/themes/styleboxes/window_panel.tres" id="22_window"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_disabled"]
 bg_color = Color(0.05, 0.07, 0.12, 0.5)
@@ -34,22 +34,11 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-anti_aliasing = true
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_separator"]
-bg_color = Color(0.133333, 0.866667, 1, 0.15)
 content_margin_top = 1.0
 content_margin_bottom = 1.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_grab"]
-bg_color = Color(0.133333, 0.866667, 1, 0.9)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0.133333, 0.866667, 1, 0.35)
-shadow_size = 4
-anti_aliasing = true
+bg_color = Color(0.133333, 0.866667, 1, 0.15)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_track"]
 bg_color = Color(0.05, 0.07, 0.12, 1)
@@ -62,7 +51,6 @@ corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
-anti_aliasing = true
 
 [resource]
 default_font = ExtResource("1_font")
@@ -110,11 +98,15 @@ CheckBox/constants/h_separation = 10
 CheckBox/constants/outline_size = 0
 CheckBox/font_sizes/font_size = 17
 HBoxContainer/constants/separation = 10
+HScrollBar/styles/grabber = ExtResource("19_scroll_grab")
+HScrollBar/styles/grabber_highlight = ExtResource("20_scroll_grab_h")
+HScrollBar/styles/grabber_pressed = ExtResource("20_scroll_grab_h")
+HScrollBar/styles/scroll = ExtResource("21_scroll_track")
 HSeparator/styles/separator = SubResource("StyleBoxFlat_separator")
-HSplitContainer/constants/separation = 12
 HSlider/styles/grabber_area = SubResource("StyleBoxFlat_slider_track")
 HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_track")
 HSlider/styles/slider = SubResource("StyleBoxFlat_slider_track")
+HSplitContainer/constants/separation = 12
 Label/colors/font_color = Color(0.909804, 0.921569, 0.968627, 1)
 Label/colors/font_outline_color = Color(0.133333, 0.866667, 1, 0.2)
 Label/constants/outline_size = 0
@@ -124,6 +116,9 @@ Label_accent/font_sizes/font_size = 13
 Label_muted/base_type = &"Label"
 Label_muted/colors/font_color = Color(0.533333, 0.568627, 0.694118, 1)
 Label_muted/font_sizes/font_size = 14
+Label_timestamp/base_type = &"Label"
+Label_timestamp/colors/font_color = Color(0.72, 0.76, 0.9, 1)
+Label_timestamp/font_sizes/font_size = 15
 Label_title/base_type = &"Label"
 Label_title/colors/font_color = Color(0.95, 0.97, 1, 1)
 Label_title/colors/font_shadow_color = Color(0.133333, 0.866667, 1, 0.25)
@@ -176,8 +171,4 @@ VScrollBar/styles/grabber_highlight = ExtResource("20_scroll_grab_h")
 VScrollBar/styles/grabber_pressed = ExtResource("20_scroll_grab_h")
 VScrollBar/styles/scroll = ExtResource("21_scroll_track")
 VScrollBar/styles/scroll_focus = ExtResource("21_scroll_track")
-HScrollBar/styles/grabber = ExtResource("19_scroll_grab")
-HScrollBar/styles/grabber_highlight = ExtResource("20_scroll_grab_h")
-HScrollBar/styles/grabber_pressed = ExtResource("20_scroll_grab_h")
-HScrollBar/styles/scroll = ExtResource("21_scroll_track")
 Window/styles/embedded_border = ExtResource("22_window")

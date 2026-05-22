@@ -1,11 +1,11 @@
-[gd_scene load_steps=5 format=3 uid="uid://d4bhhy4ln2jhd"]
+[gd_scene format=3 uid="uid://d4bhhy4ln2jhd"]
 
-[ext_resource type="Theme" uid="uid://bjs7igpj47wt0" path="res://assets/themes/improvement_theme.tres" id="1_theme"]
 [ext_resource type="Script" uid="uid://c6al7vxlnqgfi" path="res://scenes/main.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/textures/ui/bg_gradient.tres" id="2_bg"]
-[ext_resource type="PackedScene" uid="uid://c8tododlg00001" path="res://scenes/dialogs/todo_item_dialog.tscn" id="4_tdlg"]
+[ext_resource type="Theme" uid="uid://bjs7igpj47wt0" path="res://assets/themes/improvement_theme.tres" id="1_theme"]
+[ext_resource type="Texture2D" uid="uid://boihexead64ec" path="res://assets/textures/ui/bg_gradient.tres" id="2_bg"]
+[ext_resource type="PackedScene" uid="uid://c8pomodoro01" path="res://scenes/ui/pomodoro_timer.tscn" id="3_pomo"]
 
-[node name="Main" type="Control"]
+[node name="Main" type="Control" unique_id=673025731]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -16,7 +16,7 @@ theme = ExtResource("1_theme")
 script = ExtResource("1_script")
 scale_factor = 1.5
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=1991845025]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,7 +28,7 @@ texture = ExtResource("2_bg")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=447209330]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -40,158 +40,67 @@ theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer"]
+[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer" unique_id=1595956360]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 split_offsets = PackedInt32Array(380)
 split_offset = 380
 
-[node name="TodoSidebar" type="PanelContainer" parent="MarginContainer/HSplitContainer"]
-custom_minimum_size = Vector2(340, 0)
-layout_mode = 2
-size_flags_vertical = 3
-theme_type_variation = &"PanelContainer_card"
-
-[node name="TodoSidebarMargin" type="MarginContainer" parent="MarginContainer/HSplitContainer/TodoSidebar"]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
-
-[node name="TodoColumn" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 14
-
-[node name="TodoHeaderBlock" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="TodoTitleRow" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock"]
-layout_mode = 2
-
-[node name="TodoTitle" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/TodoTitleRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"Label_title"
-text = "Missions"
-
-[node name="LevelBadge" type="PanelContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/TodoTitleRow"]
-layout_mode = 2
-theme_type_variation = &"PanelContainer_accent"
-
-[node name="LevelBadgeMargin" type="MarginContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/TodoTitleRow/LevelBadge"]
-layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 4
-
-[node name="LevelLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/TodoTitleRow/LevelBadge/LevelBadgeMargin"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"Label_accent"
-text = "LV 1"
-
-[node name="StatsRow" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="TodoProgressLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/StatsRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"Label_muted"
-text = "0 / 0 complete"
-
-[node name="StreakLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/StatsRow"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"Label_accent"
-text = "◆ 0 streak"
-
-[node name="TodoProgressBar" type="ProgressBar" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-max_value = 1.0
-value = 0.0
-show_percentage = false
-
-[node name="NewTodoButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"Button_primary"
-text = "＋  New Mission"
-
-[node name="TodoScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="TodoEntriesVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoScrollContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 10
-
-[node name="TodoEmptyLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoScrollContainer/TodoEntriesVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"Label_muted"
-text = "No missions yet. Launch your first task to earn progress."
-autowrap_mode = 3
-
-[node name="JournalArea" type="VBoxContainer" parent="MarginContainer/HSplitContainer"]
+[node name="JournalArea" type="VBoxContainer" parent="MarginContainer/HSplitContainer" unique_id=269095038]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="JournalHeaderBlock" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea"]
+[node name="JournalHeaderBlock" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea" unique_id=1468892920]
 layout_mode = 2
 
-[node name="JournalTitle" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock"]
+[node name="JournalTitle" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock" unique_id=2003677379]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"Label_title"
 text = "Neural Log"
 
-[node name="XpPlaceholder" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock"]
+[node name="XpPlaceholder" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock" unique_id=1712306731]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="XpLabel" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock/XpPlaceholder"]
+[node name="XpLabel" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock/XpPlaceholder" unique_id=1117000995]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_accent"
 text = "XP 0"
 
-[node name="EntryCountLabel" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock/XpPlaceholder"]
+[node name="EntryCountLabel" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock/XpPlaceholder" unique_id=315070403]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_muted"
 text = "0 entries"
 
-[node name="JournalSplit" type="VSplitContainer" parent="MarginContainer/HSplitContainer/JournalArea"]
+[node name="NewJournalButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Button_primary"
+text = "＋  New Journal Entry"
+
+[node name="JournalSplit" type="VSplitContainer" parent="MarginContainer/HSplitContainer/JournalArea" unique_id=1029892727]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-split_offsets = PackedInt32Array(320)
-split_offset = 320
+split_offsets = PackedInt32Array(200)
+split_offset = 200
 
-[node name="ComposerPanel" type="PanelContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit"]
+[node name="ComposerPanel" type="PanelContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit" unique_id=992243453]
+unique_name_in_owner = true
+visible = false
 custom_minimum_size = Vector2(0, 160)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_type_variation = &"PanelContainer_accent"
 
-[node name="ComposerMargin" type="MarginContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel"]
+[node name="ComposerMargin" type="MarginContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel" unique_id=951325569]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -200,30 +109,29 @@ theme_override_constants/margin_top = 14
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 14
 
-[node name="ComposerVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin"]
+[node name="ComposerVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin" unique_id=862064090]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 10
 
-[node name="ComposerHeader" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox"]
+[node name="ComposerHeader" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox" unique_id=785990880]
 layout_mode = 2
 
-[node name="ComposerPrompt" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerHeader"]
+[node name="ComposerPrompt" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerHeader" unique_id=952031769]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"Label_accent"
 text = "◈  Journal"
 
-[node name="ComposerTimestamps" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerHeader"]
+[node name="ComposerTimestamps" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerHeader" unique_id=1303557637]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"Label_muted"
-theme_override_font_sizes/font_size = 13
+theme_type_variation = &"Label_timestamp"
 text = "New entry"
 horizontal_alignment = 2
 
-[node name="ComposerField" type="TextEdit" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox"]
+[node name="ComposerField" type="TextEdit" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox" unique_id=497264707]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -231,54 +139,233 @@ size_flags_vertical = 3
 placeholder_text = "Write your journal entry here..."
 wrap_mode = 1
 
-[node name="ComposerActions" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox"]
+[node name="ComposerActions" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox" unique_id=715288468]
 layout_mode = 2
-alignment = 2
 theme_override_constants/separation = 10
 
-[node name="ComposerNewButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions"]
+[node name="ComposerActionsLeft" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ComposerCancelButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerActionsLeft"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_type_variation = &"Button_ghost"
-text = "New entry"
+text = "Cancel"
 
-[node name="ComposerDeleteButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions"]
+[node name="ComposerDeleteButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerActionsLeft" unique_id=1275127261]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_type_variation = &"Button_danger"
 text = "Delete"
 
-[node name="ComposerSaveButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions"]
+[node name="ComposerSaveButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerActionsLeft" unique_id=107435217]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Button_primary"
 text = "Save entry"
 
-[node name="JournalScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit"]
+[node name="ComposerActionsSpacer" type="Control" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="JournalPomodoro" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions" instance=ExtResource("3_pomo")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="JournalScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit" unique_id=1473126322]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="JournalEntriesVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/JournalScrollContainer"]
+[node name="JournalEntriesVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/JournalScrollContainer" unique_id=1774977097]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="JournalEmptyLabel" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/JournalScrollContainer/JournalEntriesVBox"]
+[node name="JournalEmptyLabel" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/JournalScrollContainer/JournalEntriesVBox" unique_id=1086513199]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_muted"
-text = "Saved entries appear below. Drag the splitter to resize the editor."
+text = "No journal entries yet. Use ＋ New Journal Entry to write one."
 autowrap_mode = 3
 
-[node name="TodoItemDialog" parent="." instance=ExtResource("4_tdlg")]
-unique_name_in_owner = true
+[node name="TodoSidebar" type="PanelContainer" parent="MarginContainer/HSplitContainer" unique_id=1522059307]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"PanelContainer_card"
 
+[node name="TodoSidebarMargin" type="MarginContainer" parent="MarginContainer/HSplitContainer/TodoSidebar" unique_id=1786773478]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="TodoColumn" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin" unique_id=1645669518]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="TodoHeaderBlock" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn" unique_id=1475197694]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TodoTitleRow" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock" unique_id=1809733585]
+layout_mode = 2
+
+[node name="TodoTitle" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/TodoTitleRow" unique_id=1690666540]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"Label_title"
+text = "Missions"
+
+[node name="MissionPomodoro" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/TodoTitleRow" instance=ExtResource("3_pomo")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="StatsRow" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock" unique_id=1391266645]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TodoProgressLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/StatsRow" unique_id=959110627]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"Label_muted"
+text = "0 / 0 complete"
+
+[node name="StreakLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/StatsRow" unique_id=1800416001]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_accent"
+text = "◆ 0 streak"
+
+[node name="TodoProgressBar" type="ProgressBar" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock" unique_id=882807506]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+max_value = 1.0
+show_percentage = false
+
+[node name="NewTodoButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn" unique_id=39634421]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Button_primary"
+text = "＋  New Mission"
+
+[node name="TodoSplit" type="VSplitContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+split_offsets = PackedInt32Array(180)
+split_offset = 180
+
+[node name="TodoMissionPanel" type="PanelContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"PanelContainer_accent"
+
+[node name="MissionMargin" type="MarginContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="MissionVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="MissionHeader" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox"]
+layout_mode = 2
+
+[node name="MissionPrompt" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"Label_accent"
+text = "◈  Mission"
+
+[node name="MissionStatusOption" type="OptionButton" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MissionTitleField" type="LineEdit" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "What needs doing?"
+
+[node name="MissionNotesField" type="TextEdit" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+placeholder_text = "Notes (optional)"
+wrap_mode = 1
+
+[node name="MissionActions" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="MissionCancelButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Button_ghost"
+text = "Cancel"
+
+[node name="MissionDeleteButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"Button_danger"
+text = "Delete"
+
+[node name="MissionSaveButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Button_primary"
+text = "Save mission"
+
+[node name="TodoScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit" unique_id=884632879]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="TodoEntriesVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoScrollContainer" unique_id=1852606318]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="TodoEmptyLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoScrollContainer/TodoEntriesVBox" unique_id=1781153293]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+text = "No missions yet. Use ＋ New Mission to add one."
+autowrap_mode = 3
+
+[connection signal="pressed" from="MarginContainer/HSplitContainer/JournalArea/NewJournalButton" to="." method="_on_new_journal_pressed"]
+[connection signal="pressed" from="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerActionsLeft/ComposerCancelButton" to="." method="_on_composer_cancel_pressed"]
+[connection signal="pressed" from="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerActionsLeft/ComposerDeleteButton" to="." method="_on_composer_delete_pressed"]
+[connection signal="pressed" from="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerActionsLeft/ComposerSaveButton" to="." method="_on_composer_save_pressed"]
 [connection signal="pressed" from="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/NewTodoButton" to="." method="_on_new_todo_pressed"]
-[connection signal="pressed" from="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerNewButton" to="." method="_on_composer_new_pressed"]
-[connection signal="pressed" from="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerDeleteButton" to="." method="_on_composer_delete_pressed"]
-[connection signal="pressed" from="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerSaveButton" to="." method="_on_composer_save_pressed"]
+[connection signal="pressed" from="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions/MissionCancelButton" to="." method="_on_mission_cancel_pressed"]
+[connection signal="pressed" from="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions/MissionDeleteButton" to="." method="_on_mission_delete_pressed"]
+[connection signal="pressed" from="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions/MissionSaveButton" to="." method="_on_mission_save_pressed"]

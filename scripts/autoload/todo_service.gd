@@ -4,6 +4,9 @@ extends Node
 signal todo_created(item: TodoItem)
 signal todo_updated(item: TodoItem)
 signal todo_deleted(todo_id: int)
+## Emitted when a todo is saved without todo_updated (e.g. checkbox toggle) so UI can refresh counts.
+signal todo_stats_changed
+signal todo_reordered
 
 
 func _ready() -> void:
@@ -21,6 +24,14 @@ func list_todos() -> Array[TodoItem]:
 	for row in rows:
 		result.append(TodoItem.from_row(row))
 	return result
+
+
+## First mission in list order (top of the task list).
+func get_top_todo() -> TodoItem:
+	var items := list_todos()
+	if items.is_empty():
+		return null
+	return items[0]
 
 
 func get_todo(todo_id: int) -> TodoItem:
@@ -60,6 +71,8 @@ func save_todo(item: TodoItem, emit_updated: bool = true) -> bool:
 		var updated := get_todo(item.id)
 		if updated:
 			todo_updated.emit(updated)
+	else:
+		todo_stats_changed.emit()
 	return true
 
 
@@ -69,6 +82,36 @@ func set_status(todo_id: int, status: String, emit_updated: bool = true) -> bool
 		return false
 	item.status = status
 	return save_todo(item, emit_updated)
+
+
+func move_todo_relative_to(dragged_id: int, target_id: int, insert_before: bool) -> bool:
+	var items := list_todos()
+	var from_idx := -1
+	var target_idx := -1
+	for i in items.size():
+		if items[i].id == dragged_id:
+			from_idx = i
+		if items[i].id == target_id:
+			target_idx = i
+	if from_idx < 0 or target_idx < 0 or from_idx == target_idx:
+		return false
+	var moved := items[from_idx]
+	items.remove_at(from_idx)
+	if from_idx < target_idx:
+		target_idx -= 1
+	var insert_idx := target_idx if insert_before else target_idx + 1
+	insert_idx = clampi(insert_idx, 0, items.size())
+	items.insert(insert_idx, moved)
+	var changed := false
+	for i in items.size():
+		if items[i].sort_order != i:
+			items[i].sort_order = i
+			if not Database.update_todo(items[i]):
+				return false
+			changed = true
+	if changed:
+		todo_reordered.emit()
+	return true
 
 
 func delete_todo(todo_id: int) -> bool:

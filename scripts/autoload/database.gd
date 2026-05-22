@@ -410,8 +410,13 @@ func insert_pomodoro_session(
 		+ "VALUES (?, ?, ?, ?);",
 		[now, planned_duration_sec, target_type, target_val]
 	):
+		push_error("insert_pomodoro_session: %s" % _db.error_message)
 		return -1
-	return int(_db.last_insert_rowid)
+	var session_id := int(_db.last_insert_rowid)
+	if session_id <= 0:
+		push_error("insert_pomodoro_session: invalid row id")
+		return -1
+	return session_id
 
 
 func complete_pomodoro_session(session_id: int, completed: bool = true) -> bool:
@@ -419,4 +424,14 @@ func complete_pomodoro_session(session_id: int, completed: bool = true) -> bool:
 	return _db.query_with_bindings(
 		"UPDATE pomodoro_sessions SET ended_at = ?, completed = ? WHERE id = ?;",
 		[now, 1 if completed else 0, session_id]
+	)
+
+
+func update_pomodoro_session_target(session_id: int, target_id: int) -> bool:
+	if session_id <= 0:
+		return false
+	var target_val: Variant = target_id if target_id > 0 else null
+	return _db.query_with_bindings(
+		"UPDATE pomodoro_sessions SET target_id = ? WHERE id = ?;",
+		[target_val, session_id]
 	)

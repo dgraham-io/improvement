@@ -8,46 +8,46 @@ SQLite **schema version 1** (`PRAGMA user_version = 1`). Canonical SQL: [`schema
 
 ```mermaid
 erDiagram
-    journal_entries ||--o{ todos : "optional journal_entry_id"
-    journal_entries ||--o{ pomodoro_sessions : "target"
-    todos ||--o{ pomodoro_sessions : "target"
+	journal_entries ||--o{ todos : "optional journal_entry_id"
+	journal_entries ||--o{ pomodoro_sessions : "target"
+	todos ||--o{ pomodoro_sessions : "target"
 
-    journal_entries {
-        int id PK
-        int created_at
-        int updated_at
-        text body
-        int deleted_at
-    }
+	journal_entries {
+		int id PK
+		int created_at
+		int updated_at
+		text body
+		int deleted_at
+	}
 
-    todos {
-        int id PK
-        int created_at
-        int updated_at
-        text title
-        text notes
-        text status
-        int priority
-        int due_at
-        int sort_order
-        int journal_entry_id FK
-        int deleted_at
-    }
+	todos {
+		int id PK
+		int created_at
+		int updated_at
+		text title
+		text notes
+		text status
+		int priority
+		int due_at
+		int sort_order
+		int journal_entry_id FK
+		int deleted_at
+	}
 
-    pomodoro_sessions {
-        int id PK
-        int started_at
-        int ended_at
-        int planned_duration_sec
-        text target_type
-        int target_id
-        int completed
-    }
+	pomodoro_sessions {
+		int id PK
+		int started_at
+		int ended_at
+		int planned_duration_sec
+		text target_type
+		int target_id
+		int completed
+	}
 
-    app_settings {
-        text key PK
-        text value
-    }
+	app_settings {
+		text key PK
+		text value
+	}
 ```
 
 ## Tables
