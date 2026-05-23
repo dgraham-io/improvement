@@ -1,6 +1,8 @@
 ## Persists OS window size (and position) to app_settings for exported/desktop runs.
 extends Node
 
+const _WindowLayoutLogic := preload("res://scripts/ui/window_layout_logic.gd")
+
 const MIN_WIDTH := 800
 const MIN_HEIGHT := 600
 const SAVE_DELAY_SEC := 0.4
@@ -54,13 +56,16 @@ func _restore_window_layout() -> void:
 	var height := maxi(MIN_HEIGHT, int(height_str))
 	var mode_str := Database.get_setting(DbConstants.SETTING_WINDOW_MODE, "")
 	if not mode_str.is_empty():
-		win.mode = int(mode_str) as Window.Mode
+		var saved_mode := int(mode_str) as Window.Mode
+		win.mode = _WindowLayoutLogic.restore_mode(saved_mode)
 	if win.mode == Window.MODE_WINDOWED:
 		win.size = Vector2i(width, height)
 		var x_str := Database.get_setting(DbConstants.SETTING_WINDOW_X, "")
 		var y_str := Database.get_setting(DbConstants.SETTING_WINDOW_Y, "")
 		if not x_str.is_empty() and not y_str.is_empty():
-			win.position = Vector2i(int(x_str), int(y_str))
+			var pos := Vector2i(int(x_str), int(y_str))
+			var screen := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
+			win.position = _WindowLayoutLogic.clamp_position_to_screen(pos, win.size, screen)
 	_restoring = false
 
 
@@ -74,7 +79,10 @@ func _save_window_layout() -> void:
 	var win := _get_root_window()
 	if win == null:
 		return
-	Database.set_setting(DbConstants.SETTING_WINDOW_MODE, str(win.mode))
+	Database.set_setting(
+		DbConstants.SETTING_WINDOW_MODE,
+		str(_WindowLayoutLogic.persistable_mode(win.mode))
+	)
 	if win.mode == Window.MODE_WINDOWED:
 		Database.set_setting(DbConstants.SETTING_WINDOW_WIDTH, str(win.size.x))
 		Database.set_setting(DbConstants.SETTING_WINDOW_HEIGHT, str(win.size.y))
