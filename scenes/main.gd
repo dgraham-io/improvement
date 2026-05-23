@@ -2,6 +2,7 @@
 extends Control
 
 const JOURNAL_ROW_SCENE := preload("res://scenes/journal/journal_entry_row.tscn")
+const JOURNAL_DAILY_METRICS_SCENE := preload("res://scenes/journal/journal_daily_metrics_row.tscn")
 const TODO_ROW_SCENE := preload("res://scenes/todos/todo_row.tscn")
 
 ## Fixed at 1.0 until Settings UI can adjust `app_settings.ui_scale` (see docs).
@@ -115,9 +116,9 @@ func _on_todo_deleted(todo_id: int) -> void:
 
 
 func _on_pomodoro_session_ended(target_type: String, target_id: int, _completed: bool) -> void:
-	if target_type != DbConstants.TARGET_TODO or target_id <= 0:
-		return
-	_refresh_todo_work_stats(target_id)
+	if target_type == DbConstants.TARGET_TODO and target_id > 0:
+		_refresh_todo_work_stats(target_id)
+	_refresh_journal_list_deferred()
 
 
 func _refresh_todo_work_stats(todo_id: int) -> void:
@@ -349,12 +350,25 @@ func _refresh_journal_list() -> void:
 	_clear_vbox(_journal_vbox, _journal_empty_label)
 	var entries := JournalService.list_entries()
 	_journal_empty_label.visible = entries.is_empty()
-	for entry in entries:
-		var row: JournalEntryRow = JOURNAL_ROW_SCENE.instantiate()
-		_journal_vbox.add_child(row)
-		row.edit_requested.connect(_on_journal_edit_requested)
-		row.delete_requested.connect(_on_journal_delete_requested)
-		row.setup(entry)
+	if entries.is_empty():
+		_update_gamification_placeholders()
+		return
+	var index := 0
+	while index < entries.size():
+		var day_start := TimeFormat.local_day_start(entries[index].created_at)
+		while index < entries.size():
+			var entry := entries[index]
+			if TimeFormat.local_day_start(entry.created_at) != day_start:
+				break
+			var row: JournalEntryRow = JOURNAL_ROW_SCENE.instantiate()
+			_journal_vbox.add_child(row)
+			row.edit_requested.connect(_on_journal_edit_requested)
+			row.delete_requested.connect(_on_journal_delete_requested)
+			row.setup(entry)
+			index += 1
+		var metrics: JournalDailyMetricsRow = JOURNAL_DAILY_METRICS_SCENE.instantiate()
+		_journal_vbox.add_child(metrics)
+		metrics.setup(PomodoroService.get_daily_work_stats(day_start))
 	_update_gamification_placeholders()
 
 

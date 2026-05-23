@@ -1,0 +1,164 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8journalmetrics01"]
+
+[ext_resource type="Script" path="res://scenes/journal/journal_daily_metrics_row.gd" id="1_script"]
+
+[node name="JournalDailyMetricsRow" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 120)
+size_flags_horizontal = 3
+theme_type_variation = &"PanelContainer_accent"
+script = ExtResource("1_script")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="HeaderRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AccentDot" type="ColorRect" parent="MarginContainer/VBoxContainer/HeaderRow"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 2
+size_flags_vertical = 4
+color = Color(0.658824, 0.333333, 0.968627, 0.95)
+
+[node name="HeaderText" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="DayHeadingLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderRow/HeaderText"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_title"
+theme_override_font_sizes/font_size = 20
+text = "Today"
+
+[node name="DaySubtitleLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderRow/HeaderText"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+text = "End of day summary"
+
+[node name="EndOfDayBadge" type="Label" parent="MarginContainer/VBoxContainer/HeaderRow"]
+layout_mode = 2
+theme_type_variation = &"Label_accent"
+text = "Focus recap"
+
+[node name="HeroRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="FocusColumn" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HeroRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="FocusCaption" type="Label" parent="MarginContainer/VBoxContainer/HeroRow/FocusColumn"]
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+text = "Total focus"
+
+[node name="FocusValueLabel" type="Label" parent="MarginContainer/VBoxContainer/HeroRow/FocusColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.133333, 0.866667, 1, 1)
+theme_override_font_sizes/font_size = 34
+text = "0m"
+
+[node name="PomodoroColumn" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HeroRow"]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 2
+
+[node name="PomodoroCaption" type="Label" parent="MarginContainer/VBoxContainer/HeroRow/PomodoroColumn"]
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+text = "Pomodoros"
+horizontal_alignment = 2
+
+[node name="PomodoroValueLabel" type="Label" parent="MarginContainer/VBoxContainer/HeroRow/PomodoroColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92549, 0.282353, 0.6, 1)
+theme_override_font_sizes/font_size = 34
+text = "0"
+horizontal_alignment = 2
+
+[node name="GoalProgressBar" type="ProgressBar" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+show_percentage = false
+value = 0.35
+
+[node name="GoalCaptionLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+theme_override_font_sizes/font_size = 13
+text = "0m of 4h focus goal"
+
+[node name="StatsGrid" type="GridContainer" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 4
+
+[node name="JournalCaption" type="Label" parent="MarginContainer/VBoxContainer/StatsGrid"]
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+text = "Journal"
+
+[node name="MissionsCaption" type="Label" parent="MarginContainer/VBoxContainer/StatsGrid"]
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+text = "Missions"
+
+[node name="SessionsCaption" type="Label" parent="MarginContainer/VBoxContainer/StatsGrid"]
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+text = "Sessions"
+
+[node name="JournalValueLabel" type="Label" parent="MarginContainer/VBoxContainer/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_accent"
+text = "0m"
+
+[node name="MissionsValueLabel" type="Label" parent="MarginContainer/VBoxContainer/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_accent"
+text = "0m"
+
+[node name="SessionsValueLabel" type="Label" parent="MarginContainer/VBoxContainer/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_accent"
+text = "0"
+
+[node name="HourlyBars" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+alignment = 2
+
+[node name="EmptyHintLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+text = "No pomodoro sessions recorded this day — start a timer while writing or on a mission."
+autowrap_mode = 3

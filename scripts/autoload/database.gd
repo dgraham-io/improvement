@@ -3,6 +3,7 @@
 extends Node
 
 const _DatabaseOpen := preload("res://scripts/database/database_open.gd")
+const _DailyWorkStats := preload("res://scripts/models/daily_work_stats.gd")
 
 signal ready_changed(is_ready: bool)
 
@@ -494,3 +495,67 @@ func fetch_todo_pomodoro_work_stats(todo_id: int) -> Dictionary:
 
 func _empty_todo_work_stats() -> Dictionary:
 	return {"completed_pomodoros": 0, "total_work_sec": 0}
+
+
+func fetch_daily_pomodoro_stats(day_anchor_unix: int) -> Dictionary:
+	if day_anchor_unix <= 0:
+		return _empty_daily_work_stats()
+	var summary := _empty_daily_work_stats()
+	var day_end_unix := day_anchor_unix + 86400
+	if not _db.query_with_bindings(
+		"SELECT COUNT(*) AS session_count, "
+		+ "SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) AS completed_pomodoros, "
+		+ "SUM(CASE WHEN ended_at IS NOT NULL AND ended_at > started_at "
+		+ "THEN (ended_at - started_at) ELSE 0 END) AS total_work_sec, "
+		+ "SUM(CASE WHEN target_type = ? AND ended_at IS NOT NULL AND ended_at > started_at "
+		+ "THEN (ended_at - started_at) ELSE 0 END) AS journal_work_sec, "
+		+ "SUM(CASE WHEN target_type = ? AND ended_at IS NOT NULL AND ended_at > started_at "
+		+ "THEN (ended_at - started_at) ELSE 0 END) AS todo_work_sec "
+		+ "FROM pomodoro_sessions "
+		+ "WHERE started_at >= ? AND started_at < ?;",
+		[DbConstants.TARGET_JOURNAL, DbConstants.TARGET_TODO, day_anchor_unix, day_end_unix]
+	):
+		push_error("fetch_daily_pomodoro_stats: %s" % _db.error_message)
+		return summary
+	if not _db.query_result.is_empty():
+		var row := _db.query_result[0]
+		summary["session_count"] = DbRow.int_value(row.get("session_count"))
+		summary["completed_pomodoros"] = DbRow.int_value(row.get("completed_pomodoros"))
+		summary["total_work_sec"] = DbRow.int_value(row.get("total_work_sec"))
+		summary["journal_work_sec"] = DbRow.int_value(row.get("journal_work_sec"))
+		summary["todo_work_sec"] = DbRow.int_value(row.get("todo_work_sec"))
+	summary["hourly_work_sec"] = _fetch_daily_hourly_work_sec(day_anchor_unix)
+	return summary
+
+
+func _fetch_daily_hourly_work_sec(day_anchor_unix: int) -> PackedInt32Array:
+	var hourly := PackedInt32Array()
+	hourly.resize(24)
+	hourly.fill(0)
+	var day_end_unix := day_anchor_unix + 86400
+	if not _db.query_with_bindings(
+		"SELECT CAST(strftime('%H', started_at, 'unixepoch', 'localtime') AS INTEGER) AS hour_of_day, "
+		+ "SUM(CASE WHEN ended_at IS NOT NULL AND ended_at > started_at "
+		+ "THEN (ended_at - started_at) ELSE 0 END) AS work_sec "
+		+ "FROM pomodoro_sessions "
+		+ "WHERE started_at >= ? AND started_at < ? "
+		+ "GROUP BY hour_of_day;",
+		[day_anchor_unix, day_end_unix]
+	):
+		push_error("_fetch_daily_hourly_work_sec: %s" % _db.error_message)
+		return hourly
+	for row in _db.query_result:
+		var hour := DbRow.int_value(row.get("hour_of_day"), -1)
+		if hour < 0 or hour > 23:
+			continue
+		hourly[hour] = DbRow.int_value(row.get("work_sec"))
+	return hourly
+
+
+func _empty_daily_work_stats() -> Dictionary:
+	var empty: Dictionary = _DailyWorkStats.EMPTY.duplicate(true)
+	var hourly := PackedInt32Array()
+	hourly.resize(24)
+	hourly.fill(0)
+	empty["hourly_work_sec"] = hourly
+	return empty

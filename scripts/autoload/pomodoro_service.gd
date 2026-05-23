@@ -1,6 +1,8 @@
 ## Single active Pomodoro countdown; persists sessions via Database.
 extends Node
 
+const _DailyWorkStats := preload("res://scripts/models/daily_work_stats.gd")
+
 signal state_changed
 signal session_ended(target_type: String, target_id: int, completed: bool)
 
@@ -125,6 +127,11 @@ func stop_if_journal() -> void:
 
 func has_active_todo_session() -> bool:
 	return _session_id > 0 and active_target_type == DbConstants.TARGET_TODO
+
+
+func get_daily_work_stats(day_start_unix: int):
+	var data := Database.fetch_daily_pomodoro_stats(day_start_unix)
+	return _DailyWorkStats.from_dictionary(day_start_unix, data)
 
 
 func _process(_delta: float) -> void:
