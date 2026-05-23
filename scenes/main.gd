@@ -267,7 +267,7 @@ func _reset_composer() -> void:
 	_editing_entry = null
 	_composer_field.text = ""
 	_composer_timestamps.text = "New entry — timestamps are set when you save."
-	_composer_save_button.text = "Save entry"
+	_composer_save_button.text = "Save"
 	_composer_delete_button.visible = false
 	_composer_cancel_button.visible = true
 
@@ -280,7 +280,7 @@ func _load_entry_into_composer(entry: JournalEntry) -> void:
 		entry.created_at,
 		entry.updated_at
 	)
-	_composer_save_button.text = "Save changes"
+	_composer_save_button.text = "Save"
 	_composer_delete_button.visible = true
 	_composer_cancel_button.visible = true
 	_composer_field.grab_focus()

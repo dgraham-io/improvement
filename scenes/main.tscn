@@ -164,7 +164,7 @@ text = "Delete"
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Button_primary"
-text = "Save entry"
+text = "Save"
 
 [node name="ComposerActionsSpacer" type="Control" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions" unique_id=171494534]
 layout_mode = 2
