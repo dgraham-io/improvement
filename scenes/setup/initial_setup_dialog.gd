@@ -5,14 +5,32 @@ extends CanvasLayer
 signal directory_confirmed(db_directory: String)
 signal canceled
 
+enum Mode { FIRST_RUN, OPEN_FAILURE }
+
+var _mode: Mode = Mode.FIRST_RUN
+var _open_failure_message: String = ""
+var _open_failure_directory: String = ""
+
+@onready var _title_label: Label = %TitleLabel
+@onready var _body_label: Label = %BodyLabel
 @onready var _path_field: LineEdit = %PathField
 @onready var _hint_label: Label = %HintLabel
 @onready var _error_label: Label = %ErrorLabel
+@onready var _continue_button: Button = %ContinueButton
 @onready var _folder_dialog: FileDialog = %FolderDialog
+
+
+func configure_as_open_failure(error_message: String, attempted_directory: String) -> void:
+	_mode = Mode.OPEN_FAILURE
+	_open_failure_message = error_message
+	_open_failure_directory = AppConfig.normalize_directory(attempted_directory)
 
 
 func _ready() -> void:
 	_folder_dialog.dir_selected.connect(_on_folder_selected)
+	if _mode == Mode.OPEN_FAILURE:
+		_apply_open_failure_ui()
+		return
 	var suggested := AppConfig.suggested_dropbox_directory()
 	if suggested.is_empty():
 		_path_field.text = AppConfig.default_local_directory()
@@ -26,6 +44,8 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _mode == Mode.OPEN_FAILURE:
+		return
 	if event.is_action_pressed(&"ui_cancel"):
 		canceled.emit()
 		get_viewport().set_input_as_handled()
@@ -61,6 +81,18 @@ func _on_continue_pressed() -> void:
 	_error_label.text = ""
 	directory_confirmed.emit(directory)
 	queue_free()
+
+
+func _apply_open_failure_ui() -> void:
+	_title_label.text = "Could not open database"
+	_body_label.text = _open_failure_message
+	_path_field.text = _open_failure_directory
+	_hint_label.text = (
+		"Check that the folder exists and is writable. "
+		+ "If another app has improvement.db open, close it and retry."
+	)
+	_continue_button.text = "Retry"
+	_error_label.text = ""
 
 
 func _validate_directory(directory: String) -> String:

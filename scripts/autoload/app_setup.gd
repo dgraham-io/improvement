@@ -37,3 +37,14 @@ func _on_canceled() -> void:
 		_dialog.queue_free()
 		_dialog = null
 	call_deferred("_present_setup")
+
+
+func request_open_retry(error_message: String, attempted_directory: String) -> String:
+	var tree := get_tree()
+	if tree == null or tree.root == null:
+		return attempted_directory
+	var dialog := preload("res://scenes/setup/initial_setup_dialog.tscn").instantiate()
+	dialog.configure_as_open_failure(error_message, attempted_directory)
+	tree.root.add_child(dialog)
+	var db_directory: String = await dialog.directory_confirmed
+	return db_directory

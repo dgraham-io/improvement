@@ -1,30 +1,39 @@
-## Autoload: opens user://improvement.db, runs migrations, exposes typed data access.
+## Autoload: opens `<db_directory>/improvement.db`, runs migrations, exposes typed data access.
 ## UI and feature code should use JournalService / TodoService, not query SQL directly.
 extends Node
+
+const _DatabaseOpen := preload("res://scripts/database/database_open.gd")
 
 signal ready_changed(is_ready: bool)
 
 var is_ready: bool = false
 
 var _db: SQLite
+var _last_open_error: String = ""
 
 
 func _ready() -> void:
 	var db_directory := AppConfig.read_db_directory()
-	if db_directory.is_empty():
-		db_directory = await AppSetup.setup_completed
-	_initialize(db_directory)
+	while not is_ready:
+		if db_directory.is_empty():
+			db_directory = await AppSetup.setup_completed
+		if _initialize(db_directory):
+			break
+		push_error("Database: failed to open at %s — %s" % [db_directory, _last_open_error])
+		db_directory = await AppSetup.request_open_retry(_last_open_error, db_directory)
+		if not AppConfig.write_db_directory(db_directory):
+			push_error("AppSetup: failed to save app_config.json after open retry")
 
 
-func _initialize(db_directory: String) -> void:
+func _initialize(db_directory: String) -> bool:
 	if not _open_at_directory(db_directory):
-		push_error("Database: failed to open at %s" % db_directory)
-		return
+		return false
 	_migrate()
 	_apply_default_settings()
 	set_setting(DbConstants.SETTING_DB_DIRECTORY, AppConfig.normalize_directory(db_directory))
 	is_ready = true
 	ready_changed.emit(true)
+	return true
 
 
 func get_db_directory() -> String:
@@ -36,25 +45,12 @@ func get_db_file_path() -> String:
 
 
 func _open_at_directory(db_directory: String) -> bool:
-	var directory := AppConfig.normalize_directory(db_directory)
-	if directory.is_empty():
+	var result: _DatabaseOpen.OpenResult = _DatabaseOpen.try_open_at_directory(db_directory)
+	_last_open_error = result.error_message
+	if not result.ok:
+		_db = null
 		return false
-	if not DirAccess.dir_exists_absolute(directory):
-		var err_code := DirAccess.make_dir_recursive_absolute(directory)
-		if err_code != OK:
-			push_error("Database: cannot create directory %s (error %d)" % [directory, err_code])
-			return false
-	_db = SQLite.new()
-	_db.path = AppConfig.db_base_path(directory)
-	_db.foreign_keys = true
-	_db.default_extension = "db"
-	_db.verbosity_level = SQLite.QUIET if not OS.is_debug_build() else SQLite.NORMAL
-	if not _db.open_db():
-		push_error("Database.open_db failed: %s" % _db.error_message)
-		return false
-	if not _db.query("PRAGMA foreign_keys = ON;"):
-		push_error("Database: failed to enable foreign_keys: %s" % _db.error_message)
-		return false
+	_db = result.sqlite
 	return true
 
 

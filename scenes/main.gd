@@ -39,6 +39,8 @@ var _tracked_top_todo_id: int = 0
 func _ready() -> void:
 	if not Database.is_ready:
 		await Database.ready_changed
+	if not Database.is_ready:
+		return
 	_apply_ui_scale()
 	_setup_mission_status_option()
 	_connect_services()

@@ -17,6 +17,8 @@ var _end_at_unix: int = 0
 func _ready() -> void:
 	if not Database.is_ready:
 		await Database.ready_changed
+	if not Database.is_ready:
+		return
 	set_process(false)
 
 

@@ -12,6 +12,8 @@ signal todo_reordered
 func _ready() -> void:
 	if not Database.is_ready:
 		await Database.ready_changed
+	if not Database.is_ready:
+		return
 
 
 func get_todo_count() -> int:

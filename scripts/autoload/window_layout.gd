@@ -14,6 +14,8 @@ func _ready() -> void:
 		return
 	if not Database.is_ready:
 		await Database.ready_changed
+	if not Database.is_ready:
+		return
 	_save_timer = Timer.new()
 	_save_timer.one_shot = true
 	_save_timer.wait_time = SAVE_DELAY_SEC

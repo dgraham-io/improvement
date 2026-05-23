@@ -12,6 +12,8 @@ const DEFAULT_PAGE_SIZE := 100
 func _ready() -> void:
 	if not Database.is_ready:
 		await Database.ready_changed
+	if not Database.is_ready:
+		return
 
 
 func get_sort_newest_first() -> bool:

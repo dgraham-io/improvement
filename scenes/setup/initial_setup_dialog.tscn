@@ -44,11 +44,13 @@ size_flags_vertical = 3
 theme_override_constants/separation = 10
 
 [node name="TitleLabel" type="Label" parent="Center/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_title"
 text = "Where should your data live?"
 
 [node name="BodyLabel" type="Label" parent="Center/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Improvement stores everything in a single SQLite file (improvement.db). Pick a folder — for example inside Dropbox — so your journal and missions sync across devices."
@@ -94,6 +96,7 @@ theme_type_variation = &"Button_ghost"
 text = "Use local app data"
 
 [node name="ContinueButton" type="Button" parent="Center/Panel/MarginContainer/VBoxContainer/ActionsRow"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Button_primary"
 text = "Continue"
