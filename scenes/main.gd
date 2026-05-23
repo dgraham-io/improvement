@@ -70,6 +70,7 @@ func _connect_services() -> void:
 	TodoService.todo_reordered.connect(_refresh_todo_list_deferred)
 	TodoService.todo_deleted.connect(_on_todo_deleted)
 	PomodoroService.state_changed.connect(_on_pomodoro_state_changed)
+	PomodoroService.session_ended.connect(_on_pomodoro_session_ended)
 
 
 func _setup_mission_status_option() -> void:
@@ -109,6 +110,24 @@ func _on_todo_deleted(todo_id: int) -> void:
 	if PomodoroService.has_active_todo_session() and PomodoroService.active_target_id == todo_id:
 		PomodoroService.stop(false)
 	_refresh_todo_list_deferred()
+
+
+func _on_pomodoro_session_ended(target_type: String, target_id: int, _completed: bool) -> void:
+	if target_type != DbConstants.TARGET_TODO or target_id <= 0:
+		return
+	_refresh_todo_work_stats(target_id)
+
+
+func _refresh_todo_work_stats(todo_id: int) -> void:
+	var stats := TodoService.get_work_stats(todo_id)
+	for child in _todo_vbox.get_children():
+		if child == _todo_empty_label:
+			continue
+		if child is TodoRow:
+			var row := child as TodoRow
+			if row.item != null and row.item.id == todo_id:
+				row.update_work_stats(stats)
+				return
 
 
 func _on_pomodoro_state_changed() -> void:
@@ -340,6 +359,7 @@ func _refresh_journal_list() -> void:
 func _refresh_todo_list() -> void:
 	_clear_vbox(_todo_vbox, _todo_empty_label)
 	var items := TodoService.list_todos()
+	var work_stats_map := TodoService.get_work_stats_map()
 	_todo_empty_label.visible = items.is_empty()
 	for item in items:
 		var row: TodoRow = TODO_ROW_SCENE.instantiate()
@@ -347,7 +367,8 @@ func _refresh_todo_list() -> void:
 		row.edit_requested.connect(_on_todo_edit_requested)
 		row.delete_requested.connect(_on_todo_delete_requested)
 		row.reorder_requested.connect(_on_todo_reorder_requested)
-		row.setup(item)
+		var stats: Dictionary = work_stats_map.get(item.id, TodoRow.EMPTY_WORK_STATS)
+		row.setup(item, stats)
 	_update_todo_progress(items)
 	_update_mission_pomodoro_target()
 	_apply_todo_pomodoro_highlights()

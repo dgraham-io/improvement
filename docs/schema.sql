@@ -48,6 +48,7 @@ CREATE INDEX IF NOT EXISTS idx_todos_active_due
 
 -- ---------------------------------------------------------------------------
 -- pomodoro_sessions — work intervals linked to journal or todo (optional)
+-- Todo work time / completed pomodoro count are aggregated from this table (see docs/data-model.md).
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS pomodoro_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

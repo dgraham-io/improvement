@@ -2,6 +2,7 @@
 extends Node
 
 signal state_changed
+signal session_ended(target_type: String, target_id: int, completed: bool)
 
 var active_target_type: String = DbConstants.TARGET_NONE
 var active_target_id: int = 0
@@ -50,8 +51,18 @@ func start_for(target_type: String, target_id: int) -> bool:
 	is_paused = false
 	_end_at_unix = int(Time.get_unix_time_from_system()) + remaining_sec
 	set_process(true)
+	_mark_todo_in_progress_if_needed(target_type, target_id)
 	state_changed.emit()
 	return true
+
+
+func _mark_todo_in_progress_if_needed(target_type: String, target_id: int) -> void:
+	if target_type != DbConstants.TARGET_TODO or target_id <= 0:
+		return
+	var todo := TodoService.get_todo(target_id)
+	if todo == null or todo.status != DbConstants.TODO_PENDING:
+		return
+	TodoService.set_status(target_id, DbConstants.TODO_IN_PROGRESS)
 
 
 func attach_target(target_type: String, target_id: int) -> void:
@@ -88,6 +99,8 @@ func resume() -> void:
 
 
 func stop(mark_complete: bool = false) -> void:
+	var ended_type := active_target_type
+	var ended_id := active_target_id
 	if _session_id > 0:
 		Database.complete_pomodoro_session(_session_id, mark_complete)
 	_session_id = 0
@@ -99,6 +112,8 @@ func stop(mark_complete: bool = false) -> void:
 	_end_at_unix = 0
 	set_process(false)
 	state_changed.emit()
+	if ended_type != DbConstants.TARGET_NONE and ended_id > 0:
+		session_ended.emit(ended_type, ended_id, mark_complete)
 
 
 func stop_if_journal() -> void:

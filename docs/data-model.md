@@ -81,15 +81,32 @@ Task list. Optional `journal_entry_id` links a task to a journal entry.
 
 **Default sort:** `sort_order ASC`, then `created_at DESC`.
 
+**Pomodoro integration:** Work is tracked in `pomodoro_sessions` (not stored on the todo row). Starting a timer on a **pending** mission sets `status` to `in_progress`. Each row shows total elapsed work time; hover shows completed pomodoro count.
+
 ### `pomodoro_sessions`
 
-Work intervals for a future timer UI. `target_type` + `target_id` reference journal or todo when set.
+Work intervals linked to a journal entry or todo via `target_type` + `target_id`.
 
-| `target_type` | Meaning |
-|---------------|---------|
-| `none` | Untethered session |
-| `journal` | `target_id` → `journal_entries.id` |
-| `todo` | `target_id` → `todos.id` |
+| Column | Notes |
+|--------|--------|
+| `started_at` / `ended_at` | Unix UTC seconds; `ended_at` NULL while running |
+| `planned_duration_sec` | Default 1500 (25 min) |
+| `completed` | `1` when the timer ran to completion; `0` if stopped early |
+| `target_type` | `none`, `journal`, or `todo` |
+| `target_id` | FK to journal or todo when set |
+
+#### Pomodoro work tracking (computed)
+
+Per todo (`target_type = 'todo'`, `target_id = todos.id`):
+
+| Metric | Rule |
+|--------|------|
+| **Completed pomodoros** | Count sessions where `completed = 1` |
+| **Total work time** | Sum `(ended_at - started_at)` for sessions with `ended_at` set (includes partial sessions) |
+
+UI: mission rows show formatted work time (e.g. `25m`, `1h 15m`) instead of priority label `P0`; tooltip shows pomodoro count. Priority still drives the colored strip on the row.
+
+Queries: `Database.fetch_todo_pomodoro_work_stats()` / `fetch_todo_pomodoro_work_stats_map()`; `TodoService.get_work_stats()`.
 
 ### `app_settings`
 
@@ -117,7 +134,8 @@ Factory: `JournalEntry.from_row(dict)` / `TodoItem.from_row(dict)` after SQLite 
 |----------|--------|------|
 | `Database` | [`scripts/autoload/database.gd`](../scripts/autoload/database.gd) | Connection, migrations, SQL, settings |
 | `JournalService` | [`scripts/autoload/journal_service.gd`](../scripts/autoload/journal_service.gd) | Journal CRUD + search + signals |
-| `TodoService` | [`scripts/autoload/todo_service.gd`](../scripts/autoload/todo_service.gd) | Todo CRUD + signals |
+| `TodoService` | [`scripts/autoload/todo_service.gd`](../scripts/autoload/todo_service.gd) | Todo CRUD + signals + pomodoro work stats |
+| `PomodoroService` | [`scripts/autoload/pomodoro_service.gd`](../scripts/autoload/pomodoro_service.gd) | Single active timer; persists sessions; sets todo `in_progress` on first start |
 
 **Rule:** UI and gameplay code call **services**, not `Database`, except for rare low-level needs.
 
@@ -131,6 +149,7 @@ Factory: `JournalEntry.from_row(dict)` / `TodoItem.from_row(dict)` after SQLite 
 ### TodoService API
 
 - `list_todos()`, `get_todo(id)`, `create_todo(...)`, `save_todo(item)`, `set_status(id, status)`, `delete_todo(id)`
+- `get_work_stats(todo_id)`, `get_work_stats_map()` — pomodoro elapsed time + completed count per todo
 - Signals: `todo_created`, `todo_updated`, `todo_deleted`
 
 ## Search (v1)
@@ -151,4 +170,3 @@ Factory: `JournalEntry.from_row(dict)` / `TodoItem.from_row(dict)` after SQLite 
 - Cloud sync  
 - FTS5  
 - Attachments / blobs  
-- Pomodoro UI (persistence API exists on `Database`)

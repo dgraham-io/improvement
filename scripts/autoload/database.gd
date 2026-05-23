@@ -449,3 +449,52 @@ func update_pomodoro_session_target(session_id: int, target_id: int) -> bool:
 		"UPDATE pomodoro_sessions SET target_id = ? WHERE id = ?;",
 		[target_val, session_id]
 	)
+
+
+func fetch_todo_pomodoro_work_stats_map() -> Dictionary:
+	if not _db.query_with_bindings(
+		"SELECT target_id, "
+		+ "SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) AS completed_pomodoros, "
+		+ "SUM(CASE WHEN ended_at IS NOT NULL AND ended_at > started_at "
+		+ "THEN (ended_at - started_at) ELSE 0 END) AS total_work_sec "
+		+ "FROM pomodoro_sessions WHERE target_type = ? AND target_id IS NOT NULL "
+		+ "GROUP BY target_id;",
+		[DbConstants.TARGET_TODO]
+	):
+		push_error("fetch_todo_pomodoro_work_stats_map: %s" % _db.error_message)
+		return {}
+	var result: Dictionary = {}
+	for row in _db.query_result:
+		var todo_id := int(row.get("target_id", 0))
+		if todo_id <= 0:
+			continue
+		result[todo_id] = {
+			"completed_pomodoros": int(row.get("completed_pomodoros", 0)),
+			"total_work_sec": int(row.get("total_work_sec", 0)),
+		}
+	return result
+
+
+func fetch_todo_pomodoro_work_stats(todo_id: int) -> Dictionary:
+	if todo_id <= 0:
+		return _empty_todo_work_stats()
+	if not _db.query_with_bindings(
+		"SELECT "
+		+ "SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) AS completed_pomodoros, "
+		+ "SUM(CASE WHEN ended_at IS NOT NULL AND ended_at > started_at "
+		+ "THEN (ended_at - started_at) ELSE 0 END) AS total_work_sec "
+		+ "FROM pomodoro_sessions WHERE target_type = ? AND target_id = ?;",
+		[DbConstants.TARGET_TODO, todo_id]
+	):
+		return _empty_todo_work_stats()
+	if _db.query_result.is_empty():
+		return _empty_todo_work_stats()
+	var row := _db.query_result[0]
+	return {
+		"completed_pomodoros": int(row.get("completed_pomodoros", 0)),
+		"total_work_sec": int(row.get("total_work_sec", 0)),
+	}
+
+
+func _empty_todo_work_stats() -> Dictionary:
+	return {"completed_pomodoros": 0, "total_work_sec": 0}

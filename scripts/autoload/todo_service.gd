@@ -41,6 +41,14 @@ func get_todo(todo_id: int) -> TodoItem:
 	return TodoItem.from_row(row)
 
 
+func get_work_stats_map() -> Dictionary:
+	return Database.fetch_todo_pomodoro_work_stats_map()
+
+
+func get_work_stats(todo_id: int) -> Dictionary:
+	return Database.fetch_todo_pomodoro_work_stats(todo_id)
+
+
 func create_todo(
 	title: String,
 	notes: String = "",

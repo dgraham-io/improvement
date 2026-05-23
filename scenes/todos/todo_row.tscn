@@ -76,11 +76,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Mission title"
 
-[node name="PriorityLabel" type="Label" parent="MarginContainer/HBoxContainer/VBoxContainer/TitleRow"]
+[node name="WorkTimeLabel" type="Label" parent="MarginContainer/HBoxContainer/VBoxContainer/TitleRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_accent"
-text = "P0"
+text = ""
 
 [node name="MissionProgressBar" type="ProgressBar" parent="MarginContainer/HBoxContainer/VBoxContainer"]
 unique_name_in_owner = true

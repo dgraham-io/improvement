@@ -23,7 +23,7 @@ Early prototype with **SQLite-backed** journal and todo lists (create, edit, del
 | SQLite schema + migrations | Shipped (`user://improvement.db`) |
 | `JournalService` / `TodoService` | Shipped |
 | Encryption | Planned |
-| Pomodoro timer UI | Planned (DB table exists) |
+| Pomodoro timer UI | Shipped (journal + top mission; todo work time on rows) |
 | Dropbox / iCloud sync | Planned |
 
 ## Features
@@ -32,7 +32,8 @@ Early prototype with **SQLite-backed** journal and todo lists (create, edit, del
 
 - Two-pane UI: journal timeline (left) and task list (right), separated by a draggable split.
 - Lists loaded from `user://improvement.db` via **JournalService** / **TodoService**.
-- **+ New entry** / **+ New todo** dialogs; row **Edit** / **Delete**; todo checkbox marks done.
+- **+ New entry** / **+ New todo**; inline mission editor; row **Edit** / **Delete**; todo checkbox marks done.
+- **Pomodoro timers** on journal composer and top mission; starting a mission timer sets status to **in progress** and records work time on the row (completed pomodoro count + elapsed time).
 - Global theme ([`assets/themes/improvement_theme.tres`](assets/themes/improvement_theme.tres)) with Roboto at 20px base size.
 - UI scale fixed at **1.0** (`content_scale_factor`); user-adjustable scale planned in Settings.
 
@@ -40,7 +41,7 @@ Early prototype with **SQLite-backed** journal and todo lists (create, edit, del
 
 - Journal entries that form a timeline.
 - Task list with focus on what matters today.
-- Pomodoro timer for journal entries and tasks.
+- Pomodoro on arbitrary todo rows (today: top-of-list mission timer only).
 - Encrypted, indexed local storage.
 - Dropbox / iCloud storage.
 
@@ -117,7 +118,7 @@ Next UI step: `scenes/journal/journal_entry_row.tscn` and bind lists to `Journal
 1. ~~SQLite schema + services~~ (done — see [docs/data-model.md](docs/data-model.md)).
 2. ~~Journal/todo UI bound to services~~ (done).
 3. User preferences UI (`app_settings`: sort, theme) — **TODO:** UI scale slider bound to `ui_scale` / `content_scale_factor`.
-4. Pomodoro timer linked to active entry or task.
+4. ~~Pomodoro timer linked to active entry or task~~ (partial — see [docs/data-model.md](docs/data-model.md)#pomodoro-work-tracking).
 5. Encryption at rest for the local database.
 6. Optional sync (Dropbox / iCloud) behind a clear export/backup flow.
 

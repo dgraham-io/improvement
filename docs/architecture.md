@@ -42,7 +42,7 @@ flowchart TB
   subgraph application [Application layer]
 	JournalSvc[JournalService autoload]
 	TodoSvc[TodoService autoload]
-	TimerSvc[PomodoroService - planned]
+	TimerSvc[PomodoroService]
   end
 
   subgraph data [Data layer]
@@ -107,7 +107,8 @@ Main (Control, theme)
 - **Resource** models: `JournalEntry`, `TodoItem`, `PomodoroSession`; `DbRow` for nullable SQLite fields.
 - **UI:** `main.gd` lists rows from services; dialogs for create/edit; soft delete from rows.
 - First run starts with an empty journal and todo list (no sample rows).
-- **Not yet:** encryption; sync; Pomodoro UI; FTS5; settings UI.
+- **PomodoroService** on missions: first timer start → `in_progress`; sessions aggregated for row work-time label.
+- **Not yet:** encryption; sync; FTS5; settings UI.
 
 ---
 
@@ -217,16 +218,17 @@ Conflict policy (last-write-wins vs merge) — **Open**.
 | `Database` | Shipped | SQLite, migrations, repository SQL, `app_settings` |
 | `JournalService` | Shipped | Journal CRUD, search, sort preference, signals |
 | `TodoService` | Shipped | Todo CRUD, status, signals |
-| `PomodoroService` | Planned | Timer UX; DB insert/complete exists on `Database` |
+| `PomodoroService` | Shipped | Single active timer; todo → `in_progress` on first start; `session_ended` for row refresh |
 | `Settings` | Partial | Keys in DB; dedicated autoload optional later |
 
 UI refresh: connect to `JournalService.entry_*` and `TodoService.todo_*` signals to rebuild scroll lists.
 
-### Pomodoro (**Open**)
+### Pomodoro (shipped behavior)
 
-- Global floating timer vs inline per row.  
-- One active session at a time vs multiple.  
-- Persist sessions to DB or ephemeral only.
+- One global timer (`PomodoroService`); widgets on journal composer and top mission.
+- Starting a timer on a **pending** todo sets `status` to `in_progress`.
+- Sessions stored in `pomodoro_sessions`; mission rows show **total work time** and tooltip pomodoro count (replaces `P0` label).
+- **Open:** timer on every todo row; attach/switch mid-session rules; journal-only UX polish.
 
 ---
 
@@ -301,7 +303,7 @@ Wire rows to `JournalService.list_entries()` / `TodoService.list_todos()`.
 | **1** | Database + schema v1 + Journal/Todo services + models — **done** |
 | **2** | Journal/todo row scenes + UI bound to services — **done** |
 | **3** | Settings UI; layout flags; **TODO:** user-adjustable UI scale via `app_settings.ui_scale` |
-| **4** | Pomodoro service + UI |
+| **4** | Pomodoro service + UI — **partial** (timers + todo work stats; per-row timers open) |
 | **5** | Encryption at rest |
 | **6** | Backup / sync provider |
 
