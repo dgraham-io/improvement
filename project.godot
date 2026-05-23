@@ -24,6 +24,7 @@ JournalService="*res://scripts/autoload/journal_service.gd"
 TodoService="*res://scripts/autoload/todo_service.gd"
 TagService="*res://scripts/autoload/tag_service.gd"
 PomodoroService="*res://scripts/autoload/pomodoro_service.gd"
+SoundService="*res://scripts/autoload/sound_service.gd"
 
 [display]
 
