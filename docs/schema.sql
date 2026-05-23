@@ -1,5 +1,5 @@
--- Improvement — SQLite schema reference (v3)
--- Applied at runtime by scripts/autoload/database.gd (PRAGMA user_version = 3).
+-- Improvement — SQLite schema reference (v4)
+-- Applied at runtime by scripts/autoload/database.gd (PRAGMA user_version = 4).
 -- Database file: <chosen_folder>/improvement.db (see user://app_config.json)
 
 PRAGMA foreign_keys = ON;
@@ -45,6 +45,34 @@ CREATE INDEX IF NOT EXISTS idx_todos_active_sort
 CREATE INDEX IF NOT EXISTS idx_todos_active_due
     ON todos (due_at ASC)
     WHERE deleted_at IS NULL AND due_at IS NOT NULL;
+
+-- ---------------------------------------------------------------------------
+-- tags — optional labels shared by journal entries and todos
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL COLLATE NOCASE,
+    created_at INTEGER NOT NULL,
+    UNIQUE (name)
+);
+
+CREATE TABLE IF NOT EXISTS journal_entry_tags (
+    entry_id INTEGER NOT NULL REFERENCES journal_entries (id) ON DELETE CASCADE,
+    tag_id INTEGER NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
+    PRIMARY KEY (entry_id, tag_id)
+);
+
+CREATE TABLE IF NOT EXISTS todo_tags (
+    todo_id INTEGER NOT NULL REFERENCES todos (id) ON DELETE CASCADE,
+    tag_id INTEGER NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
+    PRIMARY KEY (todo_id, tag_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_journal_entry_tags_tag
+    ON journal_entry_tags (tag_id);
+
+CREATE INDEX IF NOT EXISTS idx_todo_tags_tag
+    ON todo_tags (tag_id);
 
 -- ---------------------------------------------------------------------------
 -- pomodoro_sessions — work intervals linked to journal or todo (optional)

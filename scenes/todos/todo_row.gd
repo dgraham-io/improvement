@@ -2,6 +2,8 @@
 class_name TodoRow
 extends PanelContainer
 
+const _TagDisplay := preload("res://scripts/ui/tag_display.gd")
+
 signal edit_requested(item: TodoItem)
 signal delete_requested(todo_id: int)
 signal reorder_requested(dragged_id: int, target_id: int, insert_before: bool)
@@ -20,6 +22,7 @@ var item: TodoItem
 @onready var _check_box: MissionLedCheck = %DoneCheckBox
 @onready var _title_label: Label = %TitleLabel
 @onready var _notes_label: Label = %NotesLabel
+@onready var _tags_label: Label = %TagsLabel
 @onready var _work_time_label: Label = %WorkTimeLabel
 @onready var _priority_strip: ColorRect = %PriorityStrip
 @onready var _progress_bar: ProgressBar = %MissionProgressBar
@@ -52,7 +55,7 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	reorder_requested.emit(dragged_id, item.id, insert_before)
 
 
-func setup(todo_item: TodoItem, work_stats: Dictionary = EMPTY_WORK_STATS) -> void:
+func setup(todo_item: TodoItem, work_stats: Dictionary = EMPTY_WORK_STATS, tags: Array = []) -> void:
 	item = todo_item
 	_work_stats = work_stats
 	_check_box.set_block_signals(true)
@@ -62,6 +65,9 @@ func setup(todo_item: TodoItem, work_stats: Dictionary = EMPTY_WORK_STATS) -> vo
 	_title_label.text = todo_item.title
 	_notes_label.text = todo_item.notes.strip_edges()
 	_notes_label.visible = not _notes_label.text.is_empty()
+	var tag_text := _TagDisplay.format_tag_names(tags)
+	_tags_label.text = tag_text
+	_tags_label.visible = not tag_text.is_empty()
 	_apply_priority_strip(todo_item.priority)
 	_apply_work_stats(work_stats)
 	_apply_progress(todo_item, work_stats)

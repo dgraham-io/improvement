@@ -6,6 +6,7 @@
 [ext_resource type="Theme" uid="uid://bjs7igpj47wt0" path="res://assets/themes/improvement_theme.tres" id="1_theme"]
 [ext_resource type="Texture2D" uid="uid://boihexead64ec" path="res://assets/textures/ui/bg_gradient.tres" id="2_bg"]
 [ext_resource type="PackedScene" uid="uid://c8pomodoro01" path="res://scenes/ui/pomodoro_timer.tscn" id="3_pomo"]
+[ext_resource type="PackedScene" uid="uid://c8tagpicker01" path="res://scenes/ui/tag_picker.tscn" id="6_tag_picker"]
 
 [node name="Main" type="Control" unique_id=673025731]
 layout_mode = 3
@@ -141,6 +142,11 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 placeholder_text = "Write your journal entry here..."
 wrap_mode = 1
+
+[node name="ComposerTagPicker" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox" instance=ExtResource("6_tag_picker")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="ComposerActions" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox" unique_id=715288468]
 layout_mode = 2
@@ -322,6 +328,11 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 placeholder_text = "Notes (optional)"
 wrap_mode = 1
+
+[node name="MissionTagPicker" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox" instance=ExtResource("6_tag_picker")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="MissionActions" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox" unique_id=1127289808]
 layout_mode = 2

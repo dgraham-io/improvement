@@ -4,6 +4,8 @@ extends Node
 
 const _DatabaseOpen := preload("res://scripts/database/database_open.gd")
 const _DailyWorkStats := preload("res://scripts/models/daily_work_stats.gd")
+const _Tag := preload("res://scripts/models/tag.gd")
+const _TagNames := preload("res://scripts/tags/tag_names.gd")
 
 signal ready_changed(is_ready: bool)
 
@@ -68,6 +70,10 @@ func _migrate() -> void:
 	if version < 3:
 		_migrate_to_v3()
 		_set_user_version(3)
+		version = 3
+	if version < 4:
+		_migrate_to_v4()
+		_set_user_version(4)
 
 
 func _get_user_version() -> int:
@@ -209,6 +215,35 @@ func _migrate_to_v3() -> void:
 			return
 
 
+func _migrate_to_v4() -> void:
+	var statements: PackedStringArray = [
+		"""CREATE TABLE IF NOT EXISTS tags (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL COLLATE NOCASE,
+			created_at INTEGER NOT NULL,
+			UNIQUE (name)
+		);""",
+		"""CREATE TABLE IF NOT EXISTS journal_entry_tags (
+			entry_id INTEGER NOT NULL REFERENCES journal_entries (id) ON DELETE CASCADE,
+			tag_id INTEGER NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
+			PRIMARY KEY (entry_id, tag_id)
+		);""",
+		"""CREATE TABLE IF NOT EXISTS todo_tags (
+			todo_id INTEGER NOT NULL REFERENCES todos (id) ON DELETE CASCADE,
+			tag_id INTEGER NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
+			PRIMARY KEY (todo_id, tag_id)
+		);""",
+		"""CREATE INDEX IF NOT EXISTS idx_journal_entry_tags_tag
+			ON journal_entry_tags (tag_id);""",
+		"""CREATE INDEX IF NOT EXISTS idx_todo_tags_tag
+			ON todo_tags (tag_id);""",
+	]
+	for sql in statements:
+		if not _db.query(sql):
+			push_error("Migration v4 failed: %s\nSQL: %s" % [_db.error_message, sql])
+			return
+
+
 func _apply_default_settings() -> void:
 	if get_setting(DbConstants.SETTING_UI_SCALE, "").is_empty():
 		set_setting(DbConstants.SETTING_UI_SCALE, "1.0")
@@ -250,15 +285,37 @@ func fetch_journal_entries(
 	newest_first: bool,
 	limit: int,
 	offset: int,
-	include_deleted: bool = false
+	include_deleted: bool = false,
+	filter_tag_ids: Array = []
 ) -> Array:
 	var order := "DESC" if newest_first else "ASC"
-	var where := "" if include_deleted else " WHERE deleted_at IS NULL"
+	var where_parts: PackedStringArray = []
+	if not include_deleted:
+		where_parts.append("je.deleted_at IS NULL")
+	var bindings: Array = []
+	if not filter_tag_ids.is_empty():
+		var placeholders: PackedStringArray = []
+		for tag_id in filter_tag_ids:
+			var id := int(tag_id)
+			if id <= 0:
+				continue
+			placeholders.append("?")
+			bindings.append(id)
+		if not placeholders.is_empty():
+			where_parts.append(
+				"je.id IN (SELECT entry_id FROM journal_entry_tags WHERE tag_id IN (%s))"
+				% ",".join(placeholders)
+			)
+	var where := ""
+	if not where_parts.is_empty():
+		where = " WHERE " + " AND ".join(where_parts)
 	var sql := (
-		"SELECT id, created_at, updated_at, body, deleted_at "
-		+ "FROM journal_entries%s ORDER BY created_at %s LIMIT ? OFFSET ?;"
+		"SELECT je.id, je.created_at, je.updated_at, je.body, je.deleted_at "
+		+ "FROM journal_entries je%s ORDER BY je.created_at %s LIMIT ? OFFSET ?;"
 	) % [where, order]
-	if not _db.query_with_bindings(sql, [limit, offset]):
+	bindings.append(limit)
+	bindings.append(offset)
+	if not _db.query_with_bindings(sql, bindings):
 		push_error("fetch_journal_entries: %s" % _db.error_message)
 		return []
 	return _db.query_result.duplicate(true)
@@ -327,16 +384,40 @@ func count_todos(include_deleted: bool = false) -> int:
 	return int(_db.query_result[0].get("c", 0))
 
 
-func fetch_todos(include_deleted: bool = false) -> Array:
-	var where := "" if include_deleted else " WHERE deleted_at IS NULL"
+func fetch_todos(include_deleted: bool = false, filter_tag_ids: Array = []) -> Array:
+	var where_parts: PackedStringArray = []
+	if not include_deleted:
+		where_parts.append("t.deleted_at IS NULL")
+	var bindings: Array = []
+	if not filter_tag_ids.is_empty():
+		var placeholders: PackedStringArray = []
+		for tag_id in filter_tag_ids:
+			var id := int(tag_id)
+			if id <= 0:
+				continue
+			placeholders.append("?")
+			bindings.append(id)
+		if not placeholders.is_empty():
+			where_parts.append(
+				"t.id IN (SELECT todo_id FROM todo_tags WHERE tag_id IN (%s))"
+				% ",".join(placeholders)
+			)
+	var where := ""
+	if not where_parts.is_empty():
+		where = " WHERE " + " AND ".join(where_parts)
 	var sql := (
-		"SELECT id, created_at, updated_at, title, notes, status, priority, "
-		+ "due_at, sort_order, journal_entry_id, deleted_at FROM todos%s "
-		+ "ORDER BY sort_order ASC, created_at DESC;"
+		"SELECT t.id, t.created_at, t.updated_at, t.title, t.notes, t.status, t.priority, "
+		+ "t.due_at, t.sort_order, t.journal_entry_id, t.deleted_at FROM todos t%s "
+		+ "ORDER BY t.sort_order ASC, t.created_at DESC;"
 	) % where
-	if not _db.query(sql):
-		push_error("fetch_todos: %s" % _db.error_message)
-		return []
+	if bindings.is_empty():
+		if not _db.query(sql):
+			push_error("fetch_todos: %s" % _db.error_message)
+			return []
+	else:
+		if not _db.query_with_bindings(sql, bindings):
+			push_error("fetch_todos: %s" % _db.error_message)
+			return []
 	return _db.query_result.duplicate(true)
 
 
@@ -404,6 +485,166 @@ func soft_delete_todo(todo_id: int) -> bool:
 		"UPDATE todos SET deleted_at = ?, updated_at = ? WHERE id = ?;",
 		[now, now, todo_id]
 	)
+
+
+# --- Tags --------------------------------------------------------------------
+
+func fetch_all_tags() -> Array:
+	if not _db.query(
+		"SELECT id, name, created_at FROM tags ORDER BY name COLLATE NOCASE ASC;"
+	):
+		push_error("fetch_all_tags: %s" % _db.error_message)
+		return []
+	return _db.query_result.duplicate(true)
+
+
+func fetch_tag_by_id(tag_id: int) -> Dictionary:
+	if not _db.query_with_bindings(
+		"SELECT id, name, created_at FROM tags WHERE id = ?;",
+		[tag_id]
+	):
+		return {}
+	if _db.query_result.is_empty():
+		return {}
+	return _db.query_result[0]
+
+
+func fetch_tag_by_name(name: String) -> Dictionary:
+	var normalized := _TagNames.normalize(name)
+	if normalized.is_empty():
+		return {}
+	if not _db.query_with_bindings(
+		"SELECT id, name, created_at FROM tags WHERE name = ? COLLATE NOCASE;",
+		[normalized]
+	):
+		return {}
+	if _db.query_result.is_empty():
+		return {}
+	return _db.query_result[0]
+
+
+func insert_tag(name: String) -> int:
+	var normalized := _TagNames.normalize(name)
+	if normalized.is_empty():
+		return -1
+	var now := int(Time.get_unix_time_from_system())
+	if not _db.query_with_bindings(
+		"INSERT INTO tags (name, created_at) VALUES (?, ?);",
+		[normalized, now]
+	):
+		push_error("insert_tag: %s" % _db.error_message)
+		return -1
+	return int(_db.last_insert_rowid)
+
+
+func fetch_tags_for_journal_entry(entry_id: int) -> Array:
+	if entry_id <= 0:
+		return []
+	if not _db.query_with_bindings(
+		"SELECT t.id, t.name, t.created_at "
+		+ "FROM journal_entry_tags jet "
+		+ "JOIN tags t ON t.id = jet.tag_id "
+		+ "WHERE jet.entry_id = ? "
+		+ "ORDER BY t.name COLLATE NOCASE ASC;",
+		[entry_id]
+	):
+		push_error("fetch_tags_for_journal_entry: %s" % _db.error_message)
+		return []
+	return _db.query_result.duplicate(true)
+
+
+func fetch_tags_for_todo(todo_id: int) -> Array:
+	if todo_id <= 0:
+		return []
+	if not _db.query_with_bindings(
+		"SELECT t.id, t.name, t.created_at "
+		+ "FROM todo_tags tt "
+		+ "JOIN tags t ON t.id = tt.tag_id "
+		+ "WHERE tt.todo_id = ? "
+		+ "ORDER BY t.name COLLATE NOCASE ASC;",
+		[todo_id]
+	):
+		push_error("fetch_tags_for_todo: %s" % _db.error_message)
+		return []
+	return _db.query_result.duplicate(true)
+
+
+func fetch_journal_entry_tags_map() -> Dictionary:
+	if not _db.query(
+		"SELECT jet.entry_id, t.id, t.name, t.created_at "
+		+ "FROM journal_entry_tags jet "
+		+ "JOIN tags t ON t.id = jet.tag_id "
+		+ "ORDER BY t.name COLLATE NOCASE ASC;"
+	):
+		push_error("fetch_journal_entry_tags_map: %s" % _db.error_message)
+		return {}
+	return _build_entity_tags_map("entry_id")
+
+
+func fetch_todo_tags_map() -> Dictionary:
+	if not _db.query(
+		"SELECT tt.todo_id, t.id, t.name, t.created_at "
+		+ "FROM todo_tags tt "
+		+ "JOIN tags t ON t.id = tt.tag_id "
+		+ "ORDER BY t.name COLLATE NOCASE ASC;"
+	):
+		push_error("fetch_todo_tags_map: %s" % _db.error_message)
+		return {}
+	return _build_entity_tags_map("todo_id")
+
+
+func _build_entity_tags_map(entity_key: String) -> Dictionary:
+	var result: Dictionary = {}
+	for row in _db.query_result:
+		var entity_id := int(row.get(entity_key, 0))
+		if entity_id <= 0:
+			continue
+		if not result.has(entity_id):
+			result[entity_id] = []
+		result[entity_id].append(_Tag.from_row(row))
+	return result
+
+
+func set_journal_entry_tags(entry_id: int, tag_ids: Array[int]) -> bool:
+	if entry_id <= 0:
+		return false
+	if not _db.query_with_bindings(
+		"DELETE FROM journal_entry_tags WHERE entry_id = ?;",
+		[entry_id]
+	):
+		push_error("set_journal_entry_tags delete: %s" % _db.error_message)
+		return false
+	for tag_id in tag_ids:
+		if tag_id <= 0:
+			continue
+		if not _db.query_with_bindings(
+			"INSERT INTO journal_entry_tags (entry_id, tag_id) VALUES (?, ?);",
+			[entry_id, tag_id]
+		):
+			push_error("set_journal_entry_tags insert: %s" % _db.error_message)
+			return false
+	return true
+
+
+func set_todo_tags(todo_id: int, tag_ids: Array[int]) -> bool:
+	if todo_id <= 0:
+		return false
+	if not _db.query_with_bindings(
+		"DELETE FROM todo_tags WHERE todo_id = ?;",
+		[todo_id]
+	):
+		push_error("set_todo_tags delete: %s" % _db.error_message)
+		return false
+	for tag_id in tag_ids:
+		if tag_id <= 0:
+			continue
+		if not _db.query_with_bindings(
+			"INSERT INTO todo_tags (todo_id, tag_id) VALUES (?, ?);",
+			[todo_id, tag_id]
+		):
+			push_error("set_todo_tags insert: %s" % _db.error_message)
+			return false
+	return true
 
 
 # --- Pomodoro (minimal persistence API) --------------------------------------

@@ -5,12 +5,15 @@ extends RefCounted
 const DB_FILE_STEM := "improvement"
 ## Legacy default when no `user://app_config.json` exists (setup dialog sets the real path).
 const DB_PATH_DEFAULT := "user://improvement"
-const SCHEMA_VERSION := 3
+const SCHEMA_VERSION := 4
 
 const TABLE_JOURNAL := "journal_entries"
 const TABLE_TODOS := "todos"
 const TABLE_POMODORO := "pomodoro_sessions"
 const TABLE_SETTINGS := "app_settings"
+const TABLE_TAGS := "tags"
+const TABLE_JOURNAL_ENTRY_TAGS := "journal_entry_tags"
+const TABLE_TODO_TAGS := "todo_tags"
 
 # todo.status
 const TODO_PENDING := "pending"

@@ -1,6 +1,6 @@
 # Data model
 
-SQLite **schema version 3** at runtime (`PRAGMA user_version = 3`). Canonical SQL: [`schema.sql`](schema.sql).
+SQLite **schema version 4** at runtime (`PRAGMA user_version = 4`). Canonical SQL: [`schema.sql`](schema.sql).
 
 **Runtime file:** `<chosen_folder>/improvement.db`.
 
@@ -116,12 +116,26 @@ UI replaces the old `P0` label with `TimeFormat.format_work_duration(total_work_
 | `journal_sort_newest_first` | `true` | Timeline direction |
 | `window_width`, `window_height`, `window_x`, `window_y`, `window_mode` | — | Desktop window layout (`WindowLayout`) |
 
+### `tags`
+
+Shared optional labels for journal entries and todos. Names are unique case-insensitively.
+
+| Column | Notes |
+|--------|--------|
+| `name` | Display name (`COLLATE NOCASE`) |
+| `created_at` | Unix UTC seconds |
+
+**Junction tables:** `journal_entry_tags`, `todo_tags` (many-to-many). Assignments replaced wholesale on save.
+
+**Filter-ready queries:** `Database.fetch_journal_entries(..., filter_tag_ids)` and `Database.fetch_todos(..., filter_tag_ids)` return rows matching **any** selected tag (OR semantics).
+
 ## GDScript models
 
 | Resource | Script |
 |----------|--------|
 | `JournalEntry` | [`scripts/models/journal_entry.gd`](../scripts/models/journal_entry.gd) |
 | `TodoItem` | [`scripts/models/todo_item.gd`](../scripts/models/todo_item.gd) |
+| `Tag` | [`scripts/models/tag.gd`](../scripts/models/tag.gd) |
 | `PomodoroSession` | [`scripts/models/pomodoro_session.gd`](../scripts/models/pomodoro_session.gd) |
 
 Factory: `*.from_row(dict)` after SQLite queries via [`db_row.gd`](../scripts/database/db_row.gd).
@@ -135,6 +149,7 @@ Factory: `*.from_row(dict)` after SQLite queries via [`db_row.gd`](../scripts/da
 | `WindowLayout` | Window bounds → `app_settings` |
 | `JournalService` | Journal CRUD + search + signals |
 | `TodoService` | Mission CRUD + reorder + work stats + signals |
+| `TagService` | Tag catalog + entry/todo assignments + signals |
 | `PomodoroService` | Timer + DB sessions + `in_progress` on first mission start |
 
 **Rule:** UI calls **services**, not `Database`, except bootstrap/low-level cases.
@@ -164,7 +179,8 @@ Factory: `*.from_row(dict)` after SQLite queries via [`db_row.gd`](../scripts/da
 | **1** | Initial tables |
 | **2** | Remove legacy `mood` (rebuild if present) |
 | **3** | Remove `title`; body-only journal entries |
-| **4+** | Add `_migrate_to_vN()`; never edit shipped migration SQL in place |
+| **4** | Tags + junction tables for journal entries and todos |
+| **5+** | Add `_migrate_to_vN()`; never edit shipped migration SQL in place |
 
 ## Not in v1
 

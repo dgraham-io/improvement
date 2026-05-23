@@ -22,6 +22,7 @@ Database="*res://scripts/autoload/database.gd"
 WindowLayout="*res://scripts/autoload/window_layout.gd"
 JournalService="*res://scripts/autoload/journal_service.gd"
 TodoService="*res://scripts/autoload/todo_service.gd"
+TagService="*res://scripts/autoload/tag_service.gd"
 PomodoroService="*res://scripts/autoload/pomodoro_service.gd"
 
 [display]

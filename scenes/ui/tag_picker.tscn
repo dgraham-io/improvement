@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://c8tagpicker01"]
+
+[ext_resource type="Script" path="res://scenes/ui/tag_picker.gd" id="1_picker"]
+
+[node name="TagPicker" type="VBoxContainer"]
+theme_override_constants/separation = 4
+script = ExtResource("1_picker")
+
+[node name="SelectedTagsRow" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PickerRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TagsLabel" type="Label" parent="PickerRow"]
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+theme_override_font_sizes/font_size = 14
+text = "Tags"
+
+[node name="TagOption" type="OptionButton" parent="PickerRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NewTagField" type="LineEdit" parent="PickerRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "New tag…"
+
+[node name="AddTagButton" type="Button" parent="PickerRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Button_ghost"
+text = "Add"

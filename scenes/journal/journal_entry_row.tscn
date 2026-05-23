@@ -44,6 +44,14 @@ size_flags_horizontal = 3
 text = "Body preview"
 autowrap_mode = 3
 
+[node name="TagsLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"Label_accent"
+theme_override_font_sizes/font_size = 14
+text = "Work · Personal"
+
 [node name="ActionsRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 alignment = 2

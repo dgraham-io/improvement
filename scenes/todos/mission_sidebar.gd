@@ -16,6 +16,7 @@ var _tracked_top_todo_id: int = 0
 @onready var _todo_mission_panel: PanelContainer = %TodoMissionPanel
 @onready var _mission_title_field: LineEdit = %MissionTitleField
 @onready var _mission_notes_field: TextEdit = %MissionNotesField
+@onready var _mission_tag_picker: TagPicker = %MissionTagPicker
 @onready var _mission_status_option: OptionButton = %MissionStatusOption
 @onready var _mission_save_button: Button = %MissionSaveButton
 @onready var _mission_delete_button: Button = %MissionDeleteButton
@@ -48,6 +49,7 @@ func _connect_services() -> void:
 	TodoService.todo_stats_changed.connect(_on_todo_stats_changed)
 	TodoService.todo_reordered.connect(refresh_list_deferred)
 	TodoService.todo_deleted.connect(_on_todo_deleted)
+	TagService.todo_tags_changed.connect(_on_todo_tags_changed)
 	PomodoroService.state_changed.connect(_on_pomodoro_state_changed)
 
 
@@ -59,6 +61,7 @@ func refresh_list() -> void:
 	_VBoxListUtil.clear_children_except(_todo_vbox, _todo_empty_label)
 	var items := TodoService.list_todos()
 	var work_stats_map := TodoService.get_work_stats_map()
+	var tags_map := TagService.get_todo_tags_map()
 	_todo_empty_label.visible = items.is_empty()
 	for item in items:
 		var row: TodoRow = TODO_ROW_SCENE.instantiate()
@@ -67,7 +70,8 @@ func refresh_list() -> void:
 		row.delete_requested.connect(_on_todo_delete_requested)
 		row.reorder_requested.connect(_on_todo_reorder_requested)
 		var stats: Dictionary = work_stats_map.get(item.id, TodoRow.EMPTY_WORK_STATS)
-		row.setup(item, stats)
+		var item_tags: Array = tags_map.get(item.id, [])
+		row.setup(item, stats, item_tags)
 	_update_todo_progress(items)
 	_update_mission_pomodoro_target()
 	_apply_todo_pomodoro_highlights()
@@ -103,6 +107,10 @@ func _on_todo_stats_changed() -> void:
 	_update_todo_progress(TodoService.list_todos())
 
 
+func _on_todo_tags_changed(_todo_id: int) -> void:
+	refresh_list_deferred()
+
+
 func _on_todo_deleted(todo_id: int) -> void:
 	if _editing_todo != null and _editing_todo.id == todo_id:
 		_close_mission_composer()
@@ -114,6 +122,7 @@ func _on_todo_deleted(todo_id: int) -> void:
 func _on_new_todo_pressed() -> void:
 	_reset_mission_composer()
 	_show_mission_composer()
+	_mission_tag_picker.refresh()
 	_mission_title_field.grab_focus()
 
 
@@ -134,6 +143,8 @@ func _reset_mission_composer() -> void:
 	_editing_todo = null
 	_mission_title_field.text = ""
 	_mission_notes_field.text = ""
+	_mission_tag_picker.clear()
+	_mission_tag_picker.refresh()
 	_mission_status_option.select(0)
 	_mission_save_button.text = "Save mission"
 	_mission_delete_button.visible = false
@@ -145,6 +156,8 @@ func _load_todo_into_mission_composer(item: TodoItem) -> void:
 	_editing_todo = item
 	_mission_title_field.text = item.title
 	_mission_notes_field.text = item.notes
+	_mission_tag_picker.refresh()
+	_mission_tag_picker.set_selected_tags(TagService.get_tags_for_todo(item.id))
 	_MissionStatusOptions.select_status(_mission_status_option, item.status)
 	_mission_save_button.text = "Save"
 	_mission_delete_button.visible = true
@@ -165,6 +178,7 @@ func _on_mission_save_pressed() -> void:
 
 
 func _try_save_mission() -> bool:
+	var tag_ids := _mission_tag_picker.get_selected_tag_ids()
 	var result: _MissionComposerLogic.SaveResult = _MissionComposerLogic.try_save(
 		_editing_todo,
 		_mission_title_field.text,
@@ -173,6 +187,13 @@ func _try_save_mission() -> bool:
 	)
 	if not result.ok:
 		return false
+	var todo_id := 0
+	if result.created and result.created_item != null:
+		todo_id = result.created_item.id
+	elif _editing_todo != null:
+		todo_id = _editing_todo.id
+	if todo_id > 0:
+		TagService.set_todo_tags(todo_id, tag_ids)
 	if result.created:
 		_close_mission_composer()
 		_update_mission_pomodoro_target()
