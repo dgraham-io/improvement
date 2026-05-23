@@ -181,7 +181,7 @@ func _load_todo_into_mission_composer(item: TodoItem) -> void:
 	_mission_title_field.text = item.title
 	_mission_notes_field.text = item.notes
 	_select_mission_status(item.status)
-	_mission_save_button.text = "Save changes"
+	_mission_save_button.text = "Save"
 	_mission_delete_button.visible = true
 	_mission_cancel_button.visible = true
 	_mission_title_field.grab_focus()
@@ -228,8 +228,10 @@ func _try_save_mission() -> bool:
 	_editing_todo.title = todo_title
 	_editing_todo.notes = todo_notes
 	_editing_todo.status = todo_status
-	TodoService.save_todo(_editing_todo)
-	return true
+	if TodoService.save_todo(_editing_todo):
+		_close_mission_composer()
+		return true
+	return false
 
 
 func _on_mission_delete_pressed() -> void:
