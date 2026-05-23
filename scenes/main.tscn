@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://d4bhhy4ln2jhd"]
 
 [ext_resource type="Script" uid="uid://c6al7vxlnqgfi" path="res://scenes/main.gd" id="1_script"]
+[ext_resource type="Script" path="res://scenes/journal/journal_area.gd" id="4_journal_area"]
+[ext_resource type="Script" path="res://scenes/todos/mission_sidebar.gd" id="5_mission_sidebar"]
 [ext_resource type="Theme" uid="uid://bjs7igpj47wt0" path="res://assets/themes/improvement_theme.tres" id="1_theme"]
 [ext_resource type="Texture2D" uid="uid://boihexead64ec" path="res://assets/textures/ui/bg_gradient.tres" id="2_bg"]
 [ext_resource type="PackedScene" uid="uid://c8pomodoro01" path="res://scenes/ui/pomodoro_timer.tscn" id="3_pomo"]
@@ -47,10 +49,12 @@ split_offsets = PackedInt32Array(380)
 split_offset = 380
 
 [node name="JournalArea" type="VBoxContainer" parent="MarginContainer/HSplitContainer" unique_id=269095038]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 8
+script = ExtResource("4_journal_area")
 
 [node name="JournalHeaderBlock" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea" unique_id=1468892920]
 layout_mode = 2
@@ -194,10 +198,12 @@ text = "No journal entries yet. Use ＋ New Journal Entry to write one."
 autowrap_mode = 3
 
 [node name="TodoSidebar" type="PanelContainer" parent="MarginContainer/HSplitContainer" unique_id=1522059307]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(340, 0)
 layout_mode = 2
 size_flags_vertical = 3
 theme_type_variation = &"PanelContainer_card"
+script = ExtResource("5_mission_sidebar")
 
 [node name="TodoSidebarMargin" type="MarginContainer" parent="MarginContainer/HSplitContainer/TodoSidebar" unique_id=1786773478]
 layout_mode = 2
@@ -360,11 +366,3 @@ theme_type_variation = &"Label_muted"
 text = "No missions yet. Use ＋ New Mission to add one."
 autowrap_mode = 3
 
-[connection signal="pressed" from="MarginContainer/HSplitContainer/JournalArea/NewJournalButton" to="." method="_on_new_journal_pressed"]
-[connection signal="pressed" from="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerActionsLeft/ComposerCancelButton" to="." method="_on_composer_cancel_pressed"]
-[connection signal="pressed" from="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerActionsLeft/ComposerDeleteButton" to="." method="_on_composer_delete_pressed"]
-[connection signal="pressed" from="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions/ComposerActionsLeft/ComposerSaveButton" to="." method="_on_composer_save_pressed"]
-[connection signal="pressed" from="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/NewTodoButton" to="." method="_on_new_todo_pressed"]
-[connection signal="pressed" from="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions/MissionCancelButton" to="." method="_on_mission_cancel_pressed"]
-[connection signal="pressed" from="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions/MissionDeleteButton" to="." method="_on_mission_delete_pressed"]
-[connection signal="pressed" from="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions/MissionSaveButton" to="." method="_on_mission_save_pressed"]

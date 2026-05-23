@@ -27,13 +27,13 @@ See also: [README](../README.md) · [Data model](data-model.md) · [SQL schema](
 ```mermaid
 flowchart TB
   subgraph presentation [Presentation layer]
-	Main[scenes/main.tscn]
+	Main[scenes/main.gd shell]
 	Setup[scenes/setup/initial_setup_dialog]
-	JournalUI[Journal list + composer]
-	TodoUI[Mission list + mission panel]
+	JournalArea[JournalArea controller]
+	MissionSidebar[MissionSidebar controller]
 	Theme[improvement_theme.tres]
-	Main --> JournalUI
-	Main --> TodoUI
+	Main --> JournalArea
+	Main --> MissionSidebar
 	Main --> Theme
 	AppSetup --> Setup
   end
@@ -75,7 +75,9 @@ flowchart TB
 
 - **Engine:** Godot **4.7** (`project.godot`).
 - **Main scene:** `res://scenes/main.tscn` (`uid://d4bhhy4ln2jhd`).
-- **Root script:** `scenes/main.gd` — shell, list refresh, composers; `content_scale_factor = 1.0`.
+- **Root script:** `scenes/main.gd` — shell, UI scale, pomodoro cross-panel refresh; `content_scale_factor = 1.0`.
+- **Journal controller:** `scenes/journal/journal_area.gd` on `JournalArea` — timeline, composer, header stats.
+- **Mission controller:** `scenes/todos/mission_sidebar.gd` on `TodoSidebar` — list, mission editor, progress, top-mission pomodoro.
 
 ### First run
 
@@ -191,6 +193,7 @@ Details: [data-model.md](data-model.md), [schema.sql](schema.sql).
 | **2c** | Pomodoro + mission work stats | **Done** (top mission + journal only) |
 | **3** | Settings UI + `ui_scale` slider | **Roadmap** |
 | **6** | Sync / backup UX | **Roadmap** |
+| **8** | Swap panel while editing entries (journal ↔ mission without losing drafts) | **Roadmap** |
 | — | Encryption | **Shelved** (see recommendations) |
 | — | Pomodoro per-row / polish | **Deferred** (see recommendations) |
 
