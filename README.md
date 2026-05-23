@@ -2,7 +2,7 @@
 
 A journalling app for self improvement, knowledge enhancement, and staying focused on the tasks that matter.
 
-Built with Godot 4.6 — readable typography, scrollable journal and task panes, and local storage via SQLite.
+Built with Godot **4.7** — readable typography, a scrollable journal timeline, a mission sidebar, Pomodoro timers, and local SQLite storage in a folder you choose (e.g. Dropbox).
 
 ![Improvement — journal composer and mission sidebar](docs/screenshots/Screenshot_20260521_093840.png)
 
@@ -10,117 +10,113 @@ Built with Godot 4.6 — readable typography, scrollable journal and task panes,
 
 ## Status
 
-Early prototype with **SQLite-backed** journal and todo lists (create, edit, delete, checkbox done state).
+Desktop prototype with **SQLite-backed** journal and missions, inline editing, and Pomodoro work tracking on the mission list.
 
 | Area | Status |
 |------|--------|
-| Split journal / todo layout | Shipped |
-| Journal list from SQLite | Shipped |
-| Todo list from SQLite | Shipped |
-| Create / edit / delete (dialogs) | Shipped |
-| Theme + Roboto font | Shipped |
-| UI scale (`content_scale_factor`) | Fixed at **1.0** (settings adjustment planned) |
-| SQLite schema + migrations | Shipped (`user://improvement.db`) |
-| `JournalService` / `TodoService` | Shipped |
-| Encryption | Planned |
-| Pomodoro timer UI | Shipped (journal + top mission; todo work time on rows) |
-| Dropbox / iCloud sync | Planned |
+| Split journal / mission layout | Shipped |
+| Journal timeline + inline composer | Shipped |
+| Mission list + inline mission editor | Shipped |
+| Drag reorder, done checkbox, row edit/delete | Shipped |
+| First-run DB folder setup (e.g. Dropbox) | Shipped |
+| Theme + Roboto | Shipped |
+| UI scale | Fixed at **1.0** (slider planned in Settings) |
+| SQLite schema + migrations (v3) | Shipped |
+| `JournalService` / `TodoService` / `PomodoroService` | Shipped |
+| Pomodoro → mission `in_progress` + work time on rows | Shipped |
+| Window size/position persistence (desktop export) | Shipped |
+| Settings screen | Planned (roadmap) |
+| Encryption at rest | Not scheduled — see [recommendations](docs/architecture.md#recommendations-not-on-roadmap) |
+| Cloud sync / backup UX | Planned (roadmap) |
 
-## Features
+## Current app (what ships today)
 
-### Shipped
-
-- Two-pane UI: journal timeline (left) and task list (right), separated by a draggable split.
-- Lists loaded from `user://improvement.db` via **JournalService** / **TodoService**.
-- **+ New entry** / **+ New todo**; inline mission editor; row **Edit** / **Delete**; todo checkbox marks done.
-- **Pomodoro timers** on journal composer and top mission; starting a mission timer sets status to **in progress** and records work time on the row (completed pomodoro count + elapsed time).
-- Global theme ([`assets/themes/improvement_theme.tres`](assets/themes/improvement_theme.tres)) with Roboto at 20px base size.
-- UI scale fixed at **1.0** (`content_scale_factor`); user-adjustable scale planned in Settings.
-
-### Planned
-
-- Journal entries that form a timeline.
-- Task list with focus on what matters today.
-- Pomodoro on arbitrary todo rows (today: top-of-list mission timer only).
-- Encrypted, indexed local storage.
-- Dropbox / iCloud storage.
+- **Two-pane shell:** journal (left), missions (right), resizable split, global theme.
+- **Journal:** scrollable entry rows; **+ New Journal Entry** opens an inline composer; edit/delete per row; Pomodoro on the composer when editing.
+- **Missions:** scrollable rows with priority strip, progress bar, **work time** label (from Pomodoros), and checkbox; **+ New Mission** opens an inline mission panel; drag to reorder; Pomodoro on the **top** mission in the list.
+- **Data:** `improvement.db` in a folder you pick at first run; path stored in `user://app_config.json` (Godot user data).
+- **Empty first run** — no sample journal entries or missions.
+- **Export:** Windows Desktop preset → [`export_presets.cfg`](export_presets.cfg) (`Applications/Improvement/` on this machine).
 
 ## Requirements
 
-- [Godot Engine **4.6.x**](https://godotengine.org/download) (project targets 4.6; developed with 4.6.2).
-- **Desktop** for day-to-day development (Linux, macOS, or Windows). The project lists the Mobile feature tag for future mobile exports; mobile is not the current focus.
-- **godot-sqlite** addon under [`addons/godot-sqlite/`](addons/godot-sqlite/); accessed only via the [`Database`](scripts/autoload/database.gd) autoload.
+- [Godot Engine **4.7.x**](https://godotengine.org/download) (project `config/features` includes `4.7`; developed with 4.7 beta and 4.6.x).
+- **Desktop** (Linux, macOS, or Windows). Mobile feature tag is present for future export; UI is desktop-first.
+- **godot-sqlite** under [`addons/godot-sqlite/`](addons/godot-sqlite/); SQL only via the [`Database`](scripts/autoload/database.gd) autoload from services.
 
 ## Getting started
 
-1. Clone the repository and open the project folder in Godot (**Project → Import** if needed, then select [`project.godot`](project.godot)).
-2. Confirm the main scene: **Project → Project Settings → Application → Run → Main Scene** should be [`res://scenes/main.tscn`](scenes/main.tscn).
-3. Press **F5** (or **Project → Run Project**) to run.
-4. On first run, the **setup dialog** asks for a folder (e.g. under **Dropbox**); `improvement.db` is created there. The path is stored in `user://app_config.json` (Godot app user data, not inside the DB).
+1. Clone the repo and open the folder in Godot (**Project → Import** if needed), then [`project.godot`](project.godot).
+2. **Main scene:** **Project → Project Settings → Application → Run → Main Scene** → [`res://scenes/main.tscn`](scenes/main.tscn).
+3. Press **F5**. On first run, the **setup overlay** asks for a folder; `improvement.db` is created there.
 
-**Reset setup (testing):** `godot --path . --headless -s res://scripts/tools/reset_app_data.gd` — or delete `%APPDATA%\Godot\app_userdata\Improvement\` on Windows.
+**Reset setup (testing):** `godot --path . --headless -s res://scripts/tools/reset_app_data.gd` — or delete `%APPDATA%\Godot\app_userdata\Improvement\`.
 
-### Running in a resizable window (recommended for layout testing)
+**Export (Windows debug):** Godot **Project → Export → Windows Desktop**, or:
 
-Godot 4.6 often runs the game **embedded** in the editor by default, which does not behave like a normal OS window.
+```text
+Godot_v4.7-beta3_win64.exe --headless --path <repo> --export-debug "Windows Desktop" C:\Users\<you>\Applications\Improvement\Improvement.exe
+```
 
-1. Open the **Game** workspace tab at the top of the editor.
-2. In the Game toolbar menu, turn **off** **Embed Game on Next Play**.
-3. Or set **Editor → Editor Settings → Run → Window Placement → Game Embed Mode** to **Disabled**.
-4. Press **F5** again and resize the standalone game window.
+### Resizable game window (editor)
 
-Embedded **Stretch to fit** only affects the in-editor preview; it does not replace proper Control layout or a standalone window for testing.
+Godot often embeds the game in the editor. Use the **Game** tab → disable **Embed Game on Next Play**, or **Editor Settings → Run → Window Placement → Game Embed Mode → Disabled**, then **F5**.
 
 ### UI scale
 
-Runtime scale is **1.0** on all platforms ([`scenes/main.gd`](scenes/main.gd)). **TODO:** add a Settings control to read/write `app_settings.ui_scale` and apply `content_scale_factor` (see roadmap).
+Runtime scale is **1.0** ([`scenes/main.gd`](scenes/main.gd)). A Settings control for `app_settings.ui_scale` is on the [roadmap](#roadmap).
 
 ## Project structure
 
 ```
 improvement/
 ├── project.godot
-├── README.md
-├── docs/
-│   ├── architecture.md
-│   ├── data-model.md
-│   └── schema.sql
+├── export_presets.cfg
 ├── scenes/
-│   ├── main.tscn
-│   └── main.gd
+│   ├── main.tscn / main.gd
+│   ├── journal/journal_entry_row.tscn
+│   ├── todos/todo_row.tscn
+│   ├── setup/initial_setup_dialog.tscn
+│   ├── ui/pomodoro_timer.tscn
+│   └── dialogs/todo_item_dialog.tscn
 ├── scripts/
-│   ├── autoload/          # Database, JournalService, TodoService
+│   ├── app/app_config.gd
+│   ├── autoload/          # AppSetup, Database, WindowLayout, services
 │   ├── database/
-│   └── models/
-├── assets/{fonts,themes,icons}/
-└── addons/godot-sqlite/
+│   ├── models/
+│   └── tools/             # reset_app_data.gd, capture_screenshot.gd
+├── assets/{fonts,themes,icons,textures}/
+├── addons/godot-sqlite/
+└── docs/
 ```
-
-Godot generates `.godot/` and `*.import` files locally; they are ignored by git (see [`.gitignore`](.gitignore)). Local SQLite test databases (`*.db`, `data/`, `user_data/`) are ignored; the **godot-sqlite** addon under `addons/` remains tracked.
-
-### Conventions
-
-- **Scenes** live under `scenes/`. Scene-specific scripts sit beside their `.tscn` file (e.g. `scenes/main.gd`).
-- **Shared assets** (fonts, themes, icons) live under `assets/`.
-- **Third-party plugins** live under `addons/` and are enabled in `project.godot`.
-
-Next UI step: `scenes/journal/journal_entry_row.tscn` and bind lists to `JournalService.list_entries()` / `TodoService.list_todos()`.
 
 ## Development notes
 
-- **Main scene UID** is `uid://d4bhhy4ln2jhd`; keep this stable if you rename files so run settings keep working.
-- **Database:** `user://improvement.db` — use `JournalService` / `TodoService`, not raw SQL in scenes.
-- **Debug run:** console prints journal/todo counts after DB init when running a debug build.
-- **Rendering:** `renderer/rendering_method="mobile"` is set for lightweight UI; adjust in **Project Settings → Rendering** if desktop-specific issues appear.
+- **Main scene UID:** `uid://d4bhhy4ln2jhd` — keep stable if renaming run scene.
+- **Data access:** UI → `JournalService` / `TodoService` / `PomodoroService`; not raw SQL in scenes.
+- **Bootstrap:** `AppConfig` (`user://app_config.json`) before `Database` opens; see [data model](docs/data-model.md).
+- **Debug run:** prints journal/mission counts after DB init.
+- **Rendering:** `mobile` renderer; Windows uses D3D12 driver in `project.godot`.
 
 ## Roadmap
 
-1. ~~SQLite schema + services~~ (done — see [docs/data-model.md](docs/data-model.md)).
-2. ~~Journal/todo UI bound to services~~ (done).
-3. User preferences UI (`app_settings`: sort, theme) — **TODO:** UI scale slider bound to `ui_scale` / `content_scale_factor`.
-4. ~~Pomodoro timer linked to active entry or task~~ (partial — see [docs/data-model.md](docs/data-model.md)#pomodoro-work-tracking).
-5. Encryption at rest for the local database.
-6. Optional sync (Dropbox / iCloud) behind a clear export/backup flow.
+### Next (engineering hardening)
+
+1. **Database open failure** — if SQLite cannot open, show a clear error (retry / pick folder); do not leave the app waiting forever on `Database.ready_changed`.
+2. **User-visible save errors** — surface failed creates/updates/deletes (status line or dialog), not only `push_error` in the console.
+3. **Remove unused `TodoItemDialog`** — delete `scenes/dialogs/todo_item_dialog.*` or wire it up; inline mission editor is canonical.
+
+### Done
+
+4. ~~SQLite schema + services~~ ([data model](docs/data-model.md)).
+5. ~~Journal and mission UI bound to services~~.
+
+### Later
+
+6. **User preferences UI** — `app_settings`: journal sort, theme options, **UI scale** slider → `content_scale_factor`.
+7. **Optional sync / backup** — Dropbox / iCloud or explicit export/import beyond placing `improvement.db` in a synced folder.
+
+Pomodoro and encryption are **not** on the roadmap; see [recommendations](docs/architecture.md#recommendations-not-on-roadmap) in the architecture doc.
 
 ## Third-party licenses
 

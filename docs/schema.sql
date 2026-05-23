@@ -1,6 +1,6 @@
 -- Improvement — SQLite schema reference (v3)
 -- Applied at runtime by scripts/autoload/database.gd (PRAGMA user_version = 3).
--- Database file: user://improvement.db
+-- Database file: <chosen_folder>/improvement.db (see user://app_config.json)
 
 PRAGMA foreign_keys = ON;
 

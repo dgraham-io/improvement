@@ -1,8 +1,10 @@
 # Data model
 
-SQLite **schema version 1** (`PRAGMA user_version = 1`). Canonical SQL: [`schema.sql`](schema.sql).
+SQLite **schema version 3** at runtime (`PRAGMA user_version = 3`). Canonical SQL: [`schema.sql`](schema.sql).
 
-**Runtime file:** `<chosen_folder>/improvement.db`. First-run setup stores the folder in `user://app_config.json` (see [`scripts/app/app_config.gd`](../scripts/app/app_config.gd)); the path is also mirrored in `app_settings.db_directory` after open.
+**Runtime file:** `<chosen_folder>/improvement.db`.
+
+**Bootstrap (before SQLite opens):** [`scripts/app/app_config.gd`](../scripts/app/app_config.gd) reads/writes `user://app_config.json` with `db_directory` (absolute path). After open, `app_settings.db_directory` mirrors the path for in-app use.
 
 ## Entity relationship
 
@@ -54,119 +56,119 @@ erDiagram
 
 ### `journal_entries`
 
-Timeline posts. **Soft delete:** `deleted_at` Unix seconds, or `NULL` if active.
+Timeline posts. **Soft delete:** `deleted_at` set to Unix seconds, or `NULL` if active.
 
-| Column | Type | Notes |
-|--------|------|--------|
-| `id` | INTEGER PK | Auto-increment |
-| `created_at` | INTEGER | Unix UTC seconds |
-| `updated_at` | INTEGER | Unix UTC seconds |
-| `body` | TEXT | Entry content (only text field) |
-| `created_at` / `updated_at` | INTEGER | Unix UTC seconds; shown in UI |
-| `deleted_at` | INTEGER | NULL = visible |
+| Column | Notes |
+|--------|--------|
+| `body` | Only text field (v3; legacy `title` removed) |
+| `created_at` / `updated_at` | Unix UTC seconds; shown in UI |
+| `deleted_at` | NULL = visible |
 
 **Default sort:** `created_at DESC` (newest first), configurable via `app_settings.journal_sort_newest_first`.
 
 ### `todos`
 
-Task list. Optional `journal_entry_id` links a task to a journal entry.
-
-| Column | Type | Notes |
-|--------|------|--------|
-| `status` | TEXT | `pending`, `in_progress`, `done`, `cancelled` |
-| `priority` | INTEGER | `0` none … `3` high |
-| `due_at` | INTEGER | Unix seconds, NULL if unset |
-| `sort_order` | INTEGER | Manual ordering within list |
-| `deleted_at` | INTEGER | Soft delete |
-
-**Default sort:** `sort_order ASC`, then `created_at DESC`.
-
-**Pomodoro integration:** Work is tracked in `pomodoro_sessions` (not stored on the todo row). Starting a timer on a **pending** mission sets `status` to `in_progress`. Each row shows total elapsed work time; hover shows completed pomodoro count.
-
-### `pomodoro_sessions`
-
-Work intervals linked to a journal entry or todo via `target_type` + `target_id`.
+Mission list. Optional `journal_entry_id` links to a journal entry.
 
 | Column | Notes |
 |--------|--------|
-| `started_at` / `ended_at` | Unix UTC seconds; `ended_at` NULL while running |
-| `planned_duration_sec` | Default 1500 (25 min) |
-| `completed` | `1` when the timer ran to completion; `0` if stopped early |
-| `target_type` | `none`, `journal`, or `todo` |
-| `target_id` | FK to journal or todo when set |
+| `status` | `pending`, `in_progress`, `done`, `cancelled` |
+| `priority` | `0` none … `3` high (strip color in UI) |
+| `due_at` | Unix seconds, NULL if unset |
+| `sort_order` | Manual list order |
+| `deleted_at` | Soft delete |
+
+**Default sort:** `sort_order ASC`, then `created_at DESC`.
+
+**Pomodoro integration:** Work is stored in `pomodoro_sessions`, not on the row. Starting a timer on a **pending** mission sets `status` to `in_progress`. Rows show **total work time**; tooltip shows **completed pomodoro** count.
+
+### `pomodoro_sessions`
+
+Work intervals for journal or mission targets.
+
+| Column | Notes |
+|--------|--------|
+| `started_at` / `ended_at` | Unix UTC; `ended_at` NULL while running |
+| `planned_duration_sec` | Default **1500** (25 min) |
+| `completed` | `1` if timer finished; `0` if stopped early |
+| `target_type` | `none`, `journal`, `todo` |
+| `target_id` | FK when set |
 
 #### Pomodoro work tracking (computed)
 
-Per todo (`target_type = 'todo'`, `target_id = todos.id`):
+Per todo (`target_type = 'todo'`):
 
 | Metric | Rule |
 |--------|------|
-| **Completed pomodoros** | Count sessions where `completed = 1` |
-| **Total work time** | Sum `(ended_at - started_at)` for sessions with `ended_at` set (includes partial sessions) |
+| **Completed pomodoros** | `COUNT(*)` where `completed = 1` |
+| **Total work time** | `SUM(ended_at - started_at)` for rows with `ended_at` set |
 
-UI: mission rows show formatted work time (e.g. `25m`, `1h 15m`) instead of priority label `P0`; tooltip shows pomodoro count. Priority still drives the colored strip on the row.
+UI replaces the old `P0` label with `TimeFormat.format_work_duration(total_work_sec)`.
 
-Queries: `Database.fetch_todo_pomodoro_work_stats()` / `fetch_todo_pomodoro_work_stats_map()`; `TodoService.get_work_stats()`.
+**API:** `Database.fetch_todo_pomodoro_work_stats()` / `fetch_todo_pomodoro_work_stats_map()`; `TodoService.get_work_stats()` / `get_work_stats_map()`.
 
 ### `app_settings`
 
-Key/value store in the same database (no separate `settings.cfg` in v1).
-
 | Key | Default | Purpose |
 |-----|---------|---------|
-| `db_directory` | (from setup) | Absolute folder chosen at first run |
-| `ui_scale` | `1.0` | Stored for future Settings UI; runtime currently fixed at 1.0 (**TODO:** apply from setting) |
+| `db_directory` | from setup | Absolute folder containing `improvement.db` |
+| `ui_scale` | `1.0` | For future Settings UI (**runtime fixed at 1.0**) |
 | `journal_sort_newest_first` | `true` | Timeline direction |
+| `window_width`, `window_height`, `window_x`, `window_y`, `window_mode` | — | Desktop window layout (`WindowLayout`) |
 
 ## GDScript models
 
-| Resource | Script | Maps to |
-|----------|--------|---------|
-| `JournalEntry` | [`scripts/models/journal_entry.gd`](../scripts/models/journal_entry.gd) | `journal_entries` |
-| `TodoItem` | [`scripts/models/todo_item.gd`](../scripts/models/todo_item.gd) | `todos` |
-| `PomodoroSession` | [`scripts/models/pomodoro_session.gd`](../scripts/models/pomodoro_session.gd) | `pomodoro_sessions` |
+| Resource | Script |
+|----------|--------|
+| `JournalEntry` | [`scripts/models/journal_entry.gd`](../scripts/models/journal_entry.gd) |
+| `TodoItem` | [`scripts/models/todo_item.gd`](../scripts/models/todo_item.gd) |
+| `PomodoroSession` | [`scripts/models/pomodoro_session.gd`](../scripts/models/pomodoro_session.gd) |
 
-Factory: `JournalEntry.from_row(dict)` / `TodoItem.from_row(dict)` after SQLite queries.
+Factory: `*.from_row(dict)` after SQLite queries via [`db_row.gd`](../scripts/database/db_row.gd).
 
 ## Services (autoloads)
 
-| Autoload | Script | Role |
-|----------|--------|------|
-| `Database` | [`scripts/autoload/database.gd`](../scripts/autoload/database.gd) | Connection, migrations, SQL, settings |
-| `JournalService` | [`scripts/autoload/journal_service.gd`](../scripts/autoload/journal_service.gd) | Journal CRUD + search + signals |
-| `TodoService` | [`scripts/autoload/todo_service.gd`](../scripts/autoload/todo_service.gd) | Todo CRUD + signals + pomodoro work stats |
-| `PomodoroService` | [`scripts/autoload/pomodoro_service.gd`](../scripts/autoload/pomodoro_service.gd) | Single active timer; persists sessions; sets todo `in_progress` on first start |
+| Autoload | Role |
+|----------|------|
+| `AppSetup` | First-run folder UI (not in DB) |
+| `Database` | Connection, migrations, SQL, settings |
+| `WindowLayout` | Window bounds → `app_settings` |
+| `JournalService` | Journal CRUD + search + signals |
+| `TodoService` | Mission CRUD + reorder + work stats + signals |
+| `PomodoroService` | Timer + DB sessions + `in_progress` on first mission start |
 
-**Rule:** UI and gameplay code call **services**, not `Database`, except for rare low-level needs.
+**Rule:** UI calls **services**, not `Database`, except bootstrap/low-level cases.
 
-### JournalService API
+### JournalService
 
-- `list_entries(limit, offset)` → `Array[JournalEntry]`
-- `get_entry(id)`, `create_entry(body)`, `save_entry(entry)`, `delete_entry(id)` (soft)
-- `search(query)` — `LIKE` on body (FTS5 deferred)
+- `list_entries(limit, offset)`, `get_entry`, `create_entry`, `save_entry`, `delete_entry`
+- `search(query)` — `LIKE` on `body`
 - Signals: `entry_created`, `entry_updated`, `entry_deleted`
 
-### TodoService API
+### TodoService
 
-- `list_todos()`, `get_todo(id)`, `create_todo(...)`, `save_todo(item)`, `set_status(id, status)`, `delete_todo(id)`
-- `get_work_stats(todo_id)`, `get_work_stats_map()` — pomodoro elapsed time + completed count per todo
-- Signals: `todo_created`, `todo_updated`, `todo_deleted`
+- `list_todos`, `get_todo`, `create_todo`, `save_todo`, `set_status`, `delete_todo`
+- `get_work_stats`, `get_work_stats_map`
+- `move_todo_relative_to` (drag reorder)
+- Signals: `todo_created`, `todo_updated`, `todo_deleted`, `todo_stats_changed`, `todo_reordered`
 
-## Search (v1)
+### PomodoroService
 
-`LIKE '%query%'` on `body`. **FTS5** virtual table deferred until entry volume warrants it.
+- `start_for`, `pause`, `resume`, `stop`, `attach_target`
+- Signals: `state_changed`, `session_ended`
 
 ## Migrations
 
-- Version tracked with `PRAGMA user_version`.
-- v1 creates all tables and indexes (see `Database._migrate_to_v1()`).
-- v2 removes legacy `mood` from `journal_entries` via table rebuild (skipped if never present).
-- v3 removes `title`; entries are body-only.
-- v4+ will add incremental `_migrate_to_vN()` functions; never edit shipped migration SQL in place.
+| Version | Change |
+|---------|--------|
+| **1** | Initial tables |
+| **2** | Remove legacy `mood` (rebuild if present) |
+| **3** | Remove `title`; body-only journal entries |
+| **4+** | Add `_migrate_to_vN()`; never edit shipped migration SQL in place |
 
 ## Not in v1
 
 - Encryption at rest  
-- Cloud sync  
+- App-level cloud sync (folder sync via Dropbox is a deployment choice)  
 - FTS5  
 - Attachments / blobs  
