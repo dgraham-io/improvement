@@ -117,7 +117,7 @@ Main (Control, theme)
 ### Editing model (current)
 
 - **Journal:** list is read-only preview; **create/edit** in the **composer** panel above the list.
-- **Missions:** list rows are read-only summary; **create/edit** in the **mission panel**; status (including done) via the mission editor.
+- **Missions:** list rows are read-only summary; **create/edit** in the **mission panel**; mark **Done** or change status in the editor.
 
 ### Presentation choices
 

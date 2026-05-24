@@ -69,10 +69,14 @@ theme_override_constants/separation = 5
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="TitleLabel" type="Label" parent="MarginContainer/HBoxContainer/VBoxContainer/TitleRow"]
+[node name="TitleLabel" type="RichTextLabel" parent="MarginContainer/HBoxContainer/VBoxContainer/TitleRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+mouse_filter = 2
 text = "Mission title"
 
 [node name="WorkTimeLabel" type="Label" parent="MarginContainer/HBoxContainer/VBoxContainer/TitleRow"]

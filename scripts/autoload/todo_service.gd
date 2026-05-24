@@ -129,3 +129,42 @@ func delete_todo(todo_id: int) -> bool:
 		return false
 	todo_deleted.emit(todo_id)
 	return true
+
+
+## Mark done, persist, and move to the bottom of the mission list.
+func complete_todo(item: TodoItem) -> bool:
+	if item == null or item.id <= 0 or item.is_done():
+		return false
+	item.status = DbConstants.TODO_DONE
+	if not Database.update_todo(item):
+		return false
+	if not move_todo_to_bottom(item.id):
+		return false
+	var updated := get_todo(item.id)
+	if updated:
+		todo_updated.emit(updated)
+	return true
+
+
+func move_todo_to_bottom(todo_id: int) -> bool:
+	var items := list_todos()
+	var from_idx := -1
+	for i in items.size():
+		if items[i].id == todo_id:
+			from_idx = i
+			break
+	if from_idx < 0:
+		return false
+	var moved := items[from_idx]
+	items.remove_at(from_idx)
+	items.append(moved)
+	var changed := false
+	for i in items.size():
+		if items[i].sort_order != i:
+			items[i].sort_order = i
+			if not Database.update_todo(items[i]):
+				return false
+			changed = true
+	if changed:
+		todo_reordered.emit()
+	return true

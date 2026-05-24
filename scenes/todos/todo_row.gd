@@ -3,6 +3,7 @@ class_name TodoRow
 extends PanelContainer
 
 const _TagDisplay := preload("res://scripts/ui/tag_display.gd")
+const _TodoTitleFormat := preload("res://scripts/todos/todo_title_format.gd")
 
 signal edit_requested(item: TodoItem)
 signal reorder_requested(dragged_id: int, target_id: int, insert_before: bool)
@@ -18,7 +19,7 @@ const EMPTY_WORK_STATS := {"completed_pomodoros": 0, "total_work_sec": 0}
 var item: TodoItem
 
 @onready var _mission_led: MissionLedIndicator = %MissionLed
-@onready var _title_label: Label = %TitleLabel
+@onready var _title_label: RichTextLabel = %TitleLabel
 @onready var _notes_label: Label = %NotesLabel
 @onready var _tags_label: Label = %TagsLabel
 @onready var _work_time_label: Label = %WorkTimeLabel
@@ -57,7 +58,7 @@ func setup(todo_item: TodoItem, work_stats: Dictionary = EMPTY_WORK_STATS, tags:
 	item = todo_item
 	_work_stats = work_stats
 	_mission_led.set_active(false)
-	_title_label.text = todo_item.title
+	_apply_title(todo_item)
 	_notes_label.text = todo_item.notes.strip_edges()
 	_notes_label.visible = not _notes_label.text.is_empty()
 	var tag_text := _TagDisplay.format_tag_names(tags)
@@ -81,6 +82,10 @@ func set_mission_active(active: bool) -> void:
 	if item != null and item.is_done():
 		active = false
 	_mission_led.set_active(active)
+
+
+func _apply_title(todo_item: TodoItem) -> void:
+	_title_label.text = _TodoTitleFormat.display_text(todo_item.title, todo_item.is_done())
 
 
 func _apply_priority_strip(priority: int) -> void:
@@ -123,6 +128,8 @@ func _apply_done_style(done: bool) -> void:
 	else:
 		_title_label.modulate = Color(1, 1, 1, 1)
 		_work_time_label.modulate = Color(1, 1, 1, 1)
+	if item != null:
+		_apply_title(item)
 
 
 func _on_edit_pressed() -> void:

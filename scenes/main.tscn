@@ -339,18 +339,33 @@ layout_mode = 2
 theme_override_constants/separation = 7
 alignment = 2
 
+[node name="MissionActionsSpacer" type="Control" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MissionEditActions" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="MissionDoneButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions/MissionEditActions"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Button_secondary"
+text = "Done"
+
+[node name="MissionDeleteButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions/MissionEditActions" unique_id=665406695]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Button_danger"
+text = "Delete"
+
 [node name="MissionCancelButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions" unique_id=1259844051]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Button_ghost"
 text = "Cancel"
-
-[node name="MissionDeleteButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions" unique_id=665406695]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_type_variation = &"Button_danger"
-text = "Delete"
 
 [node name="MissionSaveButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions" unique_id=51940567]
 unique_name_in_owner = true
