@@ -19,10 +19,8 @@ var _tracked_top_todo_id: int = 0
 @onready var _mission_tag_picker: TagPicker = %MissionTagPicker
 @onready var _mission_status_option: OptionButton = %MissionStatusOption
 @onready var _mission_save_button: Button = %MissionSaveButton
-@onready var _mission_done_button: Button = %MissionDoneButton
 @onready var _mission_delete_button: Button = %MissionDeleteButton
 @onready var _mission_cancel_button: Button = %MissionCancelButton
-@onready var _mission_edit_actions: VBoxContainer = %MissionEditActions
 @onready var _mission_pomodoro: PomodoroTimerWidget = %MissionPomodoro
 @onready var _todo_vbox: VBoxContainer = %TodoEntriesVBox
 @onready var _todo_empty_label: Label = %TodoEmptyLabel
@@ -41,7 +39,6 @@ func _connect_ui() -> void:
 	_new_todo_button.pressed.connect(_on_new_todo_pressed)
 	_mission_cancel_button.pressed.connect(_on_mission_cancel_pressed)
 	_mission_delete_button.pressed.connect(_on_mission_delete_pressed)
-	_mission_done_button.pressed.connect(_on_mission_done_pressed)
 	_mission_save_button.pressed.connect(_on_mission_save_pressed)
 	_mission_title_field.text_submitted.connect(_on_mission_title_submitted)
 
@@ -101,7 +98,9 @@ func _on_pomodoro_state_changed() -> void:
 	_apply_todo_active_leds()
 
 
-func _on_todo_service_changed(_item: TodoItem) -> void:
+func _on_todo_service_changed(item: TodoItem) -> void:
+	if _editing_todo != null and item.id == _editing_todo.id and item.is_done():
+		_close_mission_composer()
 	refresh_list_deferred()
 
 
@@ -149,7 +148,7 @@ func _reset_mission_composer() -> void:
 	_mission_tag_picker.refresh()
 	_mission_status_option.select(0)
 	_mission_save_button.text = "Save mission"
-	_mission_edit_actions.visible = false
+	_mission_delete_button.visible = false
 	_mission_cancel_button.visible = true
 
 
@@ -162,7 +161,7 @@ func _load_todo_into_mission_composer(item: TodoItem) -> void:
 	_mission_tag_picker.set_selected_tags(TagService.get_tags_for_todo(item.id))
 	_MissionStatusOptions.select_status(_mission_status_option, item.status)
 	_mission_save_button.text = "Save"
-	_update_mission_edit_actions(item)
+	_mission_delete_button.visible = true
 	_mission_cancel_button.visible = true
 	_mission_title_field.grab_focus()
 
@@ -208,24 +207,6 @@ func _on_mission_delete_pressed() -> void:
 	if _editing_todo == null:
 		return
 	TodoService.delete_todo(_editing_todo.id)
-
-
-func _on_mission_done_pressed() -> void:
-	if _editing_todo == null or _editing_todo.is_done():
-		return
-	_editing_todo.title = _mission_title_field.text.strip_edges()
-	_editing_todo.notes = _mission_notes_field.text.strip_edges()
-	if _editing_todo.title.is_empty():
-		return
-	if TodoService.complete_todo(_editing_todo):
-		TagService.set_todo_tags(_editing_todo.id, _mission_tag_picker.get_selected_tag_ids())
-		_close_mission_composer()
-
-
-func _update_mission_edit_actions(item: TodoItem) -> void:
-	_mission_edit_actions.visible = true
-	_mission_done_button.visible = not item.is_done()
-	_mission_delete_button.visible = true
 
 
 func _update_mission_pomodoro_target() -> void:

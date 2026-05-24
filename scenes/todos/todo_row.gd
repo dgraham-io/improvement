@@ -19,6 +19,7 @@ const EMPTY_WORK_STATS := {"completed_pomodoros": 0, "total_work_sec": 0}
 var item: TodoItem
 
 @onready var _mission_led: MissionLedIndicator = %MissionLed
+@onready var _done_button: Button = %DoneButton
 @onready var _title_label: RichTextLabel = %TitleLabel
 @onready var _notes_label: Label = %NotesLabel
 @onready var _tags_label: Label = %TagsLabel
@@ -68,6 +69,7 @@ func setup(todo_item: TodoItem, work_stats: Dictionary = EMPTY_WORK_STATS, tags:
 	_apply_work_stats(work_stats)
 	_apply_progress(todo_item, work_stats)
 	_apply_done_style(todo_item.is_done())
+	_update_action_buttons(todo_item)
 
 
 func update_work_stats(work_stats: Dictionary) -> void:
@@ -86,6 +88,10 @@ func set_mission_active(active: bool) -> void:
 
 func _apply_title(todo_item: TodoItem) -> void:
 	_title_label.text = _TodoTitleFormat.display_text(todo_item.title, todo_item.is_done())
+
+
+func _update_action_buttons(todo_item: TodoItem) -> void:
+	_done_button.visible = not todo_item.is_done()
 
 
 func _apply_priority_strip(priority: int) -> void:
@@ -130,6 +136,17 @@ func _apply_done_style(done: bool) -> void:
 		_work_time_label.modulate = Color(1, 1, 1, 1)
 	if item != null:
 		_apply_title(item)
+
+
+func _on_done_pressed() -> void:
+	if item == null or item.is_done():
+		return
+	if (
+		PomodoroService.has_active_todo_session()
+		and PomodoroService.active_target_id == item.id
+	):
+		PomodoroService.stop(false)
+	TodoService.complete_todo(item)
 
 
 func _on_edit_pressed() -> void:

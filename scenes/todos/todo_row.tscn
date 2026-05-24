@@ -114,9 +114,16 @@ text = "Work · Personal"
 layout_mode = 2
 theme_override_constants/separation = 4
 
+[node name="DoneButton" type="Button" parent="MarginContainer/HBoxContainer/ActionsColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Button_secondary"
+text = "Done"
+
 [node name="EditButton" type="Button" parent="MarginContainer/HBoxContainer/ActionsColumn"]
 layout_mode = 2
 theme_type_variation = &"Button_ghost"
 text = "Edit"
 
+[connection signal="pressed" from="MarginContainer/HBoxContainer/ActionsColumn/DoneButton" to="." method="_on_done_pressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/ActionsColumn/EditButton" to="." method="_on_edit_pressed"]

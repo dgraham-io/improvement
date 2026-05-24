@@ -110,14 +110,14 @@ Main (Control, theme)
 | Scene | Role |
 |-------|------|
 | `scenes/journal/journal_entry_row.tscn` | Timestamps + body preview; edit |
-| `scenes/todos/todo_row.tscn` | Active LED, title, notes, priority strip, **work time**, progress bar, drag handle |
+| `scenes/todos/todo_row.tscn` | Active LED, title, notes, priority strip, **work time**, progress bar, **Done** / **Edit**, drag handle |
 | `scenes/ui/pomodoro_timer.tscn` | Start/pause/stop; bound to journal or todo target |
 | `scenes/setup/initial_setup_dialog.tscn` | DB folder picker + `FileDialog` |
 
 ### Editing model (current)
 
 - **Journal:** list is read-only preview; **create/edit** in the **composer** panel above the list.
-- **Missions:** list rows are read-only summary; **create/edit** in the **mission panel**; mark **Done** or change status in the editor.
+- **Missions:** list rows are read-only summary with **Done** and **Edit**; full editing in the **mission panel**.
 
 ### Presentation choices
 
