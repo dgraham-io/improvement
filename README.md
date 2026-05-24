@@ -115,6 +115,7 @@ improvement/
 
 6. **User preferences UI** — `app_settings`: journal sort, theme options, **UI scale** slider → `content_scale_factor`.
 7. **Optional sync / backup** — Dropbox / iCloud or explicit export/import beyond placing `improvement.db` in a synced folder.
+8. **Swap panel while editing entries** — switch between the journal composer and mission editor without losing unsaved text (e.g. keep drafts, or prompt to save/discard before changing focus).
 
 Pomodoro and encryption are **not** on the roadmap; see [recommendations](docs/architecture.md#recommendations-not-on-roadmap) in the architecture doc.
 
