@@ -15,11 +15,10 @@ const PRIORITY_COLORS := [
 	Color(0.92549, 0.282353, 0.6, 0.95),
 ]
 const EMPTY_WORK_STATS := {"completed_pomodoros": 0, "total_work_sec": 0}
-const POMODORO_FOCUS_VARIATION := &"PanelContainer_pomodoro_focus"
 
 var item: TodoItem
 
-@onready var _check_box: MissionLedCheck = %DoneCheckBox
+@onready var _mission_led: MissionLedIndicator = %MissionLed
 @onready var _title_label: Label = %TitleLabel
 @onready var _notes_label: Label = %NotesLabel
 @onready var _tags_label: Label = %TagsLabel
@@ -58,10 +57,7 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 func setup(todo_item: TodoItem, work_stats: Dictionary = EMPTY_WORK_STATS, tags: Array = []) -> void:
 	item = todo_item
 	_work_stats = work_stats
-	_check_box.set_block_signals(true)
-	_check_box.button_pressed = todo_item.is_done()
-	_check_box.set_block_signals(false)
-	_check_box.queue_redraw()
+	_mission_led.set_active(false)
 	_title_label.text = todo_item.title
 	_notes_label.text = todo_item.notes.strip_edges()
 	_notes_label.visible = not _notes_label.text.is_empty()
@@ -72,7 +68,6 @@ func setup(todo_item: TodoItem, work_stats: Dictionary = EMPTY_WORK_STATS, tags:
 	_apply_work_stats(work_stats)
 	_apply_progress(todo_item, work_stats)
 	_apply_done_style(todo_item.is_done())
-	set_pomodoro_focus(false)
 
 
 func update_work_stats(work_stats: Dictionary) -> void:
@@ -83,13 +78,10 @@ func update_work_stats(work_stats: Dictionary) -> void:
 	_apply_progress(item, work_stats)
 
 
-func set_pomodoro_focus(focused: bool) -> void:
-	if focused:
-		var style := get_theme_stylebox(&"panel", POMODORO_FOCUS_VARIATION)
-		if style != null:
-			add_theme_stylebox_override(&"panel", style)
-	else:
-		remove_theme_stylebox_override(&"panel")
+func set_mission_active(active: bool) -> void:
+	if item != null and item.is_done():
+		active = false
+	_mission_led.set_active(active)
 
 
 func _apply_priority_strip(priority: int) -> void:
@@ -132,20 +124,6 @@ func _apply_done_style(done: bool) -> void:
 	else:
 		_title_label.modulate = Color(1, 1, 1, 1)
 		_work_time_label.modulate = Color(1, 1, 1, 1)
-
-
-func _on_done_toggled(toggled_on: bool) -> void:
-	if item == null:
-		return
-	var new_status := DbConstants.TODO_DONE if toggled_on else DbConstants.TODO_PENDING
-	if not toggled_on and int(_work_stats.get("completed_pomodoros", 0)) > 0:
-		new_status = DbConstants.TODO_IN_PROGRESS
-	if item.status == new_status:
-		return
-	item.status = new_status
-	_apply_done_style(toggled_on)
-	_apply_progress(item, _work_stats)
-	TodoService.save_todo(item, false)
 
 
 func _on_edit_pressed() -> void:

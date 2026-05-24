@@ -1,6 +1,6 @@
-## Vertical rounded-rect LED: lit while active, dim when done.
-class_name MissionLedCheck
-extends CheckBox
+## Vertical rounded-rect LED: lit while this mission has an active pomodoro.
+class_name MissionLedIndicator
+extends Control
 
 const LED_SIZE := Vector2(12, 26)
 const CORNER_RADIUS := 6
@@ -9,75 +9,32 @@ const CORE_COLOR := Color(0.55, 0.98, 1, 1)
 const OFF_FILL := Color(0.06, 0.08, 0.14, 1)
 const OFF_BORDER := Color(0.28, 0.32, 0.42, 0.55)
 
-var _empty_icon: ImageTexture
-var _empty_style: StyleBoxEmpty
+var _active := false
 
 
 func _ready() -> void:
-	text = ""
-	focus_mode = Control.FOCUS_ALL
 	custom_minimum_size = LED_SIZE + Vector2(8, 8)
-	add_theme_constant_override("h_separation", 0)
-	add_theme_constant_override("outline_size", 0)
-	add_theme_constant_override("check_v_offset", 0)
-	_ensure_assets()
-	_apply_icon_overrides()
-	_apply_focus_override()
-	toggled.connect(func(_on: bool) -> void: queue_redraw())
-	mouse_entered.connect(queue_redraw)
-	mouse_exited.connect(queue_redraw)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resized.connect(queue_redraw)
 
 
-func _ensure_assets() -> void:
-	if _empty_icon == null:
-		var img := Image.create_empty(1, 1, false, Image.FORMAT_RGBA8)
-		_empty_icon = ImageTexture.create_from_image(img)
-	if _empty_style == null:
-		_empty_style = StyleBoxEmpty.new()
+func set_active(active: bool) -> void:
+	if _active == active:
+		return
+	_active = active
+	queue_redraw()
 
 
-func _apply_icon_overrides() -> void:
-	_ensure_assets()
-	for icon_name: StringName in [
-		&"checked",
-		&"unchecked",
-		&"checked_disabled",
-		&"unchecked_disabled",
-		&"radio_checked",
-		&"radio_unchecked",
-	]:
-		add_theme_icon_override(icon_name, _empty_icon)
-
-
-func _apply_focus_override() -> void:
-	_ensure_assets()
-	add_theme_stylebox_override(&"focus", _empty_style)
-	add_theme_stylebox_override(&"hover", _empty_style)
-	add_theme_stylebox_override(&"pressed", _empty_style)
-	add_theme_stylebox_override(&"normal", _empty_style)
-
-
-func _is_lit() -> bool:
-	return not button_pressed
+func _draw() -> void:
+	if _active:
+		_draw_lit_led(false)
+	else:
+		_draw_off_led()
 
 
 func _led_rect(size_scale: Vector2 = Vector2.ONE) -> Rect2:
 	var led_size := Vector2(LED_SIZE.x * size_scale.x, LED_SIZE.y * size_scale.y)
-	return Rect2(_led_center() - led_size * 0.5, led_size)
-
-
-func _led_center() -> Vector2:
-	return size * 0.5
-
-
-func _draw() -> void:
-	if _is_lit():
-		_draw_lit_led(is_hovered())
-		if has_focus():
-			_draw_rounded_border(_led_rect(Vector2(1.14, 1.1)), GLOW_COLOR, 0.45, 1.0)
-	else:
-		_draw_off_led()
+	return Rect2(size * 0.5 - led_size * 0.5, led_size)
 
 
 func _draw_lit_led(hovered: bool) -> void:
@@ -91,7 +48,7 @@ func _draw_lit_led(hovered: bool) -> void:
 		core.position + Vector2(core.size.x * 0.12, core.size.y * 0.1),
 		Vector2(core.size.x * 0.45, core.size.y * 0.22)
 	)
-	_draw_rounded_fill(spec, Color(1, 1, 1, 0.5 if hovered else 0.38), CORNER_RADIUS / 2)
+	_draw_rounded_fill(spec, Color(1, 1, 1, 0.38), CORNER_RADIUS / 2)
 
 
 func _draw_off_led() -> void:

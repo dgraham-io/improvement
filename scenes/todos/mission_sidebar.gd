@@ -74,7 +74,7 @@ func refresh_list() -> void:
 		row.setup(item, stats, item_tags)
 	_update_todo_progress(items)
 	_update_mission_pomodoro_target()
-	_apply_todo_pomodoro_highlights()
+	_apply_todo_active_leds()
 
 
 func on_pomodoro_session_ended(target_type: String, target_id: int) -> void:
@@ -96,7 +96,7 @@ func _refresh_todo_work_stats(todo_id: int) -> void:
 
 func _on_pomodoro_state_changed() -> void:
 	_update_mission_pomodoro_target()
-	_apply_todo_pomodoro_highlights()
+	_apply_todo_active_leds()
 
 
 func _on_todo_service_changed(_item: TodoItem) -> void:
@@ -225,16 +225,16 @@ func _update_mission_pomodoro_target() -> void:
 	_mission_pomodoro.bind(DbConstants.TARGET_TODO, top_id, true)
 
 
-func _apply_todo_pomodoro_highlights() -> void:
-	var focus_id := 0
+func _apply_todo_active_leds() -> void:
+	var active_id := 0
 	if PomodoroService.has_active_todo_session() and PomodoroService.is_running:
-		focus_id = PomodoroService.active_target_id
+		active_id = PomodoroService.active_target_id
 	for child in _todo_vbox.get_children():
 		if child == _todo_empty_label:
 			continue
 		if child is TodoRow:
 			var row := child as TodoRow
-			row.set_pomodoro_focus(row.item != null and row.item.id == focus_id)
+			row.set_mission_active(row.item != null and row.item.id == active_id)
 
 
 func _update_todo_progress(items: Array[TodoItem]) -> void:
