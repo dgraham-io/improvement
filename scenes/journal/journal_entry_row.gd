@@ -1,11 +1,10 @@
-## One journal timeline row; displays entry preview and emits edit/delete.
+## One journal timeline row; displays entry preview and emits edit.
 class_name JournalEntryRow
 extends PanelContainer
 
 const _TagDisplay := preload("res://scripts/ui/tag_display.gd")
 
 signal edit_requested(entry: JournalEntry)
-signal delete_requested(entry_id: int)
 
 var entry: JournalEntry
 
@@ -31,8 +30,3 @@ func setup(journal_entry: JournalEntry, tags: Array = []) -> void:
 func _on_edit_pressed() -> void:
 	if entry:
 		edit_requested.emit(entry)
-
-
-func _on_delete_pressed() -> void:
-	if entry:
-		delete_requested.emit(entry.id)

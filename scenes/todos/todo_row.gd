@@ -5,7 +5,6 @@ extends PanelContainer
 const _TagDisplay := preload("res://scripts/ui/tag_display.gd")
 
 signal edit_requested(item: TodoItem)
-signal delete_requested(todo_id: int)
 signal reorder_requested(dragged_id: int, target_id: int, insert_before: bool)
 
 const PRIORITY_COLORS := [
@@ -129,8 +128,3 @@ func _apply_done_style(done: bool) -> void:
 func _on_edit_pressed() -> void:
 	if item:
 		edit_requested.emit(item)
-
-
-func _on_delete_pressed() -> void:
-	if item:
-		delete_requested.emit(item.id)

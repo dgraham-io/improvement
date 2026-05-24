@@ -115,10 +115,4 @@ layout_mode = 2
 theme_type_variation = &"Button_ghost"
 text = "Edit"
 
-[node name="DeleteButton" type="Button" parent="MarginContainer/HBoxContainer/ActionsColumn"]
-layout_mode = 2
-theme_type_variation = &"Button_danger"
-text = "Del"
-
 [connection signal="pressed" from="MarginContainer/HBoxContainer/ActionsColumn/EditButton" to="." method="_on_edit_pressed"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/ActionsColumn/DeleteButton" to="." method="_on_delete_pressed"]

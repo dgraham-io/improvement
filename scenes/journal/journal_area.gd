@@ -64,7 +64,6 @@ func refresh_list() -> void:
 			var row: JournalEntryRow = JOURNAL_ROW_SCENE.instantiate()
 			_journal_vbox.add_child(row)
 			row.edit_requested.connect(_on_journal_edit_requested)
-			row.delete_requested.connect(_on_journal_delete_requested)
 			var entry_tags: Array = tags_map.get(entry.id, [])
 			row.setup(entry, entry_tags)
 		var metrics: JournalDailyMetricsRow = JOURNAL_DAILY_METRICS_SCENE.instantiate()
@@ -182,7 +181,3 @@ func _on_composer_delete_pressed() -> void:
 
 func _on_journal_edit_requested(entry: JournalEntry) -> void:
 	_load_entry_into_composer(entry)
-
-
-func _on_journal_delete_requested(entry_id: int) -> void:
-	JournalService.delete_entry(entry_id)

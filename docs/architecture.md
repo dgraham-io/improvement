@@ -109,7 +109,7 @@ Main (Control, theme)
 
 | Scene | Role |
 |-------|------|
-| `scenes/journal/journal_entry_row.tscn` | Timestamps + body preview; edit/delete |
+| `scenes/journal/journal_entry_row.tscn` | Timestamps + body preview; edit |
 | `scenes/todos/todo_row.tscn` | Active LED, title, notes, priority strip, **work time**, progress bar, drag handle |
 | `scenes/ui/pomodoro_timer.tscn` | Start/pause/stop; bound to journal or todo target |
 | `scenes/setup/initial_setup_dialog.tscn` | DB folder picker + `FileDialog` |

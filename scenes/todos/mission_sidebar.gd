@@ -67,7 +67,6 @@ func refresh_list() -> void:
 		var row: TodoRow = TODO_ROW_SCENE.instantiate()
 		_todo_vbox.add_child(row)
 		row.edit_requested.connect(_on_todo_edit_requested)
-		row.delete_requested.connect(_on_todo_delete_requested)
 		row.reorder_requested.connect(_on_todo_reorder_requested)
 		var stats: Dictionary = work_stats_map.get(item.id, TodoRow.EMPTY_WORK_STATS)
 		var item_tags: Array = tags_map.get(item.id, [])
@@ -258,7 +257,3 @@ func _on_todo_reorder_requested(dragged_id: int, target_id: int, insert_before: 
 
 func _on_todo_edit_requested(item: TodoItem) -> void:
 	_load_todo_into_mission_composer(item)
-
-
-func _on_todo_delete_requested(todo_id: int) -> void:
-	TodoService.delete_todo(todo_id)
