@@ -408,7 +408,8 @@ func fetch_todos(include_deleted: bool = false, filter_tag_ids: Array = []) -> A
 	var sql := (
 		"SELECT t.id, t.created_at, t.updated_at, t.title, t.notes, t.status, t.priority, "
 		+ "t.due_at, t.sort_order, t.journal_entry_id, t.deleted_at FROM todos t%s "
-		+ "ORDER BY t.sort_order ASC, t.created_at DESC;"
+		+ "ORDER BY CASE WHEN t.status = 'done' THEN 1 ELSE 0 END, "
+		+ "t.sort_order ASC, t.created_at DESC;"
 	) % where
 	if bindings.is_empty():
 		if not _db.query(sql):
@@ -479,12 +480,44 @@ func update_todo(item: TodoItem) -> bool:
 	)
 
 
+func set_todo_updated_at(todo_id: int, updated_at: int) -> bool:
+	return _db.query_with_bindings(
+		"UPDATE todos SET updated_at = ? WHERE id = ? AND deleted_at IS NULL;",
+		[updated_at, todo_id]
+	)
+
+
 func soft_delete_todo(todo_id: int) -> bool:
 	var now := int(Time.get_unix_time_from_system())
 	return _db.query_with_bindings(
 		"UPDATE todos SET deleted_at = ?, updated_at = ? WHERE id = ?;",
 		[now, now, todo_id]
 	)
+
+
+## Soft-deletes done missions with updated_at strictly before [param cutoff_unix]. Returns affected ids.
+func soft_delete_done_todos_before(cutoff_unix: int) -> Array[int]:
+	if cutoff_unix <= 0:
+		return []
+	if not _db.query_with_bindings(
+		"SELECT id FROM todos WHERE deleted_at IS NULL AND status = ? AND updated_at < ?;",
+		[DbConstants.TODO_DONE, cutoff_unix]
+	):
+		push_error("soft_delete_done_todos_before select: %s" % _db.error_message)
+		return []
+	var ids: Array[int] = []
+	for row in _db.query_result:
+		ids.append(int(row.get("id", 0)))
+	if ids.is_empty():
+		return []
+	var now := int(Time.get_unix_time_from_system())
+	for todo_id in ids:
+		if not _db.query_with_bindings(
+			"UPDATE todos SET deleted_at = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL;",
+			[now, now, todo_id]
+		):
+			push_error("soft_delete_done_todos_before: %s" % _db.error_message)
+	return ids
 
 
 # --- Tags --------------------------------------------------------------------

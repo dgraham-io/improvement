@@ -78,7 +78,9 @@ Mission list. Optional `journal_entry_id` links to a journal entry.
 | `sort_order` | Manual list order |
 | `deleted_at` | Soft delete |
 
-**Default sort:** `sort_order ASC`, then `created_at DESC`.
+**Default sort:** Active missions first (`status != done`), then `sort_order ASC`, then `created_at DESC`. Completed missions are kept at the bottom while they remain for the current local day.
+
+**End of day:** On the first run each local calendar day, missions with `status = done` and `updated_at` before today’s local midnight are soft-deleted (`app_settings.todo_cleanup_day_key` tracks the last cleanup day).
 
 **Pomodoro integration:** Work is stored in `pomodoro_sessions`, not on the row. Starting a timer on a **pending** mission sets `status` to `in_progress`. Rows show **total work time**; tooltip shows **completed pomodoro** count.
 

@@ -1,6 +1,9 @@
 ## Autoload: task list CRUD. Emits signals for UI refresh.
 extends Node
 
+const _TodoListOrder := preload("res://scripts/todos/todo_list_order.gd")
+const _TodoDayCleanup := preload("res://scripts/todos/todo_day_cleanup.gd")
+
 signal todo_created(item: TodoItem)
 signal todo_updated(item: TodoItem)
 signal todo_deleted(todo_id: int)
@@ -8,12 +11,48 @@ signal todo_deleted(todo_id: int)
 signal todo_stats_changed
 signal todo_reordered
 
+var _day_check_timer: Timer
+var _tracked_day_key: String = ""
+
 
 func _ready() -> void:
 	if not Database.is_ready:
 		await Database.ready_changed
 	if not Database.is_ready:
 		return
+	_run_startup_maintenance()
+	_start_day_check_timer()
+
+
+func _start_day_check_timer() -> void:
+	_day_check_timer = Timer.new()
+	_day_check_timer.wait_time = 60.0
+	_day_check_timer.autostart = true
+	_day_check_timer.timeout.connect(_on_day_check_timer)
+	add_child(_day_check_timer)
+	_tracked_day_key = _TodoDayCleanup.today_day_key(int(Time.get_unix_time_from_system()))
+
+
+func _on_day_check_timer() -> void:
+	var today_key := _TodoDayCleanup.today_day_key(int(Time.get_unix_time_from_system()))
+	if today_key == _tracked_day_key:
+		return
+	_tracked_day_key = today_key
+	_run_day_cleanup_if_needed()
+
+
+func _run_startup_maintenance() -> void:
+	normalize_list_order()
+	_run_day_cleanup_if_needed()
+
+
+func _run_day_cleanup_if_needed() -> void:
+	var now := int(Time.get_unix_time_from_system())
+	var last_key := Database.get_setting(DbConstants.SETTING_TODO_CLEANUP_DAY_KEY, "")
+	if not _TodoDayCleanup.should_run_cleanup(last_key, now):
+		return
+	purge_completed_before_today()
+	Database.set_setting(DbConstants.SETTING_TODO_CLEANUP_DAY_KEY, _TodoDayCleanup.today_day_key(now))
 
 
 func get_todo_count() -> int:
@@ -28,12 +67,12 @@ func list_todos() -> Array[TodoItem]:
 	return result
 
 
-## First mission in list order (top of the task list).
+## First non-done mission in list order (top of the active task list).
 func get_top_todo() -> TodoItem:
-	var items := list_todos()
-	if items.is_empty():
-		return null
-	return items[0]
+	for item in list_todos():
+		if not item.is_done():
+			return item
+	return null
 
 
 func get_todo(todo_id: int) -> TodoItem:
@@ -64,6 +103,8 @@ func create_todo(
 	var id := Database.insert_todo(title, notes, status, priority, due_at, journal_entry_id)
 	if id < 0:
 		return null
+	if status == DbConstants.TODO_DONE:
+		normalize_list_order()
 	var item := get_todo(id)
 	if item:
 		todo_created.emit(item)
@@ -77,6 +118,7 @@ func save_todo(item: TodoItem, emit_updated: bool = true) -> bool:
 		item.status = DbConstants.TODO_PENDING
 	if not Database.update_todo(item):
 		return false
+	normalize_list_order()
 	if emit_updated:
 		var updated := get_todo(item.id)
 		if updated:
@@ -112,15 +154,11 @@ func move_todo_relative_to(dragged_id: int, target_id: int, insert_before: bool)
 	var insert_idx := target_idx if insert_before else target_idx + 1
 	insert_idx = clampi(insert_idx, 0, items.size())
 	items.insert(insert_idx, moved)
-	var changed := false
 	for i in items.size():
-		if items[i].sort_order != i:
-			items[i].sort_order = i
-			if not Database.update_todo(items[i]):
-				return false
-			changed = true
-	if changed:
-		todo_reordered.emit()
+		items[i].sort_order = i
+		if not Database.update_todo(items[i]):
+			return false
+	normalize_list_order()
 	return true
 
 
@@ -131,40 +169,42 @@ func delete_todo(todo_id: int) -> bool:
 	return true
 
 
-## Mark done, persist, and move to the bottom of the mission list.
+## Mark done, persist, and move completed missions to the bottom of the list.
 func complete_todo(item: TodoItem) -> bool:
 	if item == null or item.id <= 0 or item.is_done():
 		return false
 	item.status = DbConstants.TODO_DONE
 	if not Database.update_todo(item):
 		return false
-	if not move_todo_to_bottom(item.id):
-		return false
+	normalize_list_order()
 	var updated := get_todo(item.id)
 	if updated:
 		todo_updated.emit(updated)
 	return true
 
 
-func move_todo_to_bottom(todo_id: int) -> bool:
+## Reorders missions so active items are on top and completed items are at the bottom.
+func normalize_list_order() -> bool:
 	var items := list_todos()
-	var from_idx := -1
-	for i in items.size():
-		if items[i].id == todo_id:
-			from_idx = i
-			break
-	if from_idx < 0:
+	var ordered := _TodoListOrder.ordered_active_first(items)
+	if not _TodoListOrder.apply_sort_orders(ordered):
 		return false
-	var moved := items[from_idx]
-	items.remove_at(from_idx)
-	items.append(moved)
 	var changed := false
-	for i in items.size():
-		if items[i].sort_order != i:
-			items[i].sort_order = i
-			if not Database.update_todo(items[i]):
-				return false
-			changed = true
+	for item in ordered:
+		if not Database.update_todo(item):
+			return false
+		changed = true
 	if changed:
 		todo_reordered.emit()
-	return true
+	return changed
+
+
+## Soft-deletes completed missions from before today (local midnight). Runs once per calendar day.
+func purge_completed_before_today() -> int:
+	var today_start := TimeFormat.local_day_start(int(Time.get_unix_time_from_system()))
+	var ids := Database.soft_delete_done_todos_before(today_start)
+	for todo_id in ids:
+		todo_deleted.emit(todo_id)
+	if not ids.is_empty():
+		normalize_list_order()
+	return ids.size()
