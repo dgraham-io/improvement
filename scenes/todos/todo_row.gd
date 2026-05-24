@@ -14,8 +14,8 @@ const PRIORITY_COLORS := [
 	Color(0.658824, 0.333333, 0.968627, 0.9),
 	Color(0.92549, 0.282353, 0.6, 0.95),
 ]
-const POMODORO_FOCUS_STYLE := preload("res://assets/themes/styleboxes/panel_pomodoro_focus.tres")
 const EMPTY_WORK_STATS := {"completed_pomodoros": 0, "total_work_sec": 0}
+const POMODORO_FOCUS_VARIATION := &"PanelContainer_pomodoro_focus"
 
 var item: TodoItem
 
@@ -85,9 +85,11 @@ func update_work_stats(work_stats: Dictionary) -> void:
 
 func set_pomodoro_focus(focused: bool) -> void:
 	if focused:
-		add_theme_stylebox_override("panel", POMODORO_FOCUS_STYLE)
+		var style := get_theme_stylebox(&"panel", POMODORO_FOCUS_VARIATION)
+		if style != null:
+			add_theme_stylebox_override(&"panel", style)
 	else:
-		remove_theme_stylebox_override("panel")
+		remove_theme_stylebox_override(&"panel")
 
 
 func _apply_priority_strip(priority: int) -> void:
