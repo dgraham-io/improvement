@@ -916,10 +916,13 @@ func _mark_closed() -> void:
 	# Called on clean shutdown so the next machine to open sees a stale/closed state quickly.
 	if _heartbeat_timer != null:
 		_heartbeat_timer.stop()
+		_heartbeat_timer = null
 
 	_current_open_session = ""
-	set_setting(DbConstants.SETTING_OPEN_SESSION, "")
-	set_setting(DbConstants.SETTING_LAST_HEARTBEAT_AT, "0")
+
+	if _db != null:
+		set_setting(DbConstants.SETTING_OPEN_SESSION, "")
+		set_setting(DbConstants.SETTING_LAST_HEARTBEAT_AT, "0")
 
 
 func _on_close_requested() -> void:

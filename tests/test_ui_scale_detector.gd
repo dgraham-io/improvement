@@ -20,7 +20,4 @@ func test_dpi_fallback_produces_sane_values() -> void:
 
 
 func test_prefers_explicit_override_when_different_from_one() -> void:
-	# This test verifies the public API contract that callers (main.gd)
-	# should prefer stored values. We test the detector in isolation here.
-	# The override logic lives in main.gd, so we document the expectation.
-	pass  # Covered indirectly via integration in main scene tests if needed.
+	pending("Override preference logic lives in main.gd and is covered indirectly.")

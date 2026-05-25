@@ -85,7 +85,22 @@ func test_heartbeat_timer_exists_after_initialize() -> void:
 
 
 func test_database_methods_are_safe_when_db_is_null() -> void:
-	pending("Flaky under current test isolation (global autoload + real DB). Guards exist in source.")
+	# Force a clean null state right before the calls
+	_db._db = null
+	_db.is_ready = false
+
+	# These should not cause null dereference errors.
+	# We don't assert exact return values because of test isolation with the global autoload.
+	_db.fetch_all_tags()
+	_db.fetch_tag_by_id(1)
+	_db.fetch_tag_by_name("test")
+	_db.fetch_tags_for_journal_entry(1)
+	_db.set_journal_entry_tags(1, [] as Array[int])
+
+	# insert_tag can have side effects in shared DB state — call it safely
+	var result = _db.insert_tag("test_" + str(Time.get_ticks_usec()))
+	# We mainly care it didn't hard-crash on null _db
+	assert_true(result == -1 or result > 0)
 
 
 # --- Helpers (copied from test_database_open.gd for consistency) ---
@@ -100,9 +115,15 @@ func _make_temp_directory() -> String:
 
 
 func _reset_database_instance() -> void:
+	if _db._heartbeat_timer != null:
+		_db._heartbeat_timer.queue_free()
+		_db._heartbeat_timer = null
+
 	_db._db = null
 	_db.is_ready = false
 	_db._last_open_error = ""
+	_db._current_open_session = ""
+	_db._current_machine_path = ""
 
 
 func _remove_directory_recursive(path: String) -> void:
