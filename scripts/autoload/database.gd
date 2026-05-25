@@ -8,11 +8,18 @@ const _Tag := preload("res://scripts/models/tag.gd")
 const _TagNames := preload("res://scripts/tags/tag_names.gd")
 
 signal ready_changed(is_ready: bool)
+signal other_instance_detected(machine_path: String, last_heartbeat_at: int)
+signal existing_database_detected(db_path: String)
 
 var is_ready: bool = false
 
 var _db: SQLite
 var _last_open_error: String = ""
+
+# Heartbeat state for cross-machine "another instance may be open" detection (Dropbox use case)
+var _heartbeat_timer: Timer
+var _current_open_session: String = ""
+var _current_machine_path: String = ""
 
 
 func _ready() -> void:
@@ -36,6 +43,10 @@ func _initialize(db_directory: String) -> bool:
 	set_setting(DbConstants.SETTING_DB_DIRECTORY, AppConfig.normalize_directory(db_directory))
 	is_ready = true
 	ready_changed.emit(true)
+
+	_start_heartbeat(db_directory)
+	_check_for_other_instance(db_directory)
+	_check_for_existing_database(db_directory)
 	return true
 
 
@@ -523,6 +534,8 @@ func soft_delete_done_todos_before(cutoff_unix: int) -> Array[int]:
 # --- Tags --------------------------------------------------------------------
 
 func fetch_all_tags() -> Array:
+	if _db == null:
+		return []
 	if not _db.query(
 		"SELECT id, name, created_at FROM tags ORDER BY name COLLATE NOCASE ASC;"
 	):
@@ -532,6 +545,8 @@ func fetch_all_tags() -> Array:
 
 
 func fetch_tag_by_id(tag_id: int) -> Dictionary:
+	if _db == null:
+		return {}
 	if not _db.query_with_bindings(
 		"SELECT id, name, created_at FROM tags WHERE id = ?;",
 		[tag_id]
@@ -543,6 +558,8 @@ func fetch_tag_by_id(tag_id: int) -> Dictionary:
 
 
 func fetch_tag_by_name(name: String) -> Dictionary:
+	if _db == null:
+		return {}
 	var normalized := _TagNames.normalize(name)
 	if normalized.is_empty():
 		return {}
@@ -557,6 +574,8 @@ func fetch_tag_by_name(name: String) -> Dictionary:
 
 
 func insert_tag(name: String) -> int:
+	if _db == null:
+		return -1
 	var normalized := _TagNames.normalize(name)
 	if normalized.is_empty():
 		return -1
@@ -571,7 +590,7 @@ func insert_tag(name: String) -> int:
 
 
 func fetch_tags_for_journal_entry(entry_id: int) -> Array:
-	if entry_id <= 0:
+	if _db == null or entry_id <= 0:
 		return []
 	if not _db.query_with_bindings(
 		"SELECT t.id, t.name, t.created_at "
@@ -587,7 +606,7 @@ func fetch_tags_for_journal_entry(entry_id: int) -> Array:
 
 
 func fetch_tags_for_todo(todo_id: int) -> Array:
-	if todo_id <= 0:
+	if _db == null or todo_id <= 0:
 		return []
 	if not _db.query_with_bindings(
 		"SELECT t.id, t.name, t.created_at "
@@ -603,6 +622,8 @@ func fetch_tags_for_todo(todo_id: int) -> Array:
 
 
 func fetch_journal_entry_tags_map() -> Dictionary:
+	if _db == null:
+		return {}
 	if not _db.query(
 		"SELECT jet.entry_id, t.id, t.name, t.created_at "
 		+ "FROM journal_entry_tags jet "
@@ -615,6 +636,8 @@ func fetch_journal_entry_tags_map() -> Dictionary:
 
 
 func fetch_todo_tags_map() -> Dictionary:
+	if _db == null:
+		return {}
 	if not _db.query(
 		"SELECT tt.todo_id, t.id, t.name, t.created_at "
 		+ "FROM todo_tags tt "
@@ -639,7 +662,7 @@ func _build_entity_tags_map(entity_key: String) -> Dictionary:
 
 
 func set_journal_entry_tags(entry_id: int, tag_ids: Array[int]) -> bool:
-	if entry_id <= 0:
+	if _db == null or entry_id <= 0:
 		return false
 	if not _db.query_with_bindings(
 		"DELETE FROM journal_entry_tags WHERE entry_id = ?;",
@@ -660,7 +683,7 @@ func set_journal_entry_tags(entry_id: int, tag_ids: Array[int]) -> bool:
 
 
 func set_todo_tags(todo_id: int, tag_ids: Array[int]) -> bool:
-	if todo_id <= 0:
+	if _db == null or todo_id <= 0:
 		return false
 	if not _db.query_with_bindings(
 		"DELETE FROM todo_tags WHERE todo_id = ?;",
@@ -833,3 +856,143 @@ func _empty_daily_work_stats() -> Dictionary:
 	hourly.fill(0)
 	empty["hourly_work_sec"] = hourly
 	return empty
+
+
+# --- Cross-machine heartbeat (Dropbox / shared-folder "another instance open" detection) ---
+
+func _start_heartbeat(db_directory: String) -> void:
+	_current_machine_path = AppConfig.normalize_directory(db_directory)
+	_current_open_session = _generate_session_id()
+
+	var now := int(Time.get_unix_time_from_system())
+	_write_heartbeat(_current_open_session, _current_machine_path, now)
+
+	# Start periodic timer (lightweight — only bumps the timestamp)
+	if _heartbeat_timer != null:
+		_heartbeat_timer.queue_free()
+
+	_heartbeat_timer = Timer.new()
+	_heartbeat_timer.wait_time = 45.0
+	_heartbeat_timer.autostart = true
+	_heartbeat_timer.timeout.connect(_on_heartbeat_tick)
+	add_child(_heartbeat_timer)
+
+	# Also mark closed early on window close request (in addition to _exit_tree)
+	var root := get_tree().root
+	if root:
+		var win := root as Window
+		if win and not win.close_requested.is_connected(_on_close_requested):
+			win.close_requested.connect(_on_close_requested)
+
+
+func _generate_session_id() -> String:
+	# Simple unique-per-run id, good enough for personal single-user detection
+	return str(Time.get_unix_time_from_system()) + "_" + str(randi() % 100000)
+
+
+func _write_heartbeat(session: String, machine_path: String, timestamp: int) -> void:
+	set_setting(DbConstants.SETTING_OPEN_SESSION, session)
+	set_setting(DbConstants.SETTING_OPEN_MACHINE_PATH, machine_path)
+	set_setting(DbConstants.SETTING_LAST_HEARTBEAT_AT, str(timestamp))
+
+
+func _on_heartbeat_tick() -> void:
+	if _current_open_session.is_empty() or _current_machine_path.is_empty():
+		return
+
+	# Re-assert our ownership + fresh timestamp.
+	# If another machine has taken over the session, we simply stop fighting.
+	var current := get_setting(DbConstants.SETTING_OPEN_SESSION, "")
+	if current != _current_open_session:
+		# Another instance (possibly on this or another machine) has opened since we started.
+		# Our heartbeat is no longer authoritative.
+		return
+
+	var now := int(Time.get_unix_time_from_system())
+	set_setting(DbConstants.SETTING_LAST_HEARTBEAT_AT, str(now))
+
+
+func _mark_closed() -> void:
+	# Called on clean shutdown so the next machine to open sees a stale/closed state quickly.
+	if _heartbeat_timer != null:
+		_heartbeat_timer.stop()
+
+	_current_open_session = ""
+	set_setting(DbConstants.SETTING_OPEN_SESSION, "")
+	set_setting(DbConstants.SETTING_LAST_HEARTBEAT_AT, "0")
+
+
+func _on_close_requested() -> void:
+	_mark_closed()
+
+
+func _check_for_other_instance(current_directory: String) -> void:
+	var current_path := AppConfig.normalize_directory(current_directory)
+	var prev_session := get_setting(DbConstants.SETTING_OPEN_SESSION, "")
+	var prev_path := get_setting(DbConstants.SETTING_OPEN_MACHINE_PATH, "")
+	var prev_ts_str := get_setting(DbConstants.SETTING_LAST_HEARTBEAT_AT, "0")
+	var prev_ts := int(prev_ts_str) if prev_ts_str.is_valid_int() else 0
+
+	if prev_session.is_empty():
+		return
+	if prev_path == current_path:
+		return  # Same machine / same normalized path — normal reopen
+
+	var now := int(Time.get_unix_time_from_system())
+	if prev_ts <= 0:
+		return
+
+	var age := now - prev_ts
+	if age > 0 and age < DbConstants.OTHER_INSTANCE_RECENT_SEC:
+		push_warning("Database was recently opened on another computer (path: %s, %d seconds ago)." % [prev_path, age])
+		other_instance_detected.emit(prev_path, prev_ts)
+
+
+## Returns information about a possible open instance on another computer.
+## Keys:
+##   "active": bool                 — true if another machine path has a recent heartbeat
+##   "machine_path": String
+##   "last_heartbeat_at": int
+##   "seconds_ago": int
+##   "session": String
+func get_other_instance_info() -> Dictionary:
+	var session := get_setting(DbConstants.SETTING_OPEN_SESSION, "")
+	var path := get_setting(DbConstants.SETTING_OPEN_MACHINE_PATH, "")
+	var ts_str := get_setting(DbConstants.SETTING_LAST_HEARTBEAT_AT, "0")
+	var ts := int(ts_str) if ts_str.is_valid_int() else 0
+
+	var now := int(Time.get_unix_time_from_system())
+	var age := now - ts if ts > 0 else 999999
+
+	var our_path := _current_machine_path
+	if our_path.is_empty():
+		our_path = get_setting(DbConstants.SETTING_DB_DIRECTORY, "")
+
+	var active := false
+	if not session.is_empty() and path != our_path and ts > 0 and age >= 0 and age < DbConstants.OTHER_INSTANCE_RECENT_SEC:
+		active = true
+
+	return {
+		"active": active,
+		"machine_path": path,
+		"last_heartbeat_at": ts,
+		"seconds_ago": age if age < 999999 else -1,
+		"session": session,
+	}
+
+
+func _check_for_existing_database(db_directory: String) -> void:
+	if not _DatabaseOpen.db_file_exists(db_directory):
+		return
+
+	var current_path := AppConfig.normalize_directory(db_directory)
+	var acknowledged := get_setting(DbConstants.SETTING_EXISTING_DB_ACKNOWLEDGED, "")
+
+	# Only notify the first time we open an existing DB on this machine
+	if acknowledged != current_path:
+		set_setting(DbConstants.SETTING_EXISTING_DB_ACKNOWLEDGED, current_path)
+		existing_database_detected.emit(current_path)
+
+
+func _exit_tree() -> void:
+	_mark_closed()

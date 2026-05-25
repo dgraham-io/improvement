@@ -13,6 +13,8 @@ func _ready() -> void:
 
 
 func list_tags() -> Array[Tag]:
+	if not Database.is_ready:
+		return []
 	var rows := Database.fetch_all_tags()
 	var result: Array[Tag] = []
 	for row in rows:
@@ -21,6 +23,8 @@ func list_tags() -> Array[Tag]:
 
 
 func find_or_create(name: String) -> Tag:
+	if not Database.is_ready:
+		return null
 	var normalized := TagNames.normalize(name)
 	if normalized.is_empty():
 		return null
@@ -34,6 +38,8 @@ func find_or_create(name: String) -> Tag:
 
 
 func get_tag(tag_id: int) -> Tag:
+	if not Database.is_ready:
+		return null
 	var row := Database.fetch_tag_by_id(tag_id)
 	if row.is_empty():
 		return null

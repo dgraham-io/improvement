@@ -15,7 +15,8 @@ static func format_open_error(directory: String, sqlite_err: String) -> String:
 	if "locked" in err_lower or "busy" in err_lower:
 		return (
 			"Could not open improvement.db because it is in use.\n\n"
-			+ "Close any other copy of Improvement, then try again.\n\n"
+			+ "Close any other copy of Improvement (this computer or another machine with the same Dropbox folder),\n"
+			+ "then try again.\n\n"
 			+ "File:\n%s"
 		) % db_path
 	if "readonly" in err_lower or "read-only" in err_lower:
@@ -56,3 +57,9 @@ static func try_open_at_directory(db_directory: String) -> OpenResult:
 	result.ok = true
 	result.sqlite = sqlite
 	return result
+
+
+## Returns true if an improvement.db file already exists at the given directory.
+static func db_file_exists(directory: String) -> bool:
+	var path := AppConfig.db_base_path(directory) + ".db"
+	return FileAccess.file_exists(path)

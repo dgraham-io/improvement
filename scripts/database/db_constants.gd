@@ -47,3 +47,12 @@ const SETTING_WINDOW_X := "window_x"
 const SETTING_WINDOW_Y := "window_y"
 const SETTING_WINDOW_MODE := "window_mode"
 const SETTING_TODO_CLEANUP_DAY_KEY := "todo_cleanup_day_key"
+
+# Cross-machine heartbeat (for Dropbox / shared folder "another instance open" detection)
+const SETTING_OPEN_SESSION := "open_session"
+const SETTING_OPEN_MACHINE_PATH := "open_machine_path"
+const SETTING_LAST_HEARTBEAT_AT := "last_heartbeat_at"
+const OTHER_INSTANCE_RECENT_SEC := 45 * 60  # 45 minutes
+
+# Used to show the "existing database detected" message only once per machine
+const SETTING_EXISTING_DB_ACKNOWLEDGED := "existing_db_acknowledged"

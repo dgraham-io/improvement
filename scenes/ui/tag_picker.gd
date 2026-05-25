@@ -17,10 +17,16 @@ func _ready() -> void:
 	_tag_option.item_selected.connect(_on_tag_option_selected)
 	_add_tag_button.pressed.connect(_on_add_tag_pressed)
 	_new_tag_field.text_submitted.connect(_on_new_tag_submitted)
-	refresh()
+
+	if not Database.is_ready:
+		await Database.ready_changed
+	if Database.is_ready:
+		refresh()
 
 
 func refresh() -> void:
+	if not Database.is_ready:
+		return
 	_available = TagService.list_tags()
 	_rebuild_option_menu()
 	_rebuild_selected_chips()
