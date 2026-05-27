@@ -3,9 +3,11 @@ class_name SettingsDialog
 extends CanvasLayer
 
 const _AppMessage := preload("res://scripts/ui/app_message.gd")
+const _DatabaseBackup := preload("res://scripts/database/database_backup.gd")
 
 signal closed
 signal settings_applied
+signal backup_imported
 
 @onready var _scale_slider: HSlider = %ScaleSlider
 @onready var _scale_value: Label = %ScaleValue
@@ -13,6 +15,9 @@ signal settings_applied
 @onready var _use_system_scale_check: CheckButton = %UseSystemScaleCheck
 @onready var _newest_first_check: CheckButton = %NewestFirstCheck
 @onready var _save_button: Button = %SaveButton
+@onready var _db_path_label: Label = %DbPathLabel
+@onready var _export_backup_dialog: FileDialog = %ExportBackupDialog
+@onready var _import_backup_dialog: FileDialog = %ImportBackupDialog
 
 var _original_scale: float = 1.0
 var _original_newest_first: bool = true
@@ -25,6 +30,7 @@ func _ready() -> void:
 	_load_current_settings()
 	_update_scale_controls()
 	_scale_hint.text = "UI scale applies immediately when you save."
+	_db_path_label.text = Database.get_db_file_path()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -97,6 +103,64 @@ func _preview_system_scale() -> void:
 
 func _restore_viewport_scale() -> void:
 	get_tree().root.content_scale_factor = _viewport_scale_at_open
+
+
+func _on_export_backup_pressed() -> void:
+	_export_backup_dialog.current_file = _DatabaseBackup.default_archive_filename()
+	_export_backup_dialog.popup_centered(Vector2i(700, 500))
+
+
+func _on_export_backup_selected(path: String) -> void:
+	if Database.export_backup_archive(path):
+		_show_info("Backup exported", "Saved to:\n%s" % path)
+	else:
+		_AppMessage.show_error(self, "Export failed", Database.get_last_error())
+
+
+func _on_import_backup_pressed() -> void:
+	_import_backup_dialog.popup_centered(Vector2i(700, 500))
+
+
+func _on_import_backup_selected(path: String) -> void:
+	var confirm := ConfirmationDialog.new()
+	confirm.title = "Import backup?"
+	confirm.dialog_text = (
+		"This replaces your current journal, tasks, and pomodoros with the backup.\n\n"
+		+ "A copy of the current database is kept as improvement.db.before-import-<timestamp>.db "
+		+ "in the same folder.\n\n"
+		+ "Continue?"
+	)
+	confirm.ok_button_text = "Import"
+	confirm.cancel_button_text = "Cancel"
+	add_child(confirm)
+	confirm.popup_centered()
+	confirm.confirmed.connect(func() -> void:
+		_run_import_backup(path)
+		confirm.queue_free()
+	)
+	confirm.canceled.connect(confirm.queue_free)
+
+
+func _run_import_backup(path: String) -> void:
+	if not Database.import_backup_archive(path):
+		_AppMessage.show_error(self, "Import failed", Database.get_last_error())
+		return
+	_db_path_label.text = Database.get_db_file_path()
+	backup_imported.emit()
+	_show_info(
+		"Backup imported",
+		"Your data was restored from the backup.\n\n%s" % path
+	)
+
+
+func _show_info(title: String, message: String) -> void:
+	var dialog := AcceptDialog.new()
+	dialog.title = title
+	dialog.dialog_text = message
+	add_child(dialog)
+	dialog.popup_centered()
+	dialog.confirmed.connect(dialog.queue_free)
+	dialog.canceled.connect(dialog.queue_free)
 
 
 func _on_cancel_pressed() -> void:

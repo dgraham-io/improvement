@@ -192,7 +192,7 @@ Details: [data-model.md](data-model.md), [schema.sql](schema.sql).
 | **2b** | First-run setup + empty DB | **Done** |
 | **2c** | Pomodoro + task work stats | **Done** (top task + journal only) |
 | **3** | Settings UI + `ui_scale` slider | **Done** |
-| **6** | Sync / backup UX | **Roadmap** |
+| **6** | Sync / backup UX | **Done** |
 | **8** | Swap panel while editing entries (journal ↔ task without losing drafts) | **Roadmap** |
 | — | Encryption | **Shelved** (see recommendations) |
 | — | Pomodoro per-row / polish | **Deferred** (see recommendations) |

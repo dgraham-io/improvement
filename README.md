@@ -27,7 +27,7 @@ Desktop prototype with **SQLite-backed** journal and tasks, inline editing, and 
 | Window size/position persistence (desktop export) | Shipped |
 | Settings screen | Shipped |
 | Encryption at rest | Not scheduled — see [recommendations](docs/architecture.md#recommendations-not-on-roadmap) |
-| Cloud sync / backup UX | Planned (roadmap) |
+| Backup export / import (Settings) | Shipped |
 
 ## Current app (what ships today)
 
@@ -113,7 +113,7 @@ improvement/
 ### Later
 
 6. ~~**User preferences UI**~~ — Settings dialog: journal sort, **UI scale** (manual or system), applies immediately.
-7. **Optional sync / backup** — Dropbox / iCloud or explicit export/import beyond placing `improvement.db` in a synced folder.
+7. ~~**Optional sync / backup**~~ — Settings → export/import `.improvement-backup.zip` (Dropbox folder sync still supported).
 8. **Swap panel while editing entries** — switch between the journal composer and task editor without losing unsaved text (e.g. keep drafts, or prompt to save/discard before changing focus).
 
 Pomodoro and encryption are **not** on the roadmap; see [recommendations](docs/architecture.md#recommendations-not-on-roadmap) in the architecture doc.

@@ -86,6 +86,59 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Match system UI scale"
 
+[node name="BackupSection" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BackupLabel" type="Label" parent="Center/Panel/Margin/VBox/BackupSection"]
+layout_mode = 2
+text = "Backup"
+
+[node name="DbPathLabel" type="Label" parent="Center/Panel/Margin/VBox/BackupSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+autowrap_mode = 3
+text = "Database path"
+
+[node name="BackupHint" type="Label" parent="Center/Panel/Margin/VBox/BackupSection"]
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+autowrap_mode = 3
+text = "Export a portable .improvement-backup.zip archive, or import one to replace the live database. Your current database is copied to improvement.db.before-import-<timestamp>.db first."
+
+[node name="BackupActions" type="HBoxContainer" parent="Center/Panel/Margin/VBox/BackupSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ExportBackupButton" type="Button" parent="Center/Panel/Margin/VBox/BackupSection/BackupActions"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Export backup…"
+
+[node name="ImportBackupButton" type="Button" parent="Center/Panel/Margin/VBox/BackupSection/BackupActions"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Import backup…"
+
+[node name="ExportBackupDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Export backup"
+size = Vector2i(700, 500)
+ok_button_text = "Save"
+file_mode = 4
+access = 2
+filters = PackedStringArray("*.improvement-backup.zip ; Improvement Backup")
+
+[node name="ImportBackupDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Import backup"
+size = Vector2i(700, 500)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.improvement-backup.zip, *.zip ; Backup Archive", "*.db ; SQLite Database")
+
 [node name="JournalSection" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
@@ -131,5 +184,9 @@ text = "Save"
 
 [connection signal="value_changed" from="Center/Panel/Margin/VBox/ScaleSection/ScaleSlider" to="." method="_on_scale_slider_changed"]
 [connection signal="toggled" from="Center/Panel/Margin/VBox/ScaleSection/UseSystemScaleCheck" to="." method="_on_use_system_scale_toggled"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/BackupSection/BackupActions/ExportBackupButton" to="." method="_on_export_backup_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/BackupSection/BackupActions/ImportBackupButton" to="." method="_on_import_backup_pressed"]
+[connection signal="file_selected" from="ExportBackupDialog" to="." method="_on_export_backup_selected"]
+[connection signal="file_selected" from="ImportBackupDialog" to="." method="_on_import_backup_selected"]
 [connection signal="pressed" from="Center/Panel/Margin/VBox/Actions/CancelButton" to="." method="_on_cancel_pressed"]
 [connection signal="pressed" from="Center/Panel/Margin/VBox/Actions/SaveButton" to="." method="_on_save_pressed"]

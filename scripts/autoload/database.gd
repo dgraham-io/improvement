@@ -3,6 +3,7 @@
 extends Node
 
 const _DatabaseOpen := preload("res://scripts/database/database_open.gd")
+const _DatabaseBackup := preload("res://scripts/database/database_backup.gd")
 const _DailyWorkStats := preload("res://scripts/models/daily_work_stats.gd")
 const _Tag := preload("res://scripts/models/tag.gd")
 const _TagNames := preload("res://scripts/tags/tag_names.gd")
@@ -10,6 +11,7 @@ const _TagNames := preload("res://scripts/tags/tag_names.gd")
 signal ready_changed(is_ready: bool)
 signal other_instance_detected(machine_path: String, last_heartbeat_at: int)
 signal existing_database_detected(db_path: String)
+signal backup_imported
 
 var is_ready: bool = false
 
@@ -57,6 +59,78 @@ func get_db_directory() -> String:
 
 func get_db_file_path() -> String:
 	return AppConfig.db_base_path(get_db_directory()) + ".db"
+
+
+func export_backup_archive(archive_path: String) -> bool:
+	clear_last_error()
+	if not is_ready or _db == null:
+		_last_operation_error = "export_backup: Database is not ready."
+		return false
+	if not _DatabaseBackup.checkpoint(_db):
+		_fail_operation("export_backup checkpoint")
+		return false
+	var outcome: _DatabaseBackup.Result = _DatabaseBackup.export_to_zip(
+		get_db_file_path(),
+		archive_path,
+		_get_user_version()
+	)
+	if outcome.ok:
+		return true
+	_last_operation_error = outcome.error_message
+	push_error(_last_operation_error)
+	return false
+
+
+func import_backup_archive(archive_path: String) -> bool:
+	clear_last_error()
+	if archive_path.is_empty():
+		_last_operation_error = "import_backup: No file selected."
+		return false
+	var resolved := _DatabaseBackup.resolve_database_bytes(archive_path)
+	if not resolved.ok:
+		_last_operation_error = resolved.error_message
+		push_error(_last_operation_error)
+		return false
+
+	var live_path := get_db_file_path()
+	close_connection()
+	var outcome: _DatabaseBackup.Result = _DatabaseBackup.import_into(archive_path, live_path)
+	if not outcome.ok:
+		_last_operation_error = outcome.error_message
+		push_error(_last_operation_error)
+		reopen_connection()
+		return false
+	if not reopen_connection():
+		_last_operation_error = _last_open_error
+		if _last_operation_error.is_empty():
+			_last_operation_error = "import_backup: Could not reopen database."
+		push_error(_last_operation_error)
+		return false
+	backup_imported.emit()
+	return true
+
+
+func close_connection() -> void:
+	if not is_ready and _db == null:
+		return
+	_mark_closed()
+	if _db != null:
+		_db.close_db()
+		_db = null
+	is_ready = false
+	ready_changed.emit(false)
+
+
+func reopen_connection() -> bool:
+	if is_ready:
+		return true
+	var db_directory := get_db_directory()
+	if db_directory.is_empty():
+		db_directory = AppConfig.read_db_directory()
+	if db_directory.is_empty():
+		_last_operation_error = "reopen_connection: No database folder configured."
+		return false
+	return _initialize(db_directory)
 
 
 func get_last_error() -> String:

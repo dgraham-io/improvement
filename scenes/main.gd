@@ -76,7 +76,13 @@ func _on_settings_pressed() -> void:
 	var dialog := SettingsDialogScene.instantiate()
 	get_tree().root.add_child(dialog)
 	dialog.settings_applied.connect(_on_settings_applied)
+	dialog.backup_imported.connect(_on_backup_imported)
 	dialog.closed.connect(func(): pass)  # dialog cleans itself up
+
+
+func _on_backup_imported() -> void:
+	_journal_area.refresh_list()
+	_task_sidebar.refresh_list()
 
 
 func _on_settings_applied() -> void:
