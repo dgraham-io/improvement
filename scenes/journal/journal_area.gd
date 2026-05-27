@@ -6,6 +6,7 @@ const JOURNAL_ROW_SCENE := preload("res://scenes/journal/journal_entry_row.tscn"
 const JOURNAL_DAILY_METRICS_SCENE := preload("res://scenes/journal/journal_daily_metrics_row.tscn")
 const _TimelineLayout := preload("res://scripts/journal/journal_timeline_layout.gd")
 const _VBoxListUtil := preload("res://scripts/ui/vbox_list_util.gd")
+const _AppMessage := preload("res://scripts/ui/app_message.gd")
 
 var _editing_entry: JournalEntry = null
 
@@ -159,24 +160,33 @@ func _on_composer_cancel_pressed() -> void:
 func _on_composer_save_pressed() -> void:
 	var body := _composer_field.text.strip_edges()
 	if body.is_empty():
+		_AppMessage.show_error(self, "Cannot save entry", "Write something in the journal field first.")
 		return
 	var tag_ids := _composer_tag_picker.get_selected_tag_ids()
 	if _editing_entry == null:
 		var created := JournalService.create_entry(body)
-		if created:
-			TagService.set_entry_tags(created.id, tag_ids)
-			PomodoroService.attach_target(DbConstants.TARGET_JOURNAL, created.id)
-			_close_composer(false)
+		if created == null:
+			_AppMessage.show_save_failed(self, "journal entry")
+			return
+		if not TagService.set_entry_tags(created.id, tag_ids):
+			_AppMessage.show_save_failed(self, "entry tags")
+			return
+		PomodoroService.attach_target(DbConstants.TARGET_JOURNAL, created.id)
+		_close_composer(false)
 	else:
 		_editing_entry.body = body
-		if JournalService.save_entry(_editing_entry):
-			TagService.set_entry_tags(_editing_entry.id, tag_ids)
+		if not JournalService.save_entry(_editing_entry):
+			_AppMessage.show_save_failed(self, "journal entry")
+			return
+		if not TagService.set_entry_tags(_editing_entry.id, tag_ids):
+			_AppMessage.show_save_failed(self, "entry tags")
 
 
 func _on_composer_delete_pressed() -> void:
 	if _editing_entry == null:
 		return
-	JournalService.delete_entry(_editing_entry.id)
+	if not JournalService.delete_entry(_editing_entry.id):
+		_AppMessage.show_delete_failed(self, "journal entry")
 
 
 func _on_journal_edit_requested(entry: JournalEntry) -> void:

@@ -183,8 +183,8 @@ Details: [data-model.md](data-model.md), [schema.sql](schema.sql).
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
-| **Next-1** | DB open failure UX (no hang on `ready_changed`) | **Roadmap** |
-| **Next-2** | User-visible save/API errors | **Roadmap** |
+| **Next-1** | DB open failure UX (no hang on `ready_changed`) | **Done** |
+| **Next-2** | User-visible save/API errors | **Done** |
 | **Next-3** | ~~Remove unused task item dialog~~ | **Done** |
 | **0** | Split shell, theme, scale | **Done** |
 | **1** | Database v1–v3 + services + models | **Done** |

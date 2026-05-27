@@ -101,8 +101,8 @@ improvement/
 
 ### Next (engineering hardening)
 
-1. **Database open failure** — if SQLite cannot open, show a clear error (retry / pick folder); do not leave the app waiting forever on `Database.ready_changed`.
-2. **User-visible save errors** — surface failed creates/updates/deletes (status line or dialog), not only `push_error` in the console.
+1. ~~**Database open failure**~~ — retry dialog when SQLite cannot open; services no longer hang on `ready_changed`.
+2. ~~**User-visible save errors**~~ — failed saves/deletes show a dialog with the database error detail.
 3. ~~Remove unused task item dialog~~ — done; inline task composer is canonical.
 
 ### Done

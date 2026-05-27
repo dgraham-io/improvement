@@ -4,6 +4,7 @@ extends PanelContainer
 const _TagDisplay := preload("res://scripts/ui/tag_display.gd")
 const _TaskTitleFormat := preload("res://scripts/tasks/task_title_format.gd")
 const _DragHandleScript := preload("res://scenes/tasks/task_drag_handle.gd")
+const _AppMessage := preload("res://scripts/ui/app_message.gd")
 
 signal edit_requested(item: TaskItem)
 
@@ -191,7 +192,8 @@ func _on_done_pressed() -> void:
 		and PomodoroService.active_target_id == item.id
 	):
 		PomodoroService.stop(false)
-	TaskService.complete_task(item)
+	if not TaskService.complete_task(item):
+		_AppMessage.show_save_failed(self, "task")
 
 
 func _on_edit_pressed() -> void:

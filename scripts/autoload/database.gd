@@ -15,6 +15,7 @@ var is_ready: bool = false
 
 var _db: SQLite
 var _last_open_error: String = ""
+var _last_operation_error: String = ""
 
 # Heartbeat state for cross-machine "another instance may be open" detection (Dropbox use case)
 var _heartbeat_timer: Timer
@@ -56,6 +57,24 @@ func get_db_directory() -> String:
 
 func get_db_file_path() -> String:
 	return AppConfig.db_base_path(get_db_directory()) + ".db"
+
+
+func get_last_error() -> String:
+	return _last_operation_error
+
+
+func clear_last_error() -> void:
+	_last_operation_error = ""
+
+
+func _fail_operation(context: String) -> void:
+	var detail := ""
+	if _db != null:
+		detail = str(_db.error_message)
+	if detail.is_empty():
+		detail = "Unknown error."
+	_last_operation_error = "%s: %s" % [context, detail]
+	push_error(_last_operation_error)
 
 
 func _open_at_directory(db_directory: String) -> bool:
@@ -391,11 +410,15 @@ func get_setting(key: String, default_value: String = "") -> String:
 
 
 func set_setting(key: String, value: String) -> bool:
-	return _db.query_with_bindings(
+	clear_last_error()
+	if _db.query_with_bindings(
 		"INSERT INTO app_settings (key, value) VALUES (?, ?)
 		ON CONFLICT(key) DO UPDATE SET value = excluded.value;",
 		[key, value]
-	)
+	):
+		return true
+	_fail_operation("set_setting")
+	return false
 
 
 # --- Journal -----------------------------------------------------------------
@@ -473,32 +496,44 @@ func search_journal_entries(query: String, limit: int = 50) -> Array:
 
 
 func insert_journal_entry(body: String) -> int:
+	clear_last_error()
+	if _db == null:
+		_last_operation_error = "insert_journal_entry: Database is not ready."
+		return -1
 	var now := int(Time.get_unix_time_from_system())
 	if not _db.query_with_bindings(
 		"INSERT INTO journal_entries (created_at, updated_at, body) "
 		+ "VALUES (?, ?, ?);",
 		[now, now, body]
 	):
-		push_error("insert_journal_entry: %s" % _db.error_message)
+		_fail_operation("insert_journal_entry")
 		return -1
 	return int(_db.last_insert_rowid)
 
 
 func update_journal_entry(entry: JournalEntry) -> bool:
+	clear_last_error()
 	var now := int(Time.get_unix_time_from_system())
-	return _db.query_with_bindings(
+	if _db.query_with_bindings(
 		"UPDATE journal_entries SET updated_at = ?, body = ? "
 		+ "WHERE id = ? AND deleted_at IS NULL;",
 		[now, entry.body, entry.id]
-	)
+	):
+		return true
+	_fail_operation("update_journal_entry")
+	return false
 
 
 func soft_delete_journal_entry(entry_id: int) -> bool:
+	clear_last_error()
 	var now := int(Time.get_unix_time_from_system())
-	return _db.query_with_bindings(
+	if _db.query_with_bindings(
 		"UPDATE journal_entries SET deleted_at = ?, updated_at = ? WHERE id = ?;",
 		[now, now, entry_id]
-	)
+	):
+		return true
+	_fail_operation("soft_delete_journal_entry")
+	return false
 
 
 # --- Tasks -------------------------------------------------------------------
@@ -569,6 +604,7 @@ func insert_task(
 	journal_entry_id: int,
 	sort_order: int = -1
 ) -> int:
+	clear_last_error()
 	var now := int(Time.get_unix_time_from_system())
 	if sort_order < 0:
 		sort_order = count_tasks()
@@ -579,16 +615,17 @@ func insert_task(
 		+ "due_at, sort_order, journal_entry_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
 		[now, now, title, notes, status, priority, due_val, sort_order, journal_val]
 	):
-		push_error("insert_task: %s" % _db.error_message)
+		_fail_operation("insert_task")
 		return -1
 	return int(_db.last_insert_rowid)
 
 
 func update_task(item: TaskItem) -> bool:
+	clear_last_error()
 	var now := int(Time.get_unix_time_from_system())
 	var due_val: Variant = item.due_at if item.due_at > 0 else null
 	var journal_val: Variant = item.journal_entry_id if item.journal_entry_id > 0 else null
-	return _db.query_with_bindings(
+	if _db.query_with_bindings(
 		"UPDATE tasks SET updated_at = ?, title = ?, notes = ?, status = ?, "
 		+ "priority = ?, due_at = ?, sort_order = ?, journal_entry_id = ? "
 		+ "WHERE id = ? AND deleted_at IS NULL;",
@@ -603,7 +640,10 @@ func update_task(item: TaskItem) -> bool:
 			journal_val,
 			item.id,
 		]
-	)
+	):
+		return true
+	_fail_operation("update_task")
+	return false
 
 
 func set_task_updated_at(task_id: int, updated_at: int) -> bool:
@@ -614,11 +654,15 @@ func set_task_updated_at(task_id: int, updated_at: int) -> bool:
 
 
 func soft_delete_task(task_id: int) -> bool:
+	clear_last_error()
 	var now := int(Time.get_unix_time_from_system())
-	return _db.query_with_bindings(
+	if _db.query_with_bindings(
 		"UPDATE tasks SET deleted_at = ?, updated_at = ? WHERE id = ?;",
 		[now, now, task_id]
-	)
+	):
+		return true
+	_fail_operation("soft_delete_task")
+	return false
 
 
 ## Soft-deletes done tasks with updated_at strictly before [param cutoff_unix]. Returns affected ids.
@@ -689,17 +733,20 @@ func fetch_tag_by_name(name: String) -> Dictionary:
 
 
 func insert_tag(name: String) -> int:
+	clear_last_error()
 	if _db == null:
+		_last_operation_error = "insert_tag: Database is not ready."
 		return -1
 	var normalized := _TagNames.normalize(name)
 	if normalized.is_empty():
+		_last_operation_error = "insert_tag: Tag name is empty."
 		return -1
 	var now := int(Time.get_unix_time_from_system())
 	if not _db.query_with_bindings(
 		"INSERT INTO tags (name, created_at) VALUES (?, ?);",
 		[normalized, now]
 	):
-		push_error("insert_tag: %s" % _db.error_message)
+		_fail_operation("insert_tag")
 		return -1
 	return int(_db.last_insert_rowid)
 
@@ -777,13 +824,15 @@ func _build_entity_tags_map(entity_key: String) -> Dictionary:
 
 
 func set_journal_entry_tags(entry_id: int, tag_ids: Array[int]) -> bool:
+	clear_last_error()
 	if _db == null or entry_id <= 0:
+		_last_operation_error = "set_journal_entry_tags: Invalid entry."
 		return false
 	if not _db.query_with_bindings(
 		"DELETE FROM journal_entry_tags WHERE entry_id = ?;",
 		[entry_id]
 	):
-		push_error("set_journal_entry_tags delete: %s" % _db.error_message)
+		_fail_operation("set_journal_entry_tags delete")
 		return false
 	for tag_id in tag_ids:
 		if tag_id <= 0:
@@ -792,19 +841,21 @@ func set_journal_entry_tags(entry_id: int, tag_ids: Array[int]) -> bool:
 			"INSERT INTO journal_entry_tags (entry_id, tag_id) VALUES (?, ?);",
 			[entry_id, tag_id]
 		):
-			push_error("set_journal_entry_tags insert: %s" % _db.error_message)
+			_fail_operation("set_journal_entry_tags insert")
 			return false
 	return true
 
 
 func set_task_tags(task_id: int, tag_ids: Array[int]) -> bool:
+	clear_last_error()
 	if _db == null or task_id <= 0:
+		_last_operation_error = "set_task_tags: Invalid task."
 		return false
 	if not _db.query_with_bindings(
 		"DELETE FROM task_tags WHERE task_id = ?;",
 		[task_id]
 	):
-		push_error("set_task_tags delete: %s" % _db.error_message)
+		_fail_operation("set_task_tags delete")
 		return false
 	for tag_id in tag_ids:
 		if tag_id <= 0:
@@ -813,7 +864,7 @@ func set_task_tags(task_id: int, tag_ids: Array[int]) -> bool:
 			"INSERT INTO task_tags (task_id, tag_id) VALUES (?, ?);",
 			[task_id, tag_id]
 		):
-			push_error("set_task_tags insert: %s" % _db.error_message)
+			_fail_operation("set_task_tags insert")
 			return false
 	return true
 

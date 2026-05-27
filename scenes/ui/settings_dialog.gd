@@ -2,6 +2,8 @@
 class_name SettingsDialog
 extends CanvasLayer
 
+const _AppMessage := preload("res://scripts/ui/app_message.gd")
+
 signal closed
 
 @onready var _scale_slider: HSlider = %ScaleSlider
@@ -57,23 +59,30 @@ func _on_save_pressed() -> void:
 	var new_newest_first := _newest_first_check.button_pressed
 
 	var changed := false
+	var save_failed := false
 
 	# Save UI scale
 	if abs(new_scale - _original_scale) > 0.001:
-		Database.set_setting(DbConstants.SETTING_UI_SCALE, "%.2f" % new_scale)
-		changed = true
+		if Database.set_setting(DbConstants.SETTING_UI_SCALE, "%.2f" % new_scale):
+			changed = true
+		else:
+			save_failed = true
 
 	# Save journal sort
-	if new_newest_first != _original_newest_first:
-		JournalService.set_sort_newest_first(new_newest_first)
-		# Refresh journal immediately so user sees the effect
-		# We reach the JournalArea via the main scene tree
-		var main := get_tree().current_scene as Control
-		if main:
-			var journal := main.find_child("JournalArea", true, false) as Node
-			if journal and journal.has_method("refresh_list_deferred"):
-				journal.call("refresh_list_deferred")
-		changed = true
+	if new_newest_first != _original_newest_first and not save_failed:
+		if JournalService.set_sort_newest_first(new_newest_first):
+			var main := get_tree().current_scene as Control
+			if main:
+				var journal := main.find_child("JournalArea", true, false) as Node
+				if journal and journal.has_method("refresh_list_deferred"):
+					journal.call("refresh_list_deferred")
+			changed = true
+		else:
+			save_failed = true
+
+	if save_failed:
+		_AppMessage.show_save_failed(self, "settings")
+		return
 
 	if changed and OS.is_debug_build():
 		print("Settings saved — UI scale: %.2f, newest_first: %s" % [new_scale, new_newest_first])

@@ -5,6 +5,7 @@ const TASK_ROW_SCENE := preload("res://scenes/tasks/task_row.tscn")
 const _TaskStatusOptions := preload("res://scripts/ui/task_status_options.gd")
 const _TaskComposerLogic := preload("res://scripts/tasks/task_composer_logic.gd")
 const TASK_SPLIT_OPEN_OFFSET := 180
+const _AppMessage := preload("res://scripts/ui/app_message.gd")
 
 var _editing_task: TaskItem = null
 var _tracked_top_task_id: int = 0
@@ -226,14 +227,19 @@ func _try_save_composer() -> bool:
 		_TaskStatusOptions.selected_status(_composer_status_option)
 	)
 	if not result.ok:
+		if _composer_title_field.text.strip_edges().is_empty():
+			_AppMessage.show_error(self, "Cannot save task", "Enter a title.")
+		else:
+			_AppMessage.show_save_failed(self, "task")
 		return false
 	var task_id := 0
 	if result.created and result.created_item != null:
 		task_id = result.created_item.id
 	elif _editing_task != null:
 		task_id = _editing_task.id
-	if task_id > 0:
-		TagService.set_task_tags(task_id, tag_ids)
+	if task_id > 0 and not TagService.set_task_tags(task_id, tag_ids):
+		_AppMessage.show_save_failed(self, "task tags")
+		return false
 	if result.created:
 		_close_task_composer()
 		_update_task_pomodoro_target()
@@ -245,7 +251,8 @@ func _try_save_composer() -> bool:
 func _on_composer_delete_pressed() -> void:
 	if _editing_task == null:
 		return
-	TaskService.delete_task(_editing_task.id)
+	if not TaskService.delete_task(_editing_task.id):
+		_AppMessage.show_delete_failed(self, "task")
 
 
 func _update_task_pomodoro_target() -> void:
@@ -293,7 +300,9 @@ func _update_task_progress(items: Array[TaskItem]) -> void:
 
 
 func _on_task_reorder_to_index(dragged_id: int, insert_index: int) -> void:
-	TaskService.move_task_to_index(dragged_id, insert_index)
+	if not TaskService.move_task_to_index(dragged_id, insert_index):
+		_AppMessage.show_save_failed(self, "task order")
+		refresh_list_deferred()
 
 
 func _on_task_edit_requested(item: TaskItem) -> void:

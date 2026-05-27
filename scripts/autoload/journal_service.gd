@@ -20,8 +20,8 @@ func get_sort_newest_first() -> bool:
 	return Database.get_setting(DbConstants.SETTING_JOURNAL_SORT_NEWEST_FIRST, "true") == "true"
 
 
-func set_sort_newest_first(newest_first: bool) -> void:
-	Database.set_setting(
+func set_sort_newest_first(newest_first: bool) -> bool:
+	return Database.set_setting(
 		DbConstants.SETTING_JOURNAL_SORT_NEWEST_FIRST,
 		"true" if newest_first else "false"
 	)

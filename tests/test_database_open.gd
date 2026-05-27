@@ -97,6 +97,13 @@ func test_initialize_persists_db_directory_setting() -> void:
 	assert_eq(stored, AppConfig.normalize_directory(_test_dir))
 
 
+func test_get_last_error_on_failed_insert_tag() -> void:
+	assert_true(_db._initialize(_test_dir))
+	var tag_id: int = _db.insert_tag("   ")
+	assert_eq(tag_id, -1)
+	assert_string_contains(_db.get_last_error(), "insert_tag")
+
+
 func _make_temp_directory() -> String:
 	var path := OS.get_cache_dir().path_join(
 		"improvement_gut_%d" % Time.get_ticks_usec()
