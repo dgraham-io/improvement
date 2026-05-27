@@ -114,7 +114,7 @@ improvement/
 
 6. ~~**User preferences UI**~~ — Settings dialog: journal sort, **UI scale** (manual or system), applies immediately.
 7. ~~**Optional sync / backup**~~ — Settings → export/import `.improvement-backup.zip` (Dropbox folder sync still supported).
-8. **Swap panel while editing entries** — switch between the journal composer and task editor without losing unsaved text (e.g. keep drafts, or prompt to save/discard before changing focus).
+8. ~~**Swap panel while editing entries**~~ — unsaved journal/task composer text is parked when you open the other panel; use **+ New Journal** / **+ New Task** again to resume the draft.
 
 Pomodoro and encryption are **not** on the roadmap; see [recommendations](docs/architecture.md#recommendations-not-on-roadmap) in the architecture doc.
 

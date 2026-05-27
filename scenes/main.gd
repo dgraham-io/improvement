@@ -14,6 +14,8 @@ func _ready() -> void:
 	UiScaleSettings.apply_to_viewport(get_tree())
 	_journal_area.initialize()
 	_task_sidebar.initialize()
+	_journal_area.composer_focus_requested.connect(_task_sidebar.park_composer)
+	_task_sidebar.composer_focus_requested.connect(_journal_area.park_composer)
 	PomodoroService.session_ended.connect(_on_pomodoro_session_ended)
 	Database.other_instance_detected.connect(_on_other_instance_detected)
 	Database.existing_database_detected.connect(_on_existing_database_detected)

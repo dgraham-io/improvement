@@ -6,8 +6,12 @@ const _TaskStatusOptions := preload("res://scripts/ui/task_status_options.gd")
 const _TaskComposerLogic := preload("res://scripts/tasks/task_composer_logic.gd")
 const TASK_SPLIT_OPEN_OFFSET := 180
 const _AppMessage := preload("res://scripts/ui/app_message.gd")
+const _ComposerDraft := preload("res://scripts/ui/composer_draft.gd")
+
+signal composer_focus_requested
 
 var _editing_task: TaskItem = null
+var _parked_draft: Dictionary = {}
 var _tracked_top_task_id: int = 0
 
 @onready var _task_progress_bar: ProgressBar = %TaskProgressBar
@@ -156,7 +160,25 @@ func _on_task_deleted(task_id: int) -> void:
 	refresh_list_deferred()
 
 
+func park_composer() -> void:
+	if not _task_composer_panel.visible:
+		return
+	_parked_draft = _snapshot_composer()
+	_hide_task_composer_without_reset()
+
+
+func has_parked_draft() -> bool:
+	return not _parked_draft.is_empty()
+
+
 func _on_new_task_pressed() -> void:
+	composer_focus_requested.emit()
+	if has_parked_draft():
+		_restore_from_snapshot(_parked_draft)
+		_parked_draft = {}
+		_show_task_composer()
+		_composer_title_field.grab_focus()
+		return
 	_reset_task_composer()
 	_show_task_composer()
 	_composer_tag_picker.refresh()
@@ -170,12 +192,17 @@ func _show_task_composer() -> void:
 
 
 func _hide_task_composer() -> void:
+	_hide_task_composer_without_reset()
+
+
+func _hide_task_composer_without_reset() -> void:
 	_task_composer_panel.visible = false
 	_task_composer_panel.custom_minimum_size.y = 0
 	_task_split.split_offset = 0
 
 
 func _close_task_composer() -> void:
+	_parked_draft = {}
 	_reset_task_composer()
 	_hide_task_composer()
 
@@ -193,6 +220,8 @@ func _reset_task_composer() -> void:
 
 
 func _load_task_into_composer(item: TaskItem) -> void:
+	composer_focus_requested.emit()
+	_parked_draft = {}
 	_show_task_composer()
 	_editing_task = item
 	_composer_title_field.text = item.title
@@ -303,6 +332,37 @@ func _on_task_reorder_to_index(dragged_id: int, insert_index: int) -> void:
 	if not TaskService.move_task_to_index(dragged_id, insert_index):
 		_AppMessage.show_save_failed(self, "task order")
 		refresh_list_deferred()
+
+
+func _snapshot_composer() -> Dictionary:
+	var task_id := _editing_task.id if _editing_task != null else 0
+	return _ComposerDraft.task_from_fields(
+		_composer_title_field.text,
+		_composer_notes_field.text,
+		_composer_tag_picker.get_selected_tag_ids(),
+		_TaskStatusOptions.selected_status(_composer_status_option),
+		task_id,
+		_composer_save_button.text,
+		_composer_delete_button.visible
+	)
+
+
+func _restore_from_snapshot(draft: Dictionary) -> void:
+	if draft.is_empty():
+		return
+	var task_id := int(draft.get("editing_task_id", 0))
+	if task_id > 0:
+		_editing_task = TaskService.get_task(task_id)
+	else:
+		_editing_task = null
+	_composer_title_field.text = str(draft.get("title", ""))
+	_composer_notes_field.text = str(draft.get("notes", ""))
+	_composer_tag_picker.refresh()
+	_composer_tag_picker.set_selected_tags(_ComposerDraft.tags_from_ids(draft.get("tag_ids", [])))
+	var status := str(draft.get("status", DbConstants.TASK_PENDING))
+	_TaskStatusOptions.select_status(_composer_status_option, status)
+	_composer_save_button.text = str(draft.get("save_button_text", "Save task"))
+	_composer_delete_button.visible = bool(draft.get("delete_visible", false))
 
 
 func _on_task_edit_requested(item: TaskItem) -> void:

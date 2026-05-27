@@ -7,8 +7,12 @@ const JOURNAL_DAILY_METRICS_SCENE := preload("res://scenes/journal/journal_daily
 const _TimelineLayout := preload("res://scripts/journal/journal_timeline_layout.gd")
 const _VBoxListUtil := preload("res://scripts/ui/vbox_list_util.gd")
 const _AppMessage := preload("res://scripts/ui/app_message.gd")
+const _ComposerDraft := preload("res://scripts/ui/composer_draft.gd")
+
+signal composer_focus_requested
 
 var _editing_entry: JournalEntry = null
+var _parked_draft: Dictionary = {}
 
 @onready var _entry_count_label: Label = %EntryCountLabel
 @onready var _xp_label: Label = %XpLabel
@@ -93,7 +97,25 @@ func _on_entry_tags_changed(_entry_id: int) -> void:
 	refresh_list_deferred()
 
 
+func park_composer() -> void:
+	if not _composer_panel.visible:
+		return
+	_parked_draft = _snapshot_composer()
+	_hide_composer_without_reset()
+
+
+func has_parked_draft() -> bool:
+	return not _parked_draft.is_empty()
+
+
 func _on_new_journal_pressed() -> void:
+	composer_focus_requested.emit()
+	if has_parked_draft():
+		_restore_from_snapshot(_parked_draft)
+		_parked_draft = {}
+		_show_composer()
+		_composer_field.grab_focus()
+		return
 	_reset_composer()
 	_show_composer()
 	_composer_tag_picker.refresh()
@@ -106,11 +128,16 @@ func _show_composer() -> void:
 
 
 func _hide_composer() -> void:
+	_hide_composer_without_reset()
+
+
+func _hide_composer_without_reset() -> void:
 	_composer_panel.visible = false
 	_journal_pomodoro.bind(DbConstants.TARGET_NONE, 0, false)
 
 
 func _close_composer(stop_timer: bool = true) -> void:
+	_parked_draft = {}
 	if stop_timer:
 		PomodoroService.stop_if_journal()
 	_hide_composer()
@@ -129,6 +156,8 @@ func _reset_composer() -> void:
 
 
 func _load_entry_into_composer(entry: JournalEntry) -> void:
+	composer_focus_requested.emit()
+	_parked_draft = {}
 	_show_composer()
 	_editing_entry = entry
 	_composer_field.text = entry.body
@@ -187,6 +216,35 @@ func _on_composer_delete_pressed() -> void:
 		return
 	if not JournalService.delete_entry(_editing_entry.id):
 		_AppMessage.show_delete_failed(self, "journal entry")
+
+
+func _snapshot_composer() -> Dictionary:
+	var entry_id := _editing_entry.id if _editing_entry != null else 0
+	return _ComposerDraft.journal_from_fields(
+		_composer_field.text,
+		_composer_tag_picker.get_selected_tag_ids(),
+		entry_id,
+		_composer_timestamps.text,
+		_composer_save_button.text,
+		_composer_delete_button.visible
+	)
+
+
+func _restore_from_snapshot(draft: Dictionary) -> void:
+	if draft.is_empty():
+		return
+	var entry_id := int(draft.get("editing_entry_id", 0))
+	if entry_id > 0:
+		_editing_entry = JournalService.get_entry(entry_id)
+	else:
+		_editing_entry = null
+	_composer_field.text = str(draft.get("body", ""))
+	_composer_tag_picker.refresh()
+	_composer_tag_picker.set_selected_tags(_ComposerDraft.tags_from_ids(draft.get("tag_ids", [])))
+	_composer_timestamps.text = str(draft.get("timestamps_text", ""))
+	_composer_save_button.text = str(draft.get("save_button_text", "Save"))
+	_composer_delete_button.visible = bool(draft.get("delete_visible", false))
+	_update_journal_pomodoro_target()
 
 
 func _on_journal_edit_requested(entry: JournalEntry) -> void:
