@@ -4,7 +4,7 @@ A journalling app for self improvement, knowledge enhancement, and staying focus
 
 Built with Godot **4.7** — readable typography, a scrollable journal timeline, a task sidebar, Pomodoro timers, and local SQLite storage in a folder you choose (e.g. Dropbox).
 
-![Improvement — journal composer and mission sidebar](docs/screenshots/Screenshot_20260521_093840.png)
+![Improvement — journal composer and task sidebar](docs/screenshots/Screenshot_20260521_093840.png)
 
 **Architecture:** [docs/architecture.md](docs/architecture.md) · **Data model:** [docs/data-model.md](docs/data-model.md)
 
@@ -21,7 +21,7 @@ Desktop prototype with **SQLite-backed** journal and tasks, inline editing, and 
 | First-run DB folder setup (e.g. Dropbox) | Shipped |
 | Theme + Roboto | Shipped |
 | UI scale | Defaults to **system detection**; override in **Settings** (gear icon) |
-| SQLite schema + migrations (v4; tags) | Shipped |
+| SQLite schema + migrations (v6; tasks, tags) | Shipped |
 | `JournalService` / `TaskService` / `PomodoroService` | Shipped |
 | Pomodoro → task `in_progress` + work time on rows | Shipped |
 | Window size/position persistence (desktop export) | Shipped |
@@ -64,7 +64,7 @@ Godot often embeds the game in the editor. Use the **Game** tab → disable **Em
 
 ### UI scale
 
-Runtime scale defaults to **system detection** via [`scripts/ui/ui_scale_detector.gd`](scripts/ui/ui_scale_detector.gd), applied in [`scenes/main.gd`](scenes/main.gd). A Settings control for `app_settings.ui_scale` is on the [roadmap](#roadmap).
+Runtime scale defaults to **system detection** via [`scripts/ui/ui_scale_detector.gd`](scripts/ui/ui_scale_detector.gd), applied in [`scenes/main.gd`](scenes/main.gd). Override in **Settings** (`app_settings.ui_scale`, including “use system scale”).
 
 ## Project structure
 
@@ -99,22 +99,16 @@ improvement/
 
 ## Roadmap
 
-### Next (engineering hardening)
+All items below are **shipped**. Future ideas (Pomodoro polish, encryption) are in [architecture recommendations](docs/architecture.md#recommendations-not-on-roadmap), not scheduled here.
 
 1. ~~**Database open failure**~~ — retry dialog when SQLite cannot open; services no longer hang on `ready_changed`.
 2. ~~**User-visible save errors**~~ — failed saves/deletes show a dialog with the database error detail.
-3. ~~Remove unused task item dialog~~ — done; inline task composer is canonical.
-
-### Done
-
-4. ~~SQLite schema + services~~ ([data model](docs/data-model.md)).
-5. ~~Journal and task UI bound to services~~.
-
-### Later
-
-6. ~~**User preferences UI**~~ — Settings dialog: journal sort, **UI scale** (manual or system), applies immediately.
+3. ~~**Remove unused task item dialog**~~ — inline task composer is canonical.
+4. ~~**SQLite schema + services**~~ — [data model](docs/data-model.md).
+5. ~~**Journal and task UI bound to services**~~.
+6. ~~**User preferences UI**~~ — Settings: journal sort, **UI scale** (manual or system), applies immediately.
 7. ~~**Optional sync / backup**~~ — Settings → export/import `.improvement-backup.zip` (Dropbox folder sync still supported).
-8. ~~**Swap panel while editing entries**~~ — unsaved journal/task composer text is parked when you open the other panel; use **+ New Journal** / **+ New Task** again to resume the draft.
+8. ~~**Swap panel while editing**~~ — unsaved journal/task composer text is parked when you open the other panel; use **+ New Journal** / **+ New Task** again to resume the draft.
 
 Pomodoro and encryption are **not** on the roadmap; see [recommendations](docs/architecture.md#recommendations-not-on-roadmap) in the architecture doc.
 
