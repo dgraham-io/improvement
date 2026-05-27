@@ -89,6 +89,10 @@ func _migrate() -> void:
 	if version < 5:
 		_migrate_to_v5()
 		_set_user_version(5)
+		version = 5
+	if version < 6:
+		_migrate_to_v6()
+		_set_user_version(6)
 
 
 func _get_user_version() -> int:
@@ -312,6 +316,58 @@ func _migrate_to_v5() -> void:
 		"CREATE INDEX IF NOT EXISTS idx_tasks_active_due "
 		+ "ON tasks (due_at ASC) WHERE deleted_at IS NULL AND due_at IS NOT NULL;"
 	)
+
+
+func _migrate_to_v6() -> void:
+	# Update legacy pomodoro target types: 'todo' → 'task'.
+	# Old DBs enforced CHECK(target_type IN ('none','journal','todo')), which blocks starting task pomodoros.
+	if not _table_exists("pomodoro_sessions"):
+		return
+	if not _db.query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'pomodoro_sessions' LIMIT 1;"):
+		return
+	if _db.query_result.is_empty():
+		return
+	var create_sql := str(_db.query_result[0].get("sql", ""))
+	if create_sql.is_empty():
+		return
+	# Only rebuild if this DB still references the legacy 'todo' value.
+	if create_sql.find("'todo'") == -1:
+		# Still normalize any stored rows just in case (cheap, safe).
+		_db.query("UPDATE pomodoro_sessions SET target_type = 'task' WHERE target_type = 'todo';")
+		return
+
+	var statements: PackedStringArray = [
+		"""CREATE TABLE pomodoro_sessions_v6 (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			started_at INTEGER NOT NULL,
+			ended_at INTEGER,
+			planned_duration_sec INTEGER NOT NULL DEFAULT 1500,
+			target_type TEXT NOT NULL DEFAULT 'none'
+				CHECK (target_type IN ('none', 'journal', 'task')),
+			target_id INTEGER,
+			completed INTEGER NOT NULL DEFAULT 0
+				CHECK (completed IN (0, 1))
+		);""",
+		"""INSERT INTO pomodoro_sessions_v6
+			(id, started_at, ended_at, planned_duration_sec, target_type, target_id, completed)
+			SELECT
+				id,
+				started_at,
+				ended_at,
+				planned_duration_sec,
+				CASE WHEN target_type = 'todo' THEN 'task' ELSE target_type END,
+				target_id,
+				completed
+			FROM pomodoro_sessions;""",
+		"DROP TABLE pomodoro_sessions;",
+		"ALTER TABLE pomodoro_sessions_v6 RENAME TO pomodoro_sessions;",
+		"DROP INDEX IF EXISTS idx_pomodoro_started;",
+		"CREATE INDEX IF NOT EXISTS idx_pomodoro_started ON pomodoro_sessions (started_at DESC);",
+	]
+	for sql in statements:
+		if not _db.query(sql):
+			push_error("Migration v6 failed: %s\nSQL: %s" % [_db.error_message, sql])
+			return
 
 
 func _apply_default_settings() -> void:

@@ -5,7 +5,7 @@ extends RefCounted
 const DB_FILE_STEM := "improvement"
 ## Legacy default when no `user://app_config.json` exists (setup dialog sets the real path).
 const DB_PATH_DEFAULT := "user://improvement"
-const SCHEMA_VERSION := 5
+const SCHEMA_VERSION := 6
 
 const TABLE_JOURNAL := "journal_entries"
 const TABLE_TASKS := "tasks"
