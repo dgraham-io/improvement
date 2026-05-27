@@ -2,7 +2,7 @@
 
 A journalling app for self improvement, knowledge enhancement, and staying focused on the tasks that matter.
 
-Built with Godot **4.7** — readable typography, a scrollable journal timeline, a mission sidebar, Pomodoro timers, and local SQLite storage in a folder you choose (e.g. Dropbox).
+Built with Godot **4.7** — readable typography, a scrollable journal timeline, a task sidebar, Pomodoro timers, and local SQLite storage in a folder you choose (e.g. Dropbox).
 
 ![Improvement — journal composer and mission sidebar](docs/screenshots/Screenshot_20260521_093840.png)
 
@@ -10,20 +10,20 @@ Built with Godot **4.7** — readable typography, a scrollable journal timeline,
 
 ## Status
 
-Desktop prototype with **SQLite-backed** journal and missions, inline editing, and Pomodoro work tracking on the mission list.
+Desktop prototype with **SQLite-backed** journal and tasks, inline editing, and Pomodoro work tracking on the task list.
 
 | Area | Status |
 |------|--------|
-| Split journal / mission layout | Shipped |
+| Split journal / task layout | Shipped |
 | Journal timeline + inline composer | Shipped |
-| Mission list + inline mission editor | Shipped |
+| Task list + inline task editor | Shipped |
 | Drag reorder, done checkbox, row edit/delete | Shipped |
 | First-run DB folder setup (e.g. Dropbox) | Shipped |
 | Theme + Roboto | Shipped |
 | UI scale | Defaults to **system detection**; override via `app_settings.ui_scale` (Settings UI planned) |
 | SQLite schema + migrations (v4; tags) | Shipped |
 | `JournalService` / `TodoService` / `PomodoroService` | Shipped |
-| Pomodoro → mission `in_progress` + work time on rows | Shipped |
+| Pomodoro → task `in_progress` + work time on rows | Shipped |
 | Window size/position persistence (desktop export) | Shipped |
 | Settings screen | Planned (roadmap) |
 | Encryption at rest | Not scheduled — see [recommendations](docs/architecture.md#recommendations-not-on-roadmap) |
@@ -31,11 +31,11 @@ Desktop prototype with **SQLite-backed** journal and missions, inline editing, a
 
 ## Current app (what ships today)
 
-- **Two-pane shell:** journal (left), missions (right), resizable split, global theme.
+- **Two-pane shell:** journal (left), tasks (right), resizable split, global theme.
 - **Journal:** scrollable entry rows; **+ New Journal Entry** opens an inline composer; edit/delete per row; Pomodoro on the composer when editing.
-- **Missions:** scrollable rows with priority strip, progress bar, **work time** label (from Pomodoros), and checkbox; **+ New Mission** opens an inline mission panel; drag to reorder; Pomodoro on the **top** mission in the list.
+- **Tasks:** scrollable rows with priority strip, progress bar, **work time** label (from Pomodoros), and checkbox; **+ New Task** opens an inline task panel; drag to reorder; Pomodoro on the **top** task in the list.
 - **Data:** `improvement.db` in a folder you pick at first run; path stored in `user://app_config.json` (Godot user data).
-- **Empty first run** — no sample journal entries or missions.
+- **Empty first run** — no sample journal entries or tasks.
 - **Export:** Windows Desktop preset → [`export_presets.cfg`](export_presets.cfg) (`Applications/Improvement/` on this machine).
 
 ## Requirements
@@ -95,7 +95,7 @@ improvement/
 - **Main scene UID:** `uid://d4bhhy4ln2jhd` — keep stable if renaming run scene.
 - **Data access:** UI → `JournalService` / `TodoService` / `PomodoroService`; not raw SQL in scenes.
 - **Bootstrap:** `AppConfig` (`user://app_config.json`) before `Database` opens; see [data model](docs/data-model.md).
-- **Debug run:** prints journal/mission counts after DB init.
+- **Debug run:** prints journal/task counts after DB init.
 - **Rendering:** `mobile` renderer; Windows uses D3D12 driver in `project.godot`.
 
 ## Roadmap
@@ -104,18 +104,18 @@ improvement/
 
 1. **Database open failure** — if SQLite cannot open, show a clear error (retry / pick folder); do not leave the app waiting forever on `Database.ready_changed`.
 2. **User-visible save errors** — surface failed creates/updates/deletes (status line or dialog), not only `push_error` in the console.
-3. **Remove unused `TodoItemDialog`** — delete `scenes/dialogs/todo_item_dialog.*` or wire it up; inline mission editor is canonical.
+3. **Remove unused `TodoItemDialog`** — delete `scenes/dialogs/todo_item_dialog.*` or wire it up; inline task editor is canonical.
 
 ### Done
 
 4. ~~SQLite schema + services~~ ([data model](docs/data-model.md)).
-5. ~~Journal and mission UI bound to services~~.
+5. ~~Journal and task UI bound to services~~.
 
 ### Later
 
 6. **User preferences UI** — `app_settings`: journal sort, theme options, **UI scale** slider → `content_scale_factor`.
 7. **Optional sync / backup** — Dropbox / iCloud or explicit export/import beyond placing `improvement.db` in a synced folder.
-8. **Swap panel while editing entries** — switch between the journal composer and mission editor without losing unsaved text (e.g. keep drafts, or prompt to save/discard before changing focus).
+8. **Swap panel while editing entries** — switch between the journal composer and task editor without losing unsaved text (e.g. keep drafts, or prompt to save/discard before changing focus).
 
 Pomodoro and encryption are **not** on the roadmap; see [recommendations](docs/architecture.md#recommendations-not-on-roadmap) in the architecture doc.
 

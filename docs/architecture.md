@@ -12,9 +12,9 @@ See also: [README](../README.md) · [Data model](data-model.md) · [SQL schema](
 |------|---------------------------|
 | Readable, low-friction UI | Global theme, Roboto, UI scale defaults to system detection; optional stored override (`app_settings.ui_scale`) |
 | Journal as a **timeline** | Scrollable rows, newest-first default (`app_settings`) |
-| Focused **mission list** | Right pane; manual `sort_order`; optional `journal_entry_id` FK |
+| Focused **task list** | Right pane; manual `sort_order`; optional `journal_entry_id` FK |
 | Local-first data | SQLite `<chosen_folder>/improvement.db`; bootstrap in `user://app_config.json` |
-| Pomodoro discipline | One active timer; sessions in DB; mission work time in UI |
+| Pomodoro discipline | One active timer; sessions in DB; task work time in UI |
 | Privacy later | Encryption at rest — not scheduled ([recommendations](#recommendations-not-on-roadmap)) |
 | Optional cloud | Sync/backup on [roadmap](../README.md#roadmap) item **6** |
 
@@ -77,7 +77,7 @@ flowchart TB
 - **Main scene:** `res://scenes/main.tscn` (`uid://d4bhhy4ln2jhd`).
 - **Root script:** `scenes/main.gd` — shell, UI scale, pomodoro cross-panel refresh; `content_scale_factor = 1.0`.
 - **Journal controller:** `scenes/journal/journal_area.gd` on `JournalArea` — timeline, composer, header stats.
-- **Mission controller:** `scenes/todos/mission_sidebar.gd` on `TodoSidebar` — list, mission editor, progress, top-mission pomodoro.
+- **Task controller:** `scenes/todos/mission_sidebar.gd` on `TodoSidebar` — list, task editor, progress, top-task pomodoro.
 
 ### First run
 
@@ -117,7 +117,7 @@ Main (Control, theme)
 ### Editing model (current)
 
 - **Journal:** list is read-only preview; **create/edit** in the **composer** panel above the list.
-- **Missions:** list rows are read-only summary with **Done** and **Edit**; full editing in the **mission panel**.
+- **Tasks:** list rows are read-only summary with **Done** and **Edit**; full editing in the **task panel**.
 
 ### Presentation choices
 
@@ -127,7 +127,7 @@ Main (Control, theme)
 | Lists | `ScrollContainer` → `VBoxContainer` → row `PanelContainer`s |
 | Typography | Roboto via `improvement_theme.tres` |
 | UI scale | Defaults to system detection; can be overridden by `app_settings.ui_scale` (no Settings UI yet) |
-| Mission metadata | Priority strip (0–3); **work time** from aggregated Pomodoros (not `P0` label) |
+| Task metadata | Priority strip (0–3); **work time** from aggregated Pomodoros (not `P0` label) |
 
 ### Data layer (shipped)
 
@@ -139,8 +139,8 @@ Main (Control, theme)
 
 ### Pomodoro (shipped behavior)
 
-- **One** active session (`PomodoroService`); widgets on journal composer and **top mission** only.
-- `start_for(todo)` on a **pending** mission → `TodoService.set_status(..., in_progress)`.
+- **One** active session (`PomodoroService`); widgets on journal composer and **top task** only.
+- `start_for(task)` on a **pending** task → `TaskService.set_status(..., in_progress)`.
 - Sessions → `pomodoro_sessions`; on end, `session_ended` refreshes row work stats.
 - **Completed pomodoros:** `completed = 1`. **Work time:** sum of `(ended_at - started_at)` for ended sessions.
 - UI: `TimeFormat.format_work_duration()` on row; tooltip = pomodoro count.
@@ -157,10 +157,10 @@ Main (Control, theme)
 | `Database` | SQLite, migrations, SQL, `app_settings` |
 | `WindowLayout` | Save/restore window size and position |
 | `JournalService` | Journal CRUD, search, sort preference, signals |
-| `TodoService` | Mission CRUD, reorder, `get_work_stats*`, signals |
+| `TaskService` | Task CRUD, reorder, `get_work_stats*`, signals |
 | `PomodoroService` | Timer state, persistence, `in_progress` promotion, `session_ended` |
 
-UI rebuilds lists on service signals; mission work stats refresh on `session_ended` without full list reload.
+UI rebuilds lists on service signals; task work stats refresh on `session_ended` without full list reload.
 
 ---
 
@@ -172,7 +172,7 @@ UI rebuilds lists on service signals; mission work stats refresh on `session_end
 | Bootstrap | `user://app_config.json` (`db_directory`) |
 | Settings in DB | `app_settings` key/value |
 | Timestamps | Unix UTC seconds |
-| Deletes | Soft delete on journal and missions |
+| Deletes | Soft delete on journal and tasks |
 | SQL access | `Database` only from services |
 
 Details: [data-model.md](data-model.md), [schema.sql](schema.sql).
@@ -190,10 +190,10 @@ Details: [data-model.md](data-model.md), [schema.sql](schema.sql).
 | **1** | Database v1–v3 + services + models | **Done** |
 | **2** | Row scenes + lists + inline editors | **Done** |
 | **2b** | First-run setup + empty DB | **Done** |
-| **2c** | Pomodoro + mission work stats | **Done** (top mission + journal only) |
+| **2c** | Pomodoro + task work stats | **Done** (top task + journal only) |
 | **3** | Settings UI + `ui_scale` slider | **Roadmap** |
 | **6** | Sync / backup UX | **Roadmap** |
-| **8** | Swap panel while editing entries (journal ↔ mission without losing drafts) | **Roadmap** |
+| **8** | Swap panel while editing entries (journal ↔ task without losing drafts) | **Roadmap** |
 | — | Encryption | **Shelved** (see recommendations) |
 | — | Pomodoro per-row / polish | **Deferred** (see recommendations) |
 
@@ -205,17 +205,17 @@ These are sensible next investments **after** roadmap items **3** and **6**, or 
 
 ### Pomodoro (former roadmap item 4)
 
-**Current state is enough for a focused workflow:** one timer, top mission + journal, automatic `in_progress`, honest work-time display.
+**Current state is enough for a focused workflow:** one timer, top task + journal, automatic `in_progress`, honest work-time display.
 
 | Option | Effort | Value |
 |--------|--------|--------|
 | **A. Keep as-is** | None | Matches “one thing at a time”; least UI noise |
-| **B. Per-row Pomodoro buttons** | Medium | Start timer on any mission without reordering; still one global session |
-| **C. “Focus mission” pin** | Low–medium | Star/pin one mission for the header timer regardless of sort order |
-| **D. Session history panel** | Medium | List past Pomodoros for a mission (read-only); good for review |
+| **B. Per-row Pomodoro buttons** | Medium | Start timer on any task without reordering; still one global session |
+| **C. “Focus task” pin** | Low–medium | Star/pin one task for the header timer regardless of sort order |
+| **D. Session history panel** | Medium | List past Pomodoros for a task (read-only); good for review |
 | **E. Configurable duration / breaks** | Medium | Store duration in `app_settings`; short/long presets |
 
-**Recommendation:** **A** until Settings (roadmap **3**) ships, then **C** if reordering missions is annoying, then **B** if you routinely work on non-top missions. Defer **E** until daily use shows 25 minutes is wrong.
+**Recommendation:** **A** until Settings (roadmap **3**) ships, then **C** if reordering tasks is annoying, then **B** if you routinely work on non-top tasks. Defer **E** until daily use shows 25 minutes is wrong.
 
 ### Encryption (former roadmap item 5)
 
@@ -236,7 +236,7 @@ These are sensible next investments **after** roadmap items **3** and **6**, or 
 
 - Journal sort UX in Settings vs hard-coded default.
 - Pagination / virtualization for very long journals.
-- Linking missions to journal entries in UI (FK exists).
+- Linking tasks to journal entries in UI (FK exists).
 - Mobile layout (tabs vs split).
 - High-contrast theme variant.
 - Remove unused **Jolt Physics** / **Mobile** tag until needed.

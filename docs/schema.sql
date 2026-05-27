@@ -1,5 +1,5 @@
--- Improvement — SQLite schema reference (v4)
--- Applied at runtime by scripts/autoload/database.gd (PRAGMA user_version = 4).
+-- Improvement — SQLite schema reference (v5)
+-- Applied at runtime by scripts/autoload/database.gd (PRAGMA user_version = 5).
 -- Database file: <chosen_folder>/improvement.db (see user://app_config.json)
 
 PRAGMA foreign_keys = ON;
@@ -20,9 +20,9 @@ CREATE INDEX IF NOT EXISTS idx_journal_entries_active_created
     WHERE deleted_at IS NULL;
 
 -- ---------------------------------------------------------------------------
--- todos — task list (optional link to journal_entries)
+-- tasks — task list (optional link to journal_entries)
 -- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS todos (
+CREATE TABLE IF NOT EXISTS tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
@@ -38,16 +38,16 @@ CREATE TABLE IF NOT EXISTS todos (
     deleted_at INTEGER
 );
 
-CREATE INDEX IF NOT EXISTS idx_todos_active_sort
-    ON todos (sort_order ASC, created_at DESC)
+CREATE INDEX IF NOT EXISTS idx_tasks_active_sort
+    ON tasks (sort_order ASC, created_at DESC)
     WHERE deleted_at IS NULL;
 
-CREATE INDEX IF NOT EXISTS idx_todos_active_due
-    ON todos (due_at ASC)
+CREATE INDEX IF NOT EXISTS idx_tasks_active_due
+    ON tasks (due_at ASC)
     WHERE deleted_at IS NULL AND due_at IS NOT NULL;
 
 -- ---------------------------------------------------------------------------
--- tags — optional labels shared by journal entries and todos
+-- tags — optional labels shared by journal entries and tasks
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tags (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,21 +62,21 @@ CREATE TABLE IF NOT EXISTS journal_entry_tags (
     PRIMARY KEY (entry_id, tag_id)
 );
 
-CREATE TABLE IF NOT EXISTS todo_tags (
-    todo_id INTEGER NOT NULL REFERENCES todos (id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS task_tags (
+    task_id INTEGER NOT NULL REFERENCES tasks (id) ON DELETE CASCADE,
     tag_id INTEGER NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
-    PRIMARY KEY (todo_id, tag_id)
+    PRIMARY KEY (task_id, tag_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_journal_entry_tags_tag
     ON journal_entry_tags (tag_id);
 
-CREATE INDEX IF NOT EXISTS idx_todo_tags_tag
-    ON todo_tags (tag_id);
+CREATE INDEX IF NOT EXISTS idx_task_tags_tag
+    ON task_tags (tag_id);
 
 -- ---------------------------------------------------------------------------
--- pomodoro_sessions — work intervals linked to journal or todo (optional)
--- Todo work time / completed pomodoro count are aggregated from this table (see docs/data-model.md).
+-- pomodoro_sessions — work intervals linked to journal or task (optional)
+-- Task work time / completed pomodoro count are aggregated from this table (see docs/data-model.md).
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS pomodoro_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS pomodoro_sessions (
     ended_at INTEGER,
     planned_duration_sec INTEGER NOT NULL DEFAULT 1500,
     target_type TEXT NOT NULL DEFAULT 'none'
-        CHECK (target_type IN ('none', 'journal', 'todo')),
+        CHECK (target_type IN ('none', 'journal', 'task')),
     target_id INTEGER,
     completed INTEGER NOT NULL DEFAULT 0
         CHECK (completed IN (0, 1))

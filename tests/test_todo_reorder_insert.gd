@@ -1,7 +1,7 @@
 ## GUT tests for mission list insertion index helpers.
 extends GutTest
 
-const TodoReorderInsert := preload("res://scripts/todos/todo_reorder_insert.gd")
+const TodoReorderInsert := preload("res://scripts/tasks/task_reorder_insert.gd")
 
 
 func _mock_row(y: float, height: float) -> Control:

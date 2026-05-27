@@ -2,7 +2,7 @@
 extends Control
 
 @onready var _journal_area: JournalArea = %JournalArea
-@onready var _mission_sidebar: MissionSidebar = %TodoSidebar
+@onready var _mission_sidebar = %TodoSidebar
 @onready var _settings_button: Button = %SettingsButton
 
 
@@ -21,8 +21,8 @@ func _ready() -> void:
 
 	if OS.is_debug_build():
 		print(
-			"Improvement ready — journal: %d, todos: %d"
-			% [JournalService.get_entry_count(), TodoService.get_todo_count()]
+			"Improvement ready — journal: %d, tasks: %d"
+			% [JournalService.get_entry_count(), TaskService.get_todo_count()]
 		)
 		_log_other_instance_status()
 
@@ -87,7 +87,7 @@ func _on_existing_database_detected(db_path: String) -> void:
 	dialog.dialog_text = (
 		"An existing Improvement database was found at:\n\n" +
 		db_path + "\n\n" +
-		"Your journal entries, missions, pomodoros, and history will be used.\n" +
+		"Your journal entries, tasks, pomodoros, and history will be used.\n" +
 		"No data will be overwritten or lost.\n\n" +
 		"(Safe to use with Dropbox-synced folders.)"
 	)
@@ -100,6 +100,6 @@ func _on_existing_database_detected(db_path: String) -> void:
 
 func _on_settings_pressed() -> void:
 	const SettingsDialogScene := preload("res://scenes/ui/settings_dialog.tscn")
-	var dialog: SettingsDialog = SettingsDialogScene.instantiate()
+	var dialog := SettingsDialogScene.instantiate()
 	get_tree().root.add_child(dialog)
 	dialog.closed.connect(func(): pass)  # dialog cleans itself up

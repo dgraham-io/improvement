@@ -1,10 +1,9 @@
-## Mission list, inline editor, progress header, and top-mission pomodoro.
-class_name MissionSidebar
+## Task list, inline editor, progress header, and top-task pomodoro.
 extends PanelContainer
 
-const TODO_ROW_SCENE := preload("res://scenes/todos/todo_row.tscn")
+const TODO_ROW_SCENE := preload("res://scenes/tasks/task_row.tscn")
 const _MissionStatusOptions := preload("res://scripts/ui/mission_status_options.gd")
-const _MissionComposerLogic := preload("res://scripts/todos/mission_composer_logic.gd")
+const _MissionComposerLogic := preload("res://scripts/tasks/task_composer_logic.gd")
 const MISSION_SPLIT_OPEN_OFFSET := 180
 
 var _editing_todo: TodoItem = null
@@ -23,7 +22,7 @@ var _tracked_top_todo_id: int = 0
 @onready var _mission_cancel_button: Button = %MissionCancelButton
 @onready var _mission_pomodoro: PomodoroTimerWidget = %MissionPomodoro
 @onready var _todo_split: VSplitContainer = %TodoSplit
-@onready var _todo_vbox: TodoListDropTarget = %TodoEntriesVBox
+@onready var _todo_vbox = %TodoEntriesVBox
 @onready var _todo_empty_label: Label = %TodoEmptyLabel
 
 
@@ -48,11 +47,11 @@ func _connect_ui() -> void:
 
 
 func _connect_services() -> void:
-	TodoService.todo_created.connect(_on_todo_service_changed)
-	TodoService.todo_updated.connect(_on_todo_service_changed)
-	TodoService.todo_stats_changed.connect(_on_todo_stats_changed)
-	TodoService.todo_reordered.connect(refresh_list_deferred)
-	TodoService.todo_deleted.connect(_on_todo_deleted)
+	TaskService.todo_created.connect(_on_todo_service_changed)
+	TaskService.todo_updated.connect(_on_todo_service_changed)
+	TaskService.todo_stats_changed.connect(_on_todo_stats_changed)
+	TaskService.todo_reordered.connect(refresh_list_deferred)
+	TaskService.todo_deleted.connect(_on_todo_deleted)
 	TagService.todo_tags_changed.connect(_on_todo_tags_changed)
 	PomodoroService.state_changed.connect(_on_pomodoro_state_changed)
 
@@ -63,15 +62,15 @@ func refresh_list_deferred() -> void:
 
 func refresh_list() -> void:
 	_todo_vbox.clear_rows()
-	var items := TodoService.list_todos()
-	var work_stats_map := TodoService.get_work_stats_map()
+	var items := TaskService.list_todos()
+	var work_stats_map := TaskService.get_work_stats_map()
 	var tags_map := TagService.get_todo_tags_map()
 	_todo_empty_label.visible = items.is_empty()
 	for item in items:
-		var row: TodoRow = TODO_ROW_SCENE.instantiate()
+		var row = TODO_ROW_SCENE.instantiate()
 		_todo_vbox.add_child(row)
 		row.edit_requested.connect(_on_todo_edit_requested)
-		var stats: Dictionary = work_stats_map.get(item.id, TodoRow.EMPTY_WORK_STATS)
+		var stats: Dictionary = work_stats_map.get(item.id, {"completed_pomodoros": 0, "total_work_sec": 0})
 		var item_tags: Array = tags_map.get(item.id, [])
 		row.setup(item, stats, item_tags)
 	_update_todo_progress(items)
@@ -80,17 +79,17 @@ func refresh_list() -> void:
 
 
 func on_pomodoro_session_ended(target_type: String, target_id: int) -> void:
-	if target_type == DbConstants.TARGET_TODO and target_id > 0:
+	if target_type == DbConstants.TARGET_TASK and target_id > 0:
 		_refresh_todo_work_stats(target_id)
 
 
 func _refresh_todo_work_stats(todo_id: int) -> void:
-	var stats := TodoService.get_work_stats(todo_id)
+	var stats := TaskService.get_work_stats(todo_id)
 	for child in _todo_vbox.get_children():
 		if child == _todo_empty_label:
 			continue
-		if child is TodoRow:
-			var row := child as TodoRow
+		if child is Control and (child as Control).has_method("update_work_stats"):
+			var row = child
 			if row.item != null and row.item.id == todo_id:
 				row.update_work_stats(stats)
 				return
@@ -146,14 +145,14 @@ func _drop_data(_at_position: Vector2, _data: Variant) -> void:
 	pass
 
 
-func _on_todo_service_changed(item: TodoItem) -> void:
+func _on_todo_service_changed(item) -> void:
 	if _editing_todo != null and item.id == _editing_todo.id and item.is_done():
 		_close_mission_composer()
 	refresh_list_deferred()
 
 
 func _on_todo_stats_changed() -> void:
-	_update_todo_progress(TodoService.list_todos())
+	_update_todo_progress(TaskService.list_todos())
 
 
 func _on_todo_tags_changed(_todo_id: int) -> void:
@@ -199,7 +198,7 @@ func _reset_mission_composer() -> void:
 	_mission_tag_picker.clear()
 	_mission_tag_picker.refresh()
 	_mission_status_option.select(0)
-	_mission_save_button.text = "Save mission"
+	_mission_save_button.text = "Save task"
 	_mission_delete_button.visible = false
 	_mission_cancel_button.visible = true
 
@@ -258,11 +257,11 @@ func _try_save_mission() -> bool:
 func _on_mission_delete_pressed() -> void:
 	if _editing_todo == null:
 		return
-	TodoService.delete_todo(_editing_todo.id)
+	TaskService.delete_todo(_editing_todo.id)
 
 
 func _update_mission_pomodoro_target() -> void:
-	var top_todo := TodoService.get_top_todo()
+	var top_todo := TaskService.get_top_todo()
 	if top_todo == null:
 		_tracked_top_todo_id = 0
 		_mission_pomodoro.bind(DbConstants.TARGET_NONE, 0, false)
@@ -275,7 +274,7 @@ func _update_mission_pomodoro_target() -> void:
 	):
 		PomodoroService.stop(false)
 	_tracked_top_todo_id = top_id
-	_mission_pomodoro.bind(DbConstants.TARGET_TODO, top_id, true)
+	_mission_pomodoro.bind(DbConstants.TARGET_TASK, top_id, true)
 
 
 func _apply_todo_active_leds() -> void:
@@ -285,8 +284,8 @@ func _apply_todo_active_leds() -> void:
 	for child in _todo_vbox.get_children():
 		if child == _todo_empty_label:
 			continue
-		if child is TodoRow:
-			var row := child as TodoRow
+		if child is Control and (child as Control).has_method("set_mission_active"):
+			var row = child
 			row.set_mission_active(row.item != null and row.item.id == active_id)
 
 
@@ -306,7 +305,7 @@ func _update_todo_progress(items: Array[TodoItem]) -> void:
 
 
 func _on_todo_reorder_to_index(dragged_id: int, insert_index: int) -> void:
-	TodoService.move_todo_to_index(dragged_id, insert_index)
+	TaskService.move_todo_to_index(dragged_id, insert_index)
 
 
 func _on_todo_edit_requested(item: TodoItem) -> void:

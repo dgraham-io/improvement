@@ -124,7 +124,7 @@ text = "Journal"
 [node name="MissionsCaption" type="Label" parent="MarginContainer/VBoxContainer/StatsGrid"]
 layout_mode = 2
 theme_type_variation = &"Label_muted"
-text = "Missions"
+text = "Tasks"
 
 [node name="SessionsCaption" type="Label" parent="MarginContainer/VBoxContainer/StatsGrid"]
 layout_mode = 2
@@ -160,5 +160,5 @@ alignment = 2
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_muted"
-text = "No pomodoro sessions recorded this day — start a timer while writing or on a mission."
+text = "No pomodoro sessions recorded this day — start a timer while writing or on a task."
 autowrap_mode = 3

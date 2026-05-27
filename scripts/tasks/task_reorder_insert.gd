@@ -1,5 +1,4 @@
 ## Pure helpers: map a Y coordinate to a list insertion index (0 = before first row).
-class_name TodoReorderInsert
 extends RefCounted
 
 const MOTION_THRESHOLD := 4.0

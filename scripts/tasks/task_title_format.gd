@@ -1,5 +1,4 @@
-## Formats mission titles for list rows (BBCode strikethrough when done).
-class_name TodoTitleFormat
+## Formats task titles for list rows (BBCode strikethrough when done).
 extends RefCounted
 
 

@@ -1,8 +1,8 @@
 [gd_scene load_steps=3 format=3 uid="uid://c8todorow00001"]
 
-[ext_resource type="Script" path="res://scenes/todos/todo_row.gd" id="1_row"]
-[ext_resource type="Script" path="res://scenes/todos/mission_led_indicator.gd" id="2_led"]
-[ext_resource type="Script" path="res://scenes/todos/todo_drag_handle.gd" id="3_drag"]
+[ext_resource type="Script" path="res://scenes/tasks/task_row.gd" id="1_row"]
+[ext_resource type="Script" path="res://scenes/tasks/mission_led_indicator.gd" id="2_led"]
+[ext_resource type="Script" path="res://scenes/tasks/task_drag_handle.gd" id="3_drag"]
 
 [node name="TodoRow" type="PanelContainer"]
 custom_minimum_size = Vector2(0, 64)
@@ -77,7 +77,7 @@ bbcode_enabled = true
 fit_content = true
 scroll_active = false
 mouse_filter = 2
-text = "Mission title"
+text = "Task title"
 
 [node name="WorkTimeLabel" type="Label" parent="MarginContainer/HBoxContainer/VBoxContainer/TitleRow"]
 unique_name_in_owner = true

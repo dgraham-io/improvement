@@ -1,5 +1,4 @@
-## Pure helpers for end-of-day removal of completed missions.
-class_name TodoDayCleanup
+## Pure helpers for end-of-day removal of completed tasks.
 extends RefCounted
 
 
@@ -13,7 +12,7 @@ static func should_run_cleanup(last_cleanup_day_key: String, now_unix: int) -> b
 	return last_cleanup_day_key != today
 
 
-## IDs of done missions last updated before [param today_start_unix] (local midnight today).
+## IDs of done tasks last updated before [param today_start_unix] (local midnight today).
 static func ids_to_purge(items: Array, today_start_unix: int) -> Array[int]:
 	var ids: Array[int] = []
 	for item in items:

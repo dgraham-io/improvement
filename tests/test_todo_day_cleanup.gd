@@ -2,7 +2,7 @@
 extends GutTest
 
 const DatabaseScript := preload("res://scripts/autoload/database.gd")
-const TodoDayCleanup := preload("res://scripts/todos/todo_day_cleanup.gd")
+const TodoDayCleanup := preload("res://scripts/tasks/task_day_cleanup.gd")
 const TimeFmt := preload("res://scripts/util/time_format.gd")
 
 var _database: Node
@@ -38,15 +38,15 @@ func test_ids_to_purge_only_done_before_today() -> void:
 	var yesterday := today_start - 3600
 	var fresh_done := TodoItem.new()
 	fresh_done.id = 1
-	fresh_done.status = DbConstants.TODO_DONE
+	fresh_done.status = DbConstants.TASK_DONE
 	fresh_done.updated_at = now
 	var stale_done := TodoItem.new()
 	stale_done.id = 2
-	stale_done.status = DbConstants.TODO_DONE
+	stale_done.status = DbConstants.TASK_DONE
 	stale_done.updated_at = yesterday
 	var active := TodoItem.new()
 	active.id = 3
-	active.status = DbConstants.TODO_PENDING
+	active.status = DbConstants.TASK_PENDING
 	active.updated_at = yesterday
 	var ids := TodoDayCleanup.ids_to_purge([fresh_done, stale_done, active], today_start)
 	assert_eq(ids.size(), 1)
@@ -57,8 +57,8 @@ func test_soft_delete_done_todos_before() -> void:
 	var now := int(Time.get_unix_time_from_system())
 	var today_start := TimeFmt.local_day_start(now)
 	var yesterday := today_start - 3600
-	var keep_id: int = _database.insert_todo("Keep", "", DbConstants.TODO_DONE, 0, 0, 0, 0)
-	var purge_id: int = _database.insert_todo("Purge", "", DbConstants.TODO_DONE, 0, 0, 0, 1)
+	var keep_id: int = _database.insert_todo("Keep", "", DbConstants.TASK_DONE, 0, 0, 0, 0)
+	var purge_id: int = _database.insert_todo("Purge", "", DbConstants.TASK_DONE, 0, 0, 0, 1)
 	assert_true(_database.set_todo_updated_at(purge_id, yesterday))
 	assert_true(_database.set_todo_updated_at(keep_id, now))
 	var deleted: Array = _database.soft_delete_done_todos_before(today_start)

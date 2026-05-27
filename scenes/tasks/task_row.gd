@@ -1,10 +1,9 @@
-## One mission card with priority strip, pomodoro work time, and progress bar.
-class_name TodoRow
+## One task card with priority strip, pomodoro work time, and progress bar.
 extends PanelContainer
 
 const _TagDisplay := preload("res://scripts/ui/tag_display.gd")
-const _TodoTitleFormat := preload("res://scripts/todos/todo_title_format.gd")
-const _DragHandleScript := preload("res://scenes/todos/todo_drag_handle.gd")
+const _TodoTitleFormat := preload("res://scripts/tasks/task_title_format.gd")
+const _DragHandleScript := preload("res://scenes/tasks/task_drag_handle.gd")
 
 signal edit_requested(item: TodoItem)
 
@@ -18,7 +17,7 @@ const EMPTY_WORK_STATS := {"completed_pomodoros": 0, "total_work_sec": 0}
 
 var item: TodoItem
 
-@onready var _mission_led: MissionLedIndicator = %MissionLed
+@onready var _mission_led: Control = %MissionLed
 @onready var _done_button: Button = %DoneButton
 @onready var _title_label: RichTextLabel = %TitleLabel
 @onready var _notes_label: Label = %NotesLabel
@@ -40,7 +39,7 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_drag_preview(preview)
 	var payload := {"todo_id": item.id}
-	var list := _find_list_drop_target()
+	var list = _find_list_drop_target()
 	if list != null:
 		var global_pos := get_global_transform() * _at_position
 		var list_local: Vector2 = list.get_global_transform().affine_inverse() * global_pos
@@ -78,27 +77,30 @@ func _apply_drag_passthrough(node: Node, active: bool) -> void:
 
 
 func _forward_drop_to_list(at_position: Vector2, data: Variant, apply_drop: bool = false) -> bool:
-	var list := _find_list_drop_target()
+	var list = _find_list_drop_target()
 	if list == null:
 		return false
 	var global_pos := get_global_transform() * at_position
-	var local_in_list := list.get_global_transform().affine_inverse() * global_pos
+	var local_in_list: Vector2 = list.get_global_transform().affine_inverse() * global_pos
 	if apply_drop:
 		list.handle_drop(local_in_list, data)
 		return true
 	return list.handle_can_drop(local_in_list, data)
 
 
-func _find_list_drop_target() -> TodoListDropTarget:
+const _TaskListDropTargetScript := preload("res://scenes/tasks/task_list_drop_target.gd")
+
+
+func _find_list_drop_target():
 	var node: Node = get_parent()
 	while node != null:
-		if node is TodoListDropTarget:
-			return node as TodoListDropTarget
+		if node is Control and (node as Control).get_script() == _TaskListDropTargetScript:
+			return node
 		node = node.get_parent()
 	return null
 
 
-func setup(todo_item: TodoItem, work_stats: Dictionary = EMPTY_WORK_STATS, tags: Array = []) -> void:
+func setup(todo_item, work_stats: Dictionary = EMPTY_WORK_STATS, tags: Array = []) -> void:
 	item = todo_item
 	_work_stats = work_stats
 	_mission_led.set_active(false)
@@ -129,11 +131,11 @@ func set_mission_active(active: bool) -> void:
 	_mission_led.set_active(active)
 
 
-func _apply_title(todo_item: TodoItem) -> void:
+func _apply_title(todo_item) -> void:
 	_title_label.text = _TodoTitleFormat.display_text(todo_item.title, todo_item.is_done())
 
 
-func _update_action_buttons(todo_item: TodoItem) -> void:
+func _update_action_buttons(todo_item) -> void:
 	_done_button.visible = not todo_item.is_done()
 
 
@@ -158,13 +160,13 @@ func _apply_work_stats(work_stats: Dictionary) -> void:
 	_work_time_label.visible = true
 
 
-func _apply_progress(todo_item: TodoItem, work_stats: Dictionary) -> void:
+func _apply_progress(todo_item, work_stats: Dictionary) -> void:
 	var completed := int(work_stats.get("completed_pomodoros", 0))
 	if todo_item.is_done():
 		_progress_bar.value = 1.0
 	elif completed > 0:
 		_progress_bar.value = clampf(float(completed) * 0.2, 0.2, 0.85)
-	elif todo_item.status == DbConstants.TODO_IN_PROGRESS:
+	elif todo_item.status == DbConstants.TASK_IN_PROGRESS:
 		_progress_bar.value = 0.55
 	else:
 		_progress_bar.value = 0.15
@@ -189,7 +191,7 @@ func _on_done_pressed() -> void:
 		and PomodoroService.active_target_id == item.id
 	):
 		PomodoroService.stop(false)
-	TodoService.complete_todo(item)
+	TaskService.complete_todo(item)
 
 
 func _on_edit_pressed() -> void:

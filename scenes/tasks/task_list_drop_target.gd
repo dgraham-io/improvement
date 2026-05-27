@@ -1,12 +1,11 @@
-## Mission list drop target: insert between rows or at the top/bottom of the list.
-class_name TodoListDropTarget
+## Task list drop target: insert between rows or at the top/bottom of the list.
 extends VBoxContainer
 
 signal reorder_to_index(dragged_id: int, insert_index: int)
 signal reorder_drag_started
 signal reorder_drag_ended
 
-const _TodoReorderInsert := preload("res://scripts/todos/todo_reorder_insert.gd")
+const _TodoReorderInsert := preload("res://scripts/tasks/task_reorder_insert.gd")
 const DROP_EDGE_PADDING := 10.0
 const DROP_GAP_HEIGHT := 18.0
 const DROP_GAP_COLOR := Color(0.133333, 0.866667, 1, 0.22)
@@ -70,9 +69,12 @@ func _notification(what: int) -> void:
 		reorder_drag_ended.emit()
 
 
+const _TaskRowScript := preload("res://scenes/tasks/task_row.gd")
+
+
 func clear_rows() -> void:
 	for child in get_children():
-		if child is TodoRow:
+		if child is Control and (child as Control).get_script() == _TaskRowScript:
 			child.queue_free()
 	_reset_drag_tracking()
 	_set_rows_reorder_drag_active(false)
@@ -81,22 +83,22 @@ func clear_rows() -> void:
 
 func _set_rows_reorder_drag_active(active: bool) -> void:
 	for child in get_children():
-		if child is TodoRow:
-			(child as TodoRow).set_reorder_drag_active(active)
+		if child is Control and (child as Control).get_script() == _TaskRowScript:
+			(child as Node).call("set_reorder_drag_active", active)
 
 
 func _collect_rows() -> Array:
 	var rows: Array = []
 	for child in get_children():
-		if child is TodoRow:
+		if child is Control and (child as Control).get_script() == _TaskRowScript:
 			rows.append(child)
 	return rows
 
 
 func _row_index_for_id(rows: Array, todo_id: int) -> int:
 	for i in rows.size():
-		var row := rows[i] as TodoRow
-		if row != null and row.item != null and row.item.id == todo_id:
+		var row = rows[i]
+		if row != null and row.get("item") != null and row.get("item").id == todo_id:
 			return i
 	return -1
 

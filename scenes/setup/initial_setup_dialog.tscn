@@ -53,7 +53,7 @@ text = "Where should your data live?"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Improvement stores everything in a single SQLite file (improvement.db). Pick a folder — for example inside Dropbox — so your journal and missions sync across devices."
+text = "Improvement stores everything in a single SQLite file (improvement.db). Pick a folder — for example inside Dropbox — so your journal and tasks sync across devices."
 autowrap_mode = 3
 
 [node name="PathRow" type="HBoxContainer" parent="Center/Panel/MarginContainer/VBoxContainer"]

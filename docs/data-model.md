@@ -68,7 +68,7 @@ Timeline posts. **Soft delete:** `deleted_at` set to Unix seconds, or `NULL` if 
 
 ### `todos`
 
-Mission list. Optional `journal_entry_id` links to a journal entry.
+Task list. Optional `journal_entry_id` links to a journal entry.
 
 | Column | Notes |
 |--------|--------|
@@ -78,15 +78,15 @@ Mission list. Optional `journal_entry_id` links to a journal entry.
 | `sort_order` | Manual list order |
 | `deleted_at` | Soft delete |
 
-**Default sort:** Active missions first (`status != done`), then `sort_order ASC`, then `created_at DESC`. Completed missions are kept at the bottom while they remain for the current local day.
+**Default sort:** Active tasks first (`status != done`), then `sort_order ASC`, then `created_at DESC`. Completed tasks are kept at the bottom while they remain for the current local day.
 
-**End of day:** On the first run each local calendar day, missions with `status = done` and `updated_at` before today’s local midnight are soft-deleted (`app_settings.todo_cleanup_day_key` tracks the last cleanup day).
+**End of day:** On the first run each local calendar day, tasks with `status = done` and `updated_at` before today’s local midnight are soft-deleted (`app_settings.task_cleanup_day_key` tracks the last cleanup day).
 
-**Pomodoro integration:** Work is stored in `pomodoro_sessions`, not on the row. Starting a timer on a **pending** mission sets `status` to `in_progress`. Rows show **total work time**; tooltip shows **completed pomodoro** count.
+**Pomodoro integration:** Work is stored in `pomodoro_sessions`, not on the row. Starting a timer on a **pending** task sets `status` to `in_progress`. Rows show **total work time**; tooltip shows **completed pomodoro** count.
 
 ### `pomodoro_sessions`
 
-Work intervals for journal or mission targets.
+Work intervals for journal or task targets.
 
 | Column | Notes |
 |--------|--------|
@@ -150,9 +150,9 @@ Factory: `*.from_row(dict)` after SQLite queries via [`db_row.gd`](../scripts/da
 | `Database` | Connection, migrations, SQL, settings |
 | `WindowLayout` | Window bounds → `app_settings` |
 | `JournalService` | Journal CRUD + search + signals |
-| `TodoService` | Mission CRUD + reorder + work stats + signals |
+| `TaskService` | Task CRUD + reorder + work stats + signals |
 | `TagService` | Tag catalog + entry/todo assignments + signals |
-| `PomodoroService` | Timer + DB sessions + `in_progress` on first mission start |
+| `PomodoroService` | Timer + DB sessions + `in_progress` on first task start |
 
 **Rule:** UI calls **services**, not `Database`, except bootstrap/low-level cases.
 

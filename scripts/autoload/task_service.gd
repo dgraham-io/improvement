@@ -1,8 +1,9 @@
 ## Autoload: task list CRUD. Emits signals for UI refresh.
 extends Node
 
-const _TodoListOrder := preload("res://scripts/todos/todo_list_order.gd")
-const _TodoDayCleanup := preload("res://scripts/todos/todo_day_cleanup.gd")
+const _TodoListOrder := preload("res://scripts/tasks/task_list_order.gd")
+const _TodoDayCleanup := preload("res://scripts/tasks/task_day_cleanup.gd")
+const _TodoItem := preload("res://scripts/models/todo_item.gd")
 
 signal todo_created(item: TodoItem)
 signal todo_updated(item: TodoItem)
@@ -48,11 +49,11 @@ func _run_startup_maintenance() -> void:
 
 func _run_day_cleanup_if_needed() -> void:
 	var now := int(Time.get_unix_time_from_system())
-	var last_key := Database.get_setting(DbConstants.SETTING_TODO_CLEANUP_DAY_KEY, "")
+	var last_key := Database.get_setting(DbConstants.SETTING_TASK_CLEANUP_DAY_KEY, "")
 	if not _TodoDayCleanup.should_run_cleanup(last_key, now):
 		return
 	purge_completed_before_today()
-	Database.set_setting(DbConstants.SETTING_TODO_CLEANUP_DAY_KEY, _TodoDayCleanup.today_day_key(now))
+	Database.set_setting(DbConstants.SETTING_TASK_CLEANUP_DAY_KEY, _TodoDayCleanup.today_day_key(now))
 
 
 func get_todo_count() -> int:
@@ -63,7 +64,7 @@ func list_todos() -> Array[TodoItem]:
 	var rows := Database.fetch_todos()
 	var result: Array[TodoItem] = []
 	for row in rows:
-		result.append(TodoItem.from_row(row))
+		result.append(_TodoItem.from_row(row))
 	return result
 
 
@@ -79,7 +80,7 @@ func get_todo(todo_id: int) -> TodoItem:
 	var row := Database.fetch_todo_by_id(todo_id)
 	if row.is_empty():
 		return null
-	return TodoItem.from_row(row)
+	return _TodoItem.from_row(row)
 
 
 func get_work_stats_map() -> Dictionary:
@@ -93,17 +94,17 @@ func get_work_stats(todo_id: int) -> Dictionary:
 func create_todo(
 	title: String,
 	notes: String = "",
-	status: String = DbConstants.TODO_PENDING,
+	status: String = DbConstants.TASK_PENDING,
 	priority: int = 0,
 	due_at: int = 0,
 	journal_entry_id: int = 0
 ) -> TodoItem:
-	if not DbConstants.todo_status_values().has(status):
-		status = DbConstants.TODO_PENDING
+	if not DbConstants.task_status_values().has(status):
+		status = DbConstants.TASK_PENDING
 	var id := Database.insert_todo(title, notes, status, priority, due_at, journal_entry_id)
 	if id < 0:
 		return null
-	if status == DbConstants.TODO_DONE:
+	if status == DbConstants.TASK_DONE:
 		normalize_list_order()
 	var item := get_todo(id)
 	if item:
@@ -114,8 +115,8 @@ func create_todo(
 func save_todo(item: TodoItem, emit_updated: bool = true) -> bool:
 	if item.id <= 0:
 		return false
-	if not DbConstants.todo_status_values().has(item.status):
-		item.status = DbConstants.TODO_PENDING
+	if not DbConstants.task_status_values().has(item.status):
+		item.status = DbConstants.TASK_PENDING
 	if not Database.update_todo(item):
 		return false
 	normalize_list_order()
@@ -185,7 +186,7 @@ func delete_todo(todo_id: int) -> bool:
 func complete_todo(item: TodoItem) -> bool:
 	if item == null or item.id <= 0 or item.is_done():
 		return false
-	item.status = DbConstants.TODO_DONE
+	item.status = DbConstants.TASK_DONE
 	if not Database.update_todo(item):
 		return false
 	normalize_list_order()

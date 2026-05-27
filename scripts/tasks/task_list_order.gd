@@ -1,9 +1,8 @@
-## Pure helpers for mission list ordering (active first, completed last).
-class_name TodoListOrder
+## Pure helpers for task list ordering (active first, completed last).
 extends RefCounted
 
 
-## Returns [param items] with non-done missions first, preserving relative order within each group.
+## Returns [param items] with non-done tasks first, preserving relative order within each group.
 static func ordered_active_first(items: Array) -> Array:
 	var active: Array = []
 	var done: Array = []

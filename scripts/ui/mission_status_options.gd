@@ -8,13 +8,13 @@ static func populate(option: OptionButton) -> void:
 		return
 	option.clear()
 	option.add_item("Pending", 0)
-	option.set_item_metadata(0, DbConstants.TODO_PENDING)
+	option.set_item_metadata(0, DbConstants.TASK_PENDING)
 	option.add_item("In progress", 1)
-	option.set_item_metadata(1, DbConstants.TODO_IN_PROGRESS)
+	option.set_item_metadata(1, DbConstants.TASK_IN_PROGRESS)
 	option.add_item("Done", 2)
-	option.set_item_metadata(2, DbConstants.TODO_DONE)
+	option.set_item_metadata(2, DbConstants.TASK_DONE)
 	option.add_item("Cancelled", 3)
-	option.set_item_metadata(3, DbConstants.TODO_CANCELLED)
+	option.set_item_metadata(3, DbConstants.TASK_CANCELLED)
 
 
 static func select_status(option: OptionButton, status: String) -> void:
@@ -29,6 +29,6 @@ static func select_status(option: OptionButton, status: String) -> void:
 
 static func selected_status(option: OptionButton) -> String:
 	if option == null or option.item_count == 0:
-		return DbConstants.TODO_PENDING
+		return DbConstants.TASK_PENDING
 	var idx := option.selected
 	return str(option.get_item_metadata(idx))

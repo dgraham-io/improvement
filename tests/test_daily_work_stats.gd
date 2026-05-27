@@ -39,11 +39,11 @@ func test_format_day_heading_today_and_yesterday() -> void:
 func test_fetch_daily_pomodoro_stats_sums_sessions_on_same_day() -> void:
 	var day_anchor := TimeFmt.local_day_start(int(Time.get_unix_time_from_system()))
 	var journal_id: int = _db.insert_journal_entry("metrics test")
-	var todo_id: int = _db.insert_todo("mission", "", DbConstants.TODO_PENDING, 0, 0, 0)
+	var todo_id: int = _db.insert_todo("task", "", DbConstants.TASK_PENDING, 0, 0, 0)
 	assert_gt(journal_id, 0)
 	assert_gt(todo_id, 0)
 	var session_a: int = _db.insert_pomodoro_session(DbConstants.TARGET_JOURNAL, journal_id)
-	var session_b: int = _db.insert_pomodoro_session(DbConstants.TARGET_TODO, todo_id)
+	var session_b: int = _db.insert_pomodoro_session(DbConstants.TARGET_TASK, todo_id)
 	assert_gt(session_a, 0)
 	assert_gt(session_b, 0)
 	var now := int(Time.get_unix_time_from_system())

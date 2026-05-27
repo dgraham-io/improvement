@@ -1,7 +1,7 @@
 ## GUT tests for mission title BBCode formatting.
 extends GutTest
 
-const TodoTitleFormat := preload("res://scripts/todos/todo_title_format.gd")
+const TodoTitleFormat := preload("res://scripts/tasks/task_title_format.gd")
 
 
 func test_display_text_strikethrough_when_done() -> void:

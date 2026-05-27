@@ -33,7 +33,7 @@ func is_active_target(target_type: String, target_id: int) -> bool:
 
 
 func can_start_for(target_type: String, _target_id: int) -> bool:
-	return target_type == DbConstants.TARGET_JOURNAL or target_type == DbConstants.TARGET_TODO
+	return target_type == DbConstants.TARGET_JOURNAL or target_type == DbConstants.TARGET_TASK
 
 
 func start_for(target_type: String, target_id: int) -> bool:
@@ -55,18 +55,18 @@ func start_for(target_type: String, target_id: int) -> bool:
 	is_paused = false
 	_end_at_unix = int(Time.get_unix_time_from_system()) + remaining_sec
 	set_process(true)
-	_mark_todo_in_progress_if_needed(target_type, target_id)
+	_mark_task_in_progress_if_needed(target_type, target_id)
 	state_changed.emit()
 	return true
 
 
-func _mark_todo_in_progress_if_needed(target_type: String, target_id: int) -> void:
-	if target_type != DbConstants.TARGET_TODO or target_id <= 0:
+func _mark_task_in_progress_if_needed(target_type: String, target_id: int) -> void:
+	if target_type != DbConstants.TARGET_TASK or target_id <= 0:
 		return
-	var todo := TodoService.get_todo(target_id)
-	if todo == null or todo.status != DbConstants.TODO_PENDING:
+	var todo: TodoItem = TaskService.get_todo(target_id)
+	if todo == null or todo.status != DbConstants.TASK_PENDING:
 		return
-	TodoService.set_status(target_id, DbConstants.TODO_IN_PROGRESS)
+	TaskService.set_status(target_id, DbConstants.TASK_IN_PROGRESS)
 
 
 func attach_target(target_type: String, target_id: int) -> void:
@@ -126,7 +126,7 @@ func stop_if_journal() -> void:
 
 
 func has_active_todo_session() -> bool:
-	return _session_id > 0 and active_target_type == DbConstants.TARGET_TODO
+	return _session_id > 0 and active_target_type == DbConstants.TARGET_TASK
 
 
 func get_daily_work_stats(day_start_unix: int):

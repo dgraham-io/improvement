@@ -47,7 +47,7 @@ func test_journal_entry_tags_round_trip() -> void:
 
 
 func test_todo_tags_map() -> void:
-	var todo_id: int = _db.insert_todo("Mission", "", DbConstants.TODO_PENDING, 0, 0, 0)
+	var todo_id: int = _db.insert_todo("Task", "", DbConstants.TASK_PENDING, 0, 0, 0)
 	var tag_id: int = _db.insert_tag("Focus")
 	assert_true(_db.set_todo_tags(todo_id, [tag_id] as Array[int]))
 	var tags_map: Dictionary = _db.fetch_todo_tags_map()

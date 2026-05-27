@@ -2,13 +2,13 @@
 
 [ext_resource type="Script" uid="uid://c6al7vxlnqgfi" path="res://scenes/main.gd" id="1_script"]
 [ext_resource type="Script" path="res://scenes/journal/journal_area.gd" id="4_journal_area"]
-[ext_resource type="Script" path="res://scenes/todos/mission_sidebar.gd" id="5_mission_sidebar"]
+[ext_resource type="Script" path="res://scenes/tasks/task_sidebar.gd" id="5_mission_sidebar"]
 [ext_resource type="Theme" uid="uid://bjs7igpj47wt0" path="res://assets/themes/improvement_theme.tres" id="1_theme"]
 [ext_resource type="Texture2D" uid="uid://boihexead64ec" path="res://assets/textures/ui/bg_gradient.tres" id="2_bg"]
 [ext_resource type="PackedScene" uid="uid://c8pomodoro01" path="res://scenes/ui/pomodoro_timer.tscn" id="3_pomo"]
 [ext_resource type="PackedScene" uid="uid://c8tagpicker01" path="res://scenes/ui/tag_picker.tscn" id="6_tag_picker"]
-[ext_resource type="Script" path="res://scenes/todos/todo_list_drop_target.gd" id="7_todo_drop"]
-[ext_resource type="Script" path="res://scenes/todos/todo_scroll_drop_forward.gd" id="8_todo_scroll"]
+[ext_resource type="Script" path="res://scenes/tasks/task_list_drop_target.gd" id="7_todo_drop"]
+[ext_resource type="Script" path="res://scenes/tasks/task_scroll_drop_forward.gd" id="8_todo_scroll"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_scroll"]
 
@@ -246,7 +246,7 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"Label_title"
-text = "Missions"
+text = "Tasks"
 
 [node name="MissionPomodoro" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/TodoTitleRow" unique_id=1538882452 instance=ExtResource("3_pomo")]
 unique_name_in_owner = true
@@ -280,7 +280,7 @@ show_percentage = false
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Button_primary"
-text = "＋  New Mission"
+text = "＋  New Task"
 
 [node name="TodoSplit" type="VSplitContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn" unique_id=1048728002]
 unique_name_in_owner = true
@@ -321,7 +321,7 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"Label_accent"
-text = "◈  Mission"
+text = "◈  Task"
 
 [node name="MissionStatusOption" type="OptionButton" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionHeader" unique_id=2011495622]
 unique_name_in_owner = true
@@ -368,7 +368,7 @@ text = "Delete"
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Button_primary"
-text = "Save mission"
+text = "Save task"
 
 [node name="TodoScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit" unique_id=884632879]
 layout_mode = 2
@@ -390,6 +390,6 @@ script = ExtResource("7_todo_drop")
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_muted"
-text = "No missions yet. Use ＋ New Mission to add one."
+text = "No tasks yet. Use ＋ New Task to add one."
 autowrap_mode = 3
 

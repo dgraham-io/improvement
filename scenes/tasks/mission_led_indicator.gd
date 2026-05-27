@@ -1,5 +1,5 @@
-## Vertical rounded-rect LED: lit while this mission has an active pomodoro.
-class_name MissionLedIndicator
+## Vertical rounded-rect LED: lit while this task has an active pomodoro.
+class_name TaskLedIndicator
 extends Control
 
 const LED_SIZE := Vector2(12, 26)

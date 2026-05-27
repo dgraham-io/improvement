@@ -1,5 +1,5 @@
 ## Autoload: opens `<db_directory>/improvement.db`, runs migrations, exposes typed data access.
-## UI and feature code should use JournalService / TodoService, not query SQL directly.
+## UI and feature code should use JournalService / TaskService, not query SQL directly.
 extends Node
 
 const _DatabaseOpen := preload("res://scripts/database/database_open.gd")
@@ -85,6 +85,10 @@ func _migrate() -> void:
 	if version < 4:
 		_migrate_to_v4()
 		_set_user_version(4)
+		version = 4
+	if version < 5:
+		_migrate_to_v5()
+		_set_user_version(5)
 
 
 func _get_user_version() -> int:
@@ -111,7 +115,7 @@ func _migrate_to_v1() -> void:
 		"""CREATE INDEX IF NOT EXISTS idx_journal_entries_active_created
 			ON journal_entries (created_at DESC)
 			WHERE deleted_at IS NULL;""",
-		"""CREATE TABLE IF NOT EXISTS todos (
+		"""CREATE TABLE IF NOT EXISTS tasks (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			created_at INTEGER NOT NULL,
 			updated_at INTEGER NOT NULL,
@@ -126,11 +130,11 @@ func _migrate_to_v1() -> void:
 			journal_entry_id INTEGER REFERENCES journal_entries (id) ON DELETE SET NULL,
 			deleted_at INTEGER
 		);""",
-		"""CREATE INDEX IF NOT EXISTS idx_todos_active_sort
-			ON todos (sort_order ASC, created_at DESC)
+		"""CREATE INDEX IF NOT EXISTS idx_tasks_active_sort
+			ON tasks (sort_order ASC, created_at DESC)
 			WHERE deleted_at IS NULL;""",
-		"""CREATE INDEX IF NOT EXISTS idx_todos_active_due
-			ON todos (due_at ASC)
+		"""CREATE INDEX IF NOT EXISTS idx_tasks_active_due
+			ON tasks (due_at ASC)
 			WHERE deleted_at IS NULL AND due_at IS NOT NULL;""",
 		"""CREATE TABLE IF NOT EXISTS pomodoro_sessions (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -138,7 +142,7 @@ func _migrate_to_v1() -> void:
 			ended_at INTEGER,
 			planned_duration_sec INTEGER NOT NULL DEFAULT 1500,
 			target_type TEXT NOT NULL DEFAULT 'none'
-				CHECK (target_type IN ('none', 'journal', 'todo')),
+				CHECK (target_type IN ('none', 'journal', 'task')),
 			target_id INTEGER,
 			completed INTEGER NOT NULL DEFAULT 0
 				CHECK (completed IN (0, 1))
@@ -239,20 +243,75 @@ func _migrate_to_v4() -> void:
 			tag_id INTEGER NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
 			PRIMARY KEY (entry_id, tag_id)
 		);""",
-		"""CREATE TABLE IF NOT EXISTS todo_tags (
-			todo_id INTEGER NOT NULL REFERENCES todos (id) ON DELETE CASCADE,
+		"""CREATE TABLE IF NOT EXISTS task_tags (
+			task_id INTEGER NOT NULL REFERENCES tasks (id) ON DELETE CASCADE,
 			tag_id INTEGER NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
-			PRIMARY KEY (todo_id, tag_id)
+			PRIMARY KEY (task_id, tag_id)
 		);""",
 		"""CREATE INDEX IF NOT EXISTS idx_journal_entry_tags_tag
 			ON journal_entry_tags (tag_id);""",
-		"""CREATE INDEX IF NOT EXISTS idx_todo_tags_tag
-			ON todo_tags (tag_id);""",
+		"""CREATE INDEX IF NOT EXISTS idx_task_tags_tag
+			ON task_tags (tag_id);""",
 	]
 	for sql in statements:
 		if not _db.query(sql):
 			push_error("Migration v4 failed: %s\nSQL: %s" % [_db.error_message, sql])
 			return
+
+
+func _table_exists(table_name: String) -> bool:
+	if _db == null:
+		return false
+	if not _db.query_with_bindings(
+		"SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1;",
+		[table_name]
+	):
+		return false
+	return not _db.query_result.is_empty()
+
+
+func _migrate_to_v5() -> void:
+	# Rename todo terminology → task terminology.
+	# This migration is safe to run on fresh DBs (created as v1 then upgraded)
+	# and on existing DBs that already have v4 tags.
+	if _table_exists("todos") and not _table_exists("tasks"):
+		if not _db.query("ALTER TABLE todos RENAME TO tasks;"):
+			push_error("Migration v5 failed: %s\nSQL: %s" % [_db.error_message, "ALTER TABLE todos RENAME TO tasks;"])
+			return
+
+	# Rebuild todo_tags → task_tags so the FK references tasks.
+	if _table_exists("todo_tags") and not _table_exists("task_tags"):
+		var statements: PackedStringArray = [
+			"""CREATE TABLE IF NOT EXISTS task_tags (
+				task_id INTEGER NOT NULL REFERENCES tasks (id) ON DELETE CASCADE,
+				tag_id INTEGER NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
+				PRIMARY KEY (task_id, tag_id)
+			);""",
+			"INSERT OR IGNORE INTO task_tags (task_id, tag_id) SELECT todo_id, tag_id FROM todo_tags;",
+			"DROP TABLE todo_tags;",
+			"DROP INDEX IF EXISTS idx_todo_tags_tag;",
+			"""CREATE INDEX IF NOT EXISTS idx_task_tags_tag
+				ON task_tags (tag_id);""",
+		]
+		for sql in statements:
+			if not _db.query(sql):
+				push_error("Migration v5 failed: %s\nSQL: %s" % [_db.error_message, sql])
+				return
+	elif _table_exists("task_tags"):
+		# Ensure index name exists for new table.
+		_db.query("CREATE INDEX IF NOT EXISTS idx_task_tags_tag ON task_tags (tag_id);")
+
+	# Rename indexes for clarity (not required for correctness).
+	_db.query("DROP INDEX IF EXISTS idx_todos_active_sort;")
+	_db.query("DROP INDEX IF EXISTS idx_todos_active_due;")
+	_db.query(
+		"CREATE INDEX IF NOT EXISTS idx_tasks_active_sort "
+		+ "ON tasks (sort_order ASC, created_at DESC) WHERE deleted_at IS NULL;"
+	)
+	_db.query(
+		"CREATE INDEX IF NOT EXISTS idx_tasks_active_due "
+		+ "ON tasks (due_at ASC) WHERE deleted_at IS NULL AND due_at IS NOT NULL;"
+	)
 
 
 func _apply_default_settings() -> void:
@@ -386,11 +445,11 @@ func soft_delete_journal_entry(entry_id: int) -> bool:
 	)
 
 
-# --- Todos -------------------------------------------------------------------
+# --- Tasks -------------------------------------------------------------------
 
 func count_todos(include_deleted: bool = false) -> int:
 	var where := "" if include_deleted else " WHERE deleted_at IS NULL"
-	if not _db.query("SELECT COUNT(*) AS c FROM todos%s;" % where):
+	if not _db.query("SELECT COUNT(*) AS c FROM tasks%s;" % where):
 		return 0
 	return int(_db.query_result[0].get("c", 0))
 
@@ -410,7 +469,7 @@ func fetch_todos(include_deleted: bool = false, filter_tag_ids: Array = []) -> A
 			bindings.append(id)
 		if not placeholders.is_empty():
 			where_parts.append(
-				"t.id IN (SELECT todo_id FROM todo_tags WHERE tag_id IN (%s))"
+				"t.id IN (SELECT task_id FROM task_tags WHERE tag_id IN (%s))"
 				% ",".join(placeholders)
 			)
 	var where := ""
@@ -418,7 +477,7 @@ func fetch_todos(include_deleted: bool = false, filter_tag_ids: Array = []) -> A
 		where = " WHERE " + " AND ".join(where_parts)
 	var sql := (
 		"SELECT t.id, t.created_at, t.updated_at, t.title, t.notes, t.status, t.priority, "
-		+ "t.due_at, t.sort_order, t.journal_entry_id, t.deleted_at FROM todos t%s "
+		+ "t.due_at, t.sort_order, t.journal_entry_id, t.deleted_at FROM tasks t%s "
 		+ "ORDER BY CASE WHEN t.status = 'done' THEN 1 ELSE 0 END, "
 		+ "t.sort_order ASC, t.created_at DESC;"
 	) % where
@@ -436,7 +495,7 @@ func fetch_todos(include_deleted: bool = false, filter_tag_ids: Array = []) -> A
 func fetch_todo_by_id(todo_id: int) -> Dictionary:
 	if not _db.query_with_bindings(
 		"SELECT id, created_at, updated_at, title, notes, status, priority, "
-		+ "due_at, sort_order, journal_entry_id, deleted_at FROM todos WHERE id = ?;",
+		+ "due_at, sort_order, journal_entry_id, deleted_at FROM tasks WHERE id = ?;",
 		[todo_id]
 	):
 		return {}
@@ -460,7 +519,7 @@ func insert_todo(
 	var due_val: Variant = due_at if due_at > 0 else null
 	var journal_val: Variant = journal_entry_id if journal_entry_id > 0 else null
 	if not _db.query_with_bindings(
-		"INSERT INTO todos (created_at, updated_at, title, notes, status, priority, "
+		"INSERT INTO tasks (created_at, updated_at, title, notes, status, priority, "
 		+ "due_at, sort_order, journal_entry_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
 		[now, now, title, notes, status, priority, due_val, sort_order, journal_val]
 	):
@@ -474,7 +533,7 @@ func update_todo(item: TodoItem) -> bool:
 	var due_val: Variant = item.due_at if item.due_at > 0 else null
 	var journal_val: Variant = item.journal_entry_id if item.journal_entry_id > 0 else null
 	return _db.query_with_bindings(
-		"UPDATE todos SET updated_at = ?, title = ?, notes = ?, status = ?, "
+		"UPDATE tasks SET updated_at = ?, title = ?, notes = ?, status = ?, "
 		+ "priority = ?, due_at = ?, sort_order = ?, journal_entry_id = ? "
 		+ "WHERE id = ? AND deleted_at IS NULL;",
 		[
@@ -493,7 +552,7 @@ func update_todo(item: TodoItem) -> bool:
 
 func set_todo_updated_at(todo_id: int, updated_at: int) -> bool:
 	return _db.query_with_bindings(
-		"UPDATE todos SET updated_at = ? WHERE id = ? AND deleted_at IS NULL;",
+		"UPDATE tasks SET updated_at = ? WHERE id = ? AND deleted_at IS NULL;",
 		[updated_at, todo_id]
 	)
 
@@ -501,7 +560,7 @@ func set_todo_updated_at(todo_id: int, updated_at: int) -> bool:
 func soft_delete_todo(todo_id: int) -> bool:
 	var now := int(Time.get_unix_time_from_system())
 	return _db.query_with_bindings(
-		"UPDATE todos SET deleted_at = ?, updated_at = ? WHERE id = ?;",
+		"UPDATE tasks SET deleted_at = ?, updated_at = ? WHERE id = ?;",
 		[now, now, todo_id]
 	)
 
@@ -511,8 +570,8 @@ func soft_delete_done_todos_before(cutoff_unix: int) -> Array[int]:
 	if cutoff_unix <= 0:
 		return []
 	if not _db.query_with_bindings(
-		"SELECT id FROM todos WHERE deleted_at IS NULL AND status = ? AND updated_at < ?;",
-		[DbConstants.TODO_DONE, cutoff_unix]
+		"SELECT id FROM tasks WHERE deleted_at IS NULL AND status = ? AND updated_at < ?;",
+		[DbConstants.TASK_DONE, cutoff_unix]
 	):
 		push_error("soft_delete_done_todos_before select: %s" % _db.error_message)
 		return []
@@ -524,7 +583,7 @@ func soft_delete_done_todos_before(cutoff_unix: int) -> Array[int]:
 	var now := int(Time.get_unix_time_from_system())
 	for todo_id in ids:
 		if not _db.query_with_bindings(
-			"UPDATE todos SET deleted_at = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL;",
+			"UPDATE tasks SET deleted_at = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL;",
 			[now, now, todo_id]
 		):
 			push_error("soft_delete_done_todos_before: %s" % _db.error_message)
@@ -610,9 +669,9 @@ func fetch_tags_for_todo(todo_id: int) -> Array:
 		return []
 	if not _db.query_with_bindings(
 		"SELECT t.id, t.name, t.created_at "
-		+ "FROM todo_tags tt "
+		+ "FROM task_tags tt "
 		+ "JOIN tags t ON t.id = tt.tag_id "
-		+ "WHERE tt.todo_id = ? "
+		+ "WHERE tt.task_id = ? "
 		+ "ORDER BY t.name COLLATE NOCASE ASC;",
 		[todo_id]
 	):
@@ -639,14 +698,14 @@ func fetch_todo_tags_map() -> Dictionary:
 	if _db == null:
 		return {}
 	if not _db.query(
-		"SELECT tt.todo_id, t.id, t.name, t.created_at "
-		+ "FROM todo_tags tt "
+		"SELECT tt.task_id, t.id, t.name, t.created_at "
+		+ "FROM task_tags tt "
 		+ "JOIN tags t ON t.id = tt.tag_id "
 		+ "ORDER BY t.name COLLATE NOCASE ASC;"
 	):
 		push_error("fetch_todo_tags_map: %s" % _db.error_message)
 		return {}
-	return _build_entity_tags_map("todo_id")
+	return _build_entity_tags_map("task_id")
 
 
 func _build_entity_tags_map(entity_key: String) -> Dictionary:
@@ -686,7 +745,7 @@ func set_todo_tags(todo_id: int, tag_ids: Array[int]) -> bool:
 	if _db == null or todo_id <= 0:
 		return false
 	if not _db.query_with_bindings(
-		"DELETE FROM todo_tags WHERE todo_id = ?;",
+		"DELETE FROM task_tags WHERE task_id = ?;",
 		[todo_id]
 	):
 		push_error("set_todo_tags delete: %s" % _db.error_message)
@@ -695,7 +754,7 @@ func set_todo_tags(todo_id: int, tag_ids: Array[int]) -> bool:
 		if tag_id <= 0:
 			continue
 		if not _db.query_with_bindings(
-			"INSERT INTO todo_tags (todo_id, tag_id) VALUES (?, ?);",
+			"INSERT INTO task_tags (task_id, tag_id) VALUES (?, ?);",
 			[todo_id, tag_id]
 		):
 			push_error("set_todo_tags insert: %s" % _db.error_message)
@@ -753,7 +812,7 @@ func fetch_todo_pomodoro_work_stats_map() -> Dictionary:
 		+ "THEN (ended_at - started_at) ELSE 0 END) AS total_work_sec "
 		+ "FROM pomodoro_sessions WHERE target_type = ? AND target_id IS NOT NULL "
 		+ "GROUP BY target_id;",
-		[DbConstants.TARGET_TODO]
+		[DbConstants.TARGET_TASK]
 	):
 		push_error("fetch_todo_pomodoro_work_stats_map: %s" % _db.error_message)
 		return {}
@@ -778,7 +837,7 @@ func fetch_todo_pomodoro_work_stats(todo_id: int) -> Dictionary:
 		+ "SUM(CASE WHEN ended_at IS NOT NULL AND ended_at > started_at "
 		+ "THEN (ended_at - started_at) ELSE 0 END) AS total_work_sec "
 		+ "FROM pomodoro_sessions WHERE target_type = ? AND target_id = ?;",
-		[DbConstants.TARGET_TODO, todo_id]
+		[DbConstants.TARGET_TASK, todo_id]
 	):
 		return _empty_todo_work_stats()
 	if _db.query_result.is_empty():
@@ -807,10 +866,10 @@ func fetch_daily_pomodoro_stats(day_anchor_unix: int) -> Dictionary:
 		+ "SUM(CASE WHEN target_type = ? AND ended_at IS NOT NULL AND ended_at > started_at "
 		+ "THEN (ended_at - started_at) ELSE 0 END) AS journal_work_sec, "
 		+ "SUM(CASE WHEN target_type = ? AND ended_at IS NOT NULL AND ended_at > started_at "
-		+ "THEN (ended_at - started_at) ELSE 0 END) AS todo_work_sec "
+		+ "THEN (ended_at - started_at) ELSE 0 END) AS task_work_sec "
 		+ "FROM pomodoro_sessions "
 		+ "WHERE started_at >= ? AND started_at < ?;",
-		[DbConstants.TARGET_JOURNAL, DbConstants.TARGET_TODO, day_anchor_unix, day_end_unix]
+		[DbConstants.TARGET_JOURNAL, DbConstants.TARGET_TASK, day_anchor_unix, day_end_unix]
 	):
 		push_error("fetch_daily_pomodoro_stats: %s" % _db.error_message)
 		return summary
@@ -820,7 +879,7 @@ func fetch_daily_pomodoro_stats(day_anchor_unix: int) -> Dictionary:
 		summary["completed_pomodoros"] = DbRow.int_value(row.get("completed_pomodoros"))
 		summary["total_work_sec"] = DbRow.int_value(row.get("total_work_sec"))
 		summary["journal_work_sec"] = DbRow.int_value(row.get("journal_work_sec"))
-		summary["todo_work_sec"] = DbRow.int_value(row.get("todo_work_sec"))
+		summary["todo_work_sec"] = DbRow.int_value(row.get("task_work_sec"))
 	summary["hourly_work_sec"] = _fetch_daily_hourly_work_sec(day_anchor_unix)
 	return summary
 
