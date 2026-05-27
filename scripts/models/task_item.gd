@@ -1,5 +1,5 @@
 ## Domain model for one task (maps to tasks).
-class_name TodoItem
+class_name TaskItem
 extends Resource
 
 const _DbRow := preload("res://scripts/database/db_row.gd")
@@ -25,8 +25,8 @@ func is_done() -> bool:
 	return status == DbConstants.TASK_DONE
 
 
-static func from_row(row: Dictionary) -> TodoItem:
-	var item := TodoItem.new()
+static func from_row(row: Dictionary) -> TaskItem:
+	var item := TaskItem.new()
 	item.id = _DbRow.int_value(row.get("id"))
 	item.created_at = _DbRow.int_value(row.get("created_at"))
 	item.updated_at = _DbRow.int_value(row.get("updated_at"))

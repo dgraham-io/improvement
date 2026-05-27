@@ -31,7 +31,7 @@ func test_pomodoro_target_constants_use_task_not_todo() -> void:
 func test_fresh_db_insert_pomodoro_session_for_task_and_journal() -> void:
 	assert_true(_db._initialize(_test_dir))
 	var journal_id: int = _db.insert_journal_entry("pomodoro journal")
-	var task_id: int = _db.insert_todo("pomodoro task", "", DbConstants.TASK_PENDING, 0, 0, 0)
+	var task_id: int = _db.insert_task("pomodoro task", "", DbConstants.TASK_PENDING, 0, 0, 0)
 	assert_gt(journal_id, 0)
 	assert_gt(task_id, 0)
 
@@ -97,7 +97,7 @@ func test_full_migrate_from_v5_runs_v6_and_allows_task_insert() -> void:
 
 func test_migrate_v6_idempotent_on_modern_schema() -> void:
 	assert_true(_db._initialize(_test_dir))
-	var task_id: int = _db.insert_todo("idempotent", "", DbConstants.TASK_PENDING, 0, 0, 0)
+	var task_id: int = _db.insert_task("idempotent", "", DbConstants.TASK_PENDING, 0, 0, 0)
 	assert_gt(task_id, 0)
 
 	_db._migrate_to_v6()

@@ -1,4 +1,4 @@
-## Compact Pomodoro control bound to one journal entry or todo.
+## Compact Pomodoro control bound to one journal entry or task.
 class_name PomodoroTimerWidget
 extends HBoxContainer
 

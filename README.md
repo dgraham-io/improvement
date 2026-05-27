@@ -22,7 +22,7 @@ Desktop prototype with **SQLite-backed** journal and tasks, inline editing, and 
 | Theme + Roboto | Shipped |
 | UI scale | Defaults to **system detection**; override via `app_settings.ui_scale` (Settings UI planned) |
 | SQLite schema + migrations (v4; tags) | Shipped |
-| `JournalService` / `TodoService` / `PomodoroService` | Shipped |
+| `JournalService` / `TaskService` / `PomodoroService` | Shipped |
 | Pomodoro → task `in_progress` + work time on rows | Shipped |
 | Window size/position persistence (desktop export) | Shipped |
 | Settings screen | Planned (roadmap) |
@@ -75,10 +75,9 @@ improvement/
 ├── scenes/
 │   ├── main.tscn / main.gd
 │   ├── journal/journal_entry_row.tscn
-│   ├── todos/todo_row.tscn
+│   ├── tasks/task_row.tscn
 │   ├── setup/initial_setup_dialog.tscn
 │   ├── ui/pomodoro_timer.tscn
-│   └── dialogs/todo_item_dialog.tscn
 ├── scripts/
 │   ├── app/app_config.gd
 │   ├── autoload/          # AppSetup, Database, WindowLayout, services
@@ -93,7 +92,7 @@ improvement/
 ## Development notes
 
 - **Main scene UID:** `uid://d4bhhy4ln2jhd` — keep stable if renaming run scene.
-- **Data access:** UI → `JournalService` / `TodoService` / `PomodoroService`; not raw SQL in scenes.
+- **Data access:** UI → `JournalService` / `TaskService` / `PomodoroService`; not raw SQL in scenes.
 - **Bootstrap:** `AppConfig` (`user://app_config.json`) before `Database` opens; see [data model](docs/data-model.md).
 - **Debug run:** prints journal/task counts after DB init.
 - **Rendering:** `mobile` renderer; Windows uses D3D12 driver in `project.godot`.
@@ -104,7 +103,7 @@ improvement/
 
 1. **Database open failure** — if SQLite cannot open, show a clear error (retry / pick folder); do not leave the app waiting forever on `Database.ready_changed`.
 2. **User-visible save errors** — surface failed creates/updates/deletes (status line or dialog), not only `push_error` in the console.
-3. **Remove unused `TodoItemDialog`** — delete `scenes/dialogs/todo_item_dialog.*` or wire it up; inline task editor is canonical.
+3. ~~Remove unused task item dialog~~ — done; inline task composer is canonical.
 
 ### Done
 

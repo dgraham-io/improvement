@@ -1,58 +1,58 @@
 ## Task list, inline editor, progress header, and top-task pomodoro.
 extends PanelContainer
 
-const TODO_ROW_SCENE := preload("res://scenes/tasks/task_row.tscn")
-const _MissionStatusOptions := preload("res://scripts/ui/mission_status_options.gd")
-const _MissionComposerLogic := preload("res://scripts/tasks/task_composer_logic.gd")
-const MISSION_SPLIT_OPEN_OFFSET := 180
+const TASK_ROW_SCENE := preload("res://scenes/tasks/task_row.tscn")
+const _TaskStatusOptions := preload("res://scripts/ui/task_status_options.gd")
+const _TaskComposerLogic := preload("res://scripts/tasks/task_composer_logic.gd")
+const TASK_SPLIT_OPEN_OFFSET := 180
 
-var _editing_todo: TodoItem = null
-var _tracked_top_todo_id: int = 0
+var _editing_task: TaskItem = null
+var _tracked_top_task_id: int = 0
 
-@onready var _todo_progress_bar: ProgressBar = %TodoProgressBar
-@onready var _todo_progress_label: Label = %TodoProgressLabel
-@onready var _new_todo_button: Button = %NewTodoButton
-@onready var _todo_mission_panel: PanelContainer = %TodoMissionPanel
-@onready var _mission_title_field: LineEdit = %MissionTitleField
-@onready var _mission_notes_field: TextEdit = %MissionNotesField
-@onready var _mission_tag_picker: TagPicker = %MissionTagPicker
-@onready var _mission_status_option: OptionButton = %MissionStatusOption
-@onready var _mission_save_button: Button = %MissionSaveButton
-@onready var _mission_delete_button: Button = %MissionDeleteButton
-@onready var _mission_cancel_button: Button = %MissionCancelButton
-@onready var _mission_pomodoro: PomodoroTimerWidget = %MissionPomodoro
-@onready var _todo_split: VSplitContainer = %TodoSplit
-@onready var _todo_vbox = %TodoEntriesVBox
-@onready var _todo_empty_label: Label = %TodoEmptyLabel
+@onready var _task_progress_bar: ProgressBar = %TaskProgressBar
+@onready var _task_progress_label: Label = %TaskProgressLabel
+@onready var _new_task_button: Button = %NewTaskButton
+@onready var _task_composer_panel: PanelContainer = %TaskComposerPanel
+@onready var _composer_title_field: LineEdit = %TaskTitleField
+@onready var _composer_notes_field: TextEdit = %TaskNotesField
+@onready var _composer_tag_picker: TagPicker = %TaskTagPicker
+@onready var _composer_status_option: OptionButton = %TaskStatusOption
+@onready var _composer_save_button: Button = %TaskSaveButton
+@onready var _composer_delete_button: Button = %TaskDeleteButton
+@onready var _composer_cancel_button: Button = %TaskCancelButton
+@onready var _task_pomodoro: PomodoroTimerWidget = %TaskPomodoro
+@onready var _task_split: VSplitContainer = %TaskSplit
+@onready var _task_vbox = %TaskEntriesVBox
+@onready var _task_empty_label: Label = %TaskEmptyLabel
 
 
 func initialize() -> void:
 	_connect_ui()
 	_connect_services()
-	_MissionStatusOptions.populate(_mission_status_option)
-	_close_mission_composer()
-	_mission_pomodoro.bind(DbConstants.TARGET_NONE, 0, false)
+	_TaskStatusOptions.populate(_composer_status_option)
+	_close_task_composer()
+	_task_pomodoro.bind(DbConstants.TARGET_NONE, 0, false)
 	refresh_list()
 
 
 func _connect_ui() -> void:
-	_new_todo_button.pressed.connect(_on_new_todo_pressed)
-	_mission_cancel_button.pressed.connect(_on_mission_cancel_pressed)
-	_mission_delete_button.pressed.connect(_on_mission_delete_pressed)
-	_mission_save_button.pressed.connect(_on_mission_save_pressed)
-	_mission_title_field.text_submitted.connect(_on_mission_title_submitted)
-	_todo_vbox.reorder_to_index.connect(_on_todo_reorder_to_index)
-	_todo_vbox.reorder_drag_started.connect(_on_reorder_drag_started)
-	_todo_vbox.reorder_drag_ended.connect(_on_reorder_drag_ended)
+	_new_task_button.pressed.connect(_on_new_task_pressed)
+	_composer_cancel_button.pressed.connect(_on_composer_cancel_pressed)
+	_composer_delete_button.pressed.connect(_on_composer_delete_pressed)
+	_composer_save_button.pressed.connect(_on_composer_save_pressed)
+	_composer_title_field.text_submitted.connect(_on_composer_title_submitted)
+	_task_vbox.reorder_to_index.connect(_on_task_reorder_to_index)
+	_task_vbox.reorder_drag_started.connect(_on_reorder_drag_started)
+	_task_vbox.reorder_drag_ended.connect(_on_reorder_drag_ended)
 
 
 func _connect_services() -> void:
-	TaskService.todo_created.connect(_on_todo_service_changed)
-	TaskService.todo_updated.connect(_on_todo_service_changed)
-	TaskService.todo_stats_changed.connect(_on_todo_stats_changed)
-	TaskService.todo_reordered.connect(refresh_list_deferred)
-	TaskService.todo_deleted.connect(_on_todo_deleted)
-	TagService.todo_tags_changed.connect(_on_todo_tags_changed)
+	TaskService.task_created.connect(_on_task_service_changed)
+	TaskService.task_updated.connect(_on_task_service_changed)
+	TaskService.task_stats_changed.connect(_on_task_stats_changed)
+	TaskService.task_reordered.connect(refresh_list_deferred)
+	TaskService.task_deleted.connect(_on_task_deleted)
+	TagService.task_tags_changed.connect(_on_task_tags_changed)
 	PomodoroService.state_changed.connect(_on_pomodoro_state_changed)
 
 
@@ -61,43 +61,43 @@ func refresh_list_deferred() -> void:
 
 
 func refresh_list() -> void:
-	_todo_vbox.clear_rows()
-	var items := TaskService.list_todos()
+	_task_vbox.clear_rows()
+	var items := TaskService.list_tasks()
 	var work_stats_map := TaskService.get_work_stats_map()
-	var tags_map := TagService.get_todo_tags_map()
-	_todo_empty_label.visible = items.is_empty()
+	var tags_map := TagService.get_task_tags_map()
+	_task_empty_label.visible = items.is_empty()
 	for item in items:
-		var row = TODO_ROW_SCENE.instantiate()
-		_todo_vbox.add_child(row)
-		row.edit_requested.connect(_on_todo_edit_requested)
+		var row = TASK_ROW_SCENE.instantiate()
+		_task_vbox.add_child(row)
+		row.edit_requested.connect(_on_task_edit_requested)
 		var stats: Dictionary = work_stats_map.get(item.id, {"completed_pomodoros": 0, "total_work_sec": 0})
 		var item_tags: Array = tags_map.get(item.id, [])
 		row.setup(item, stats, item_tags)
-	_update_todo_progress(items)
-	_update_mission_pomodoro_target()
-	_apply_todo_active_leds()
+	_update_task_progress(items)
+	_update_task_pomodoro_target()
+	_apply_task_active_leds()
 
 
 func on_pomodoro_session_ended(target_type: String, target_id: int) -> void:
 	if target_type == DbConstants.TARGET_TASK and target_id > 0:
-		_refresh_todo_work_stats(target_id)
+		_refresh_task_work_stats(target_id)
 
 
-func _refresh_todo_work_stats(todo_id: int) -> void:
-	var stats := TaskService.get_work_stats(todo_id)
-	for child in _todo_vbox.get_children():
-		if child == _todo_empty_label:
+func _refresh_task_work_stats(task_id: int) -> void:
+	var stats := TaskService.get_work_stats(task_id)
+	for child in _task_vbox.get_children():
+		if child == _task_empty_label:
 			continue
 		if child is Control and (child as Control).has_method("update_work_stats"):
 			var row = child
-			if row.item != null and row.item.id == todo_id:
+			if row.item != null and row.item.id == task_id:
 				row.update_work_stats(stats)
 				return
 
 
 func _on_pomodoro_state_changed() -> void:
-	_update_mission_pomodoro_target()
-	_apply_todo_active_leds()
+	_update_task_pomodoro_target()
+	_apply_task_active_leds()
 
 
 func _on_reorder_drag_started() -> void:
@@ -109,11 +109,7 @@ func _on_reorder_drag_ended() -> void:
 
 
 func _set_reorder_header_passthrough(active: bool) -> void:
-	# When reordering todos, make the header area (especially the "New Mission" button)
-	# ignore the mouse so the sidebar itself becomes the drop target.
-	# This prevents Godot from showing the "no drop" cursor icon over the button
-	# while still allowing our gap logic to control visual feedback.
-	var controls: Array[Control] = [_new_todo_button]
+	var controls: Array[Control] = [_new_task_button]
 	for ctrl in controls:
 		if ctrl == null:
 			continue
@@ -126,187 +122,179 @@ func _set_reorder_header_passthrough(active: bool) -> void:
 			ctrl.remove_meta("_saved_mouse_filter")
 
 
-# Accept todo drags anywhere in the sidebar (including over the New Mission button area)
-# so Godot never shows the forbidden "no drop" cursor during reordering.
-# Real drop handling is still performed only by TodoListDropTarget.
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
-	if data is Dictionary and data.has("todo_id"):
-		# Mouse is somewhere in the sidebar (including over "New Mission" button
-		# or other header areas) but not in a position the list itself is handling.
-		# Force the gap to close since this is a no-op drop zone for reordering.
-		_todo_vbox.hide_gap()
+	if data is Dictionary and data.has("task_id"):
+		_task_vbox.hide_gap()
 		return true
 	return false
 
 
 func _drop_data(_at_position: Vector2, _data: Variant) -> void:
-	# Intentionally do nothing here.
-	# Drops inside the actual list are handled by TodoListDropTarget.
 	pass
 
 
-func _on_todo_service_changed(item) -> void:
-	if _editing_todo != null and item.id == _editing_todo.id and item.is_done():
-		_close_mission_composer()
+func _on_task_service_changed(item) -> void:
+	if _editing_task != null and item.id == _editing_task.id and item.is_done():
+		_close_task_composer()
 	refresh_list_deferred()
 
 
-func _on_todo_stats_changed() -> void:
-	_update_todo_progress(TaskService.list_todos())
+func _on_task_stats_changed() -> void:
+	_update_task_progress(TaskService.list_tasks())
 
 
-func _on_todo_tags_changed(_todo_id: int) -> void:
+func _on_task_tags_changed(_task_id: int) -> void:
 	refresh_list_deferred()
 
 
-func _on_todo_deleted(todo_id: int) -> void:
-	if _editing_todo != null and _editing_todo.id == todo_id:
-		_close_mission_composer()
-	if PomodoroService.has_active_task_session() and PomodoroService.active_target_id == todo_id:
+func _on_task_deleted(task_id: int) -> void:
+	if _editing_task != null and _editing_task.id == task_id:
+		_close_task_composer()
+	if PomodoroService.has_active_task_session() and PomodoroService.active_target_id == task_id:
 		PomodoroService.stop(false)
 	refresh_list_deferred()
 
 
-func _on_new_todo_pressed() -> void:
-	_reset_mission_composer()
-	_show_mission_composer()
-	_mission_tag_picker.refresh()
-	_mission_title_field.grab_focus()
+func _on_new_task_pressed() -> void:
+	_reset_task_composer()
+	_show_task_composer()
+	_composer_tag_picker.refresh()
+	_composer_title_field.grab_focus()
 
 
-func _show_mission_composer() -> void:
-	_todo_mission_panel.visible = true
-	_todo_mission_panel.custom_minimum_size.y = 140
-	_todo_split.split_offset = MISSION_SPLIT_OPEN_OFFSET
+func _show_task_composer() -> void:
+	_task_composer_panel.visible = true
+	_task_composer_panel.custom_minimum_size.y = 140
+	_task_split.split_offset = TASK_SPLIT_OPEN_OFFSET
 
 
-func _hide_mission_composer() -> void:
-	_todo_mission_panel.visible = false
-	_todo_mission_panel.custom_minimum_size.y = 0
-	_todo_split.split_offset = 0
+func _hide_task_composer() -> void:
+	_task_composer_panel.visible = false
+	_task_composer_panel.custom_minimum_size.y = 0
+	_task_split.split_offset = 0
 
 
-func _close_mission_composer() -> void:
-	_reset_mission_composer()
-	_hide_mission_composer()
+func _close_task_composer() -> void:
+	_reset_task_composer()
+	_hide_task_composer()
 
 
-func _reset_mission_composer() -> void:
-	_editing_todo = null
-	_mission_title_field.text = ""
-	_mission_notes_field.text = ""
-	_mission_tag_picker.clear()
-	_mission_tag_picker.refresh()
-	_mission_status_option.select(0)
-	_mission_save_button.text = "Save task"
-	_mission_delete_button.visible = false
-	_mission_cancel_button.visible = true
+func _reset_task_composer() -> void:
+	_editing_task = null
+	_composer_title_field.text = ""
+	_composer_notes_field.text = ""
+	_composer_tag_picker.clear()
+	_composer_tag_picker.refresh()
+	_composer_status_option.select(0)
+	_composer_save_button.text = "Save task"
+	_composer_delete_button.visible = false
+	_composer_cancel_button.visible = true
 
 
-func _load_todo_into_mission_composer(item: TodoItem) -> void:
-	_show_mission_composer()
-	_editing_todo = item
-	_mission_title_field.text = item.title
-	_mission_notes_field.text = item.notes
-	_mission_tag_picker.refresh()
-	_mission_tag_picker.set_selected_tags(TagService.get_tags_for_todo(item.id))
-	_MissionStatusOptions.select_status(_mission_status_option, item.status)
-	_mission_save_button.text = "Save"
-	_mission_delete_button.visible = true
-	_mission_cancel_button.visible = true
-	_mission_title_field.grab_focus()
+func _load_task_into_composer(item: TaskItem) -> void:
+	_show_task_composer()
+	_editing_task = item
+	_composer_title_field.text = item.title
+	_composer_notes_field.text = item.notes
+	_composer_tag_picker.refresh()
+	_composer_tag_picker.set_selected_tags(TagService.get_tags_for_task(item.id))
+	_TaskStatusOptions.select_status(_composer_status_option, item.status)
+	_composer_save_button.text = "Save"
+	_composer_delete_button.visible = true
+	_composer_cancel_button.visible = true
+	_composer_title_field.grab_focus()
 
 
-func _on_mission_cancel_pressed() -> void:
-	_close_mission_composer()
+func _on_composer_cancel_pressed() -> void:
+	_close_task_composer()
 
 
-func _on_mission_title_submitted(_new_text: String) -> void:
-	_try_save_mission()
+func _on_composer_title_submitted(_new_text: String) -> void:
+	_try_save_composer()
 
 
-func _on_mission_save_pressed() -> void:
-	_try_save_mission()
+func _on_composer_save_pressed() -> void:
+	_try_save_composer()
 
 
-func _try_save_mission() -> bool:
-	var tag_ids := _mission_tag_picker.get_selected_tag_ids()
-	var result: _MissionComposerLogic.SaveResult = _MissionComposerLogic.try_save(
-		_editing_todo,
-		_mission_title_field.text,
-		_mission_notes_field.text,
-		_MissionStatusOptions.selected_status(_mission_status_option)
+func _try_save_composer() -> bool:
+	var tag_ids := _composer_tag_picker.get_selected_tag_ids()
+	var result: _TaskComposerLogic.SaveResult = _TaskComposerLogic.try_save(
+		_editing_task,
+		_composer_title_field.text,
+		_composer_notes_field.text,
+		_TaskStatusOptions.selected_status(_composer_status_option)
 	)
 	if not result.ok:
 		return false
-	var todo_id := 0
+	var task_id := 0
 	if result.created and result.created_item != null:
-		todo_id = result.created_item.id
-	elif _editing_todo != null:
-		todo_id = _editing_todo.id
-	if todo_id > 0:
-		TagService.set_todo_tags(todo_id, tag_ids)
+		task_id = result.created_item.id
+	elif _editing_task != null:
+		task_id = _editing_task.id
+	if task_id > 0:
+		TagService.set_task_tags(task_id, tag_ids)
 	if result.created:
-		_close_mission_composer()
-		_update_mission_pomodoro_target()
+		_close_task_composer()
+		_update_task_pomodoro_target()
 		return true
-	_close_mission_composer()
+	_close_task_composer()
 	return true
 
 
-func _on_mission_delete_pressed() -> void:
-	if _editing_todo == null:
+func _on_composer_delete_pressed() -> void:
+	if _editing_task == null:
 		return
-	TaskService.delete_todo(_editing_todo.id)
+	TaskService.delete_task(_editing_task.id)
 
 
-func _update_mission_pomodoro_target() -> void:
-	var top_todo := TaskService.get_top_todo()
-	if top_todo == null:
-		_tracked_top_todo_id = 0
-		_mission_pomodoro.bind(DbConstants.TARGET_NONE, 0, false)
+func _update_task_pomodoro_target() -> void:
+	var top_task := TaskService.get_top_task()
+	if top_task == null:
+		_tracked_top_task_id = 0
+		_task_pomodoro.bind(DbConstants.TARGET_NONE, 0, false)
 		return
-	var top_id := top_todo.id
+	var top_id := top_task.id
 	if (
 		PomodoroService.has_active_task_session()
-		and _tracked_top_todo_id > 0
-		and top_id != _tracked_top_todo_id
+		and _tracked_top_task_id > 0
+		and top_id != _tracked_top_task_id
 	):
 		PomodoroService.stop(false)
-	_tracked_top_todo_id = top_id
-	_mission_pomodoro.bind(DbConstants.TARGET_TASK, top_id, true)
+	_tracked_top_task_id = top_id
+	_task_pomodoro.bind(DbConstants.TARGET_TASK, top_id, true)
 
 
-func _apply_todo_active_leds() -> void:
+func _apply_task_active_leds() -> void:
 	var active_id := 0
 	if PomodoroService.has_active_task_session() and PomodoroService.is_running:
 		active_id = PomodoroService.active_target_id
-	for child in _todo_vbox.get_children():
-		if child == _todo_empty_label:
+	for child in _task_vbox.get_children():
+		if child == _task_empty_label:
 			continue
-		if child is Control and (child as Control).has_method("set_mission_active"):
+		if child is Control and (child as Control).has_method("set_task_active"):
 			var row = child
-			row.set_mission_active(row.item != null and row.item.id == active_id)
+			row.set_task_active(row.item != null and row.item.id == active_id)
 
 
-func _update_todo_progress(items: Array[TodoItem]) -> void:
+func _update_task_progress(items: Array[TaskItem]) -> void:
 	var total := items.size()
 	var done := 0
 	for item in items:
 		if item.is_done():
 			done += 1
-	_todo_progress_label.text = "%d / %d complete" % [done, total]
+	_task_progress_label.text = "%d / %d complete" % [done, total]
 	if total > 0:
-		_todo_progress_bar.max_value = float(total)
-		_todo_progress_bar.value = float(done)
+		_task_progress_bar.max_value = float(total)
+		_task_progress_bar.value = float(done)
 	else:
-		_todo_progress_bar.max_value = 1.0
-		_todo_progress_bar.value = 0.0
+		_task_progress_bar.max_value = 1.0
+		_task_progress_bar.value = 0.0
 
 
-func _on_todo_reorder_to_index(dragged_id: int, insert_index: int) -> void:
-	TaskService.move_todo_to_index(dragged_id, insert_index)
+func _on_task_reorder_to_index(dragged_id: int, insert_index: int) -> void:
+	TaskService.move_task_to_index(dragged_id, insert_index)
 
 
-func _on_todo_edit_requested(item: TodoItem) -> void:
-	_load_todo_into_mission_composer(item)
+func _on_task_edit_requested(item: TaskItem) -> void:
+	_load_task_into_composer(item)

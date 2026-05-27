@@ -2,13 +2,13 @@
 
 [ext_resource type="Script" uid="uid://c6al7vxlnqgfi" path="res://scenes/main.gd" id="1_script"]
 [ext_resource type="Script" path="res://scenes/journal/journal_area.gd" id="4_journal_area"]
-[ext_resource type="Script" path="res://scenes/tasks/task_sidebar.gd" id="5_mission_sidebar"]
+[ext_resource type="Script" path="res://scenes/tasks/task_sidebar.gd" id="5_task_sidebar"]
 [ext_resource type="Theme" uid="uid://bjs7igpj47wt0" path="res://assets/themes/improvement_theme.tres" id="1_theme"]
 [ext_resource type="Texture2D" uid="uid://boihexead64ec" path="res://assets/textures/ui/bg_gradient.tres" id="2_bg"]
 [ext_resource type="PackedScene" uid="uid://c8pomodoro01" path="res://scenes/ui/pomodoro_timer.tscn" id="3_pomo"]
 [ext_resource type="PackedScene" uid="uid://c8tagpicker01" path="res://scenes/ui/tag_picker.tscn" id="6_tag_picker"]
-[ext_resource type="Script" path="res://scenes/tasks/task_list_drop_target.gd" id="7_todo_drop"]
-[ext_resource type="Script" path="res://scenes/tasks/task_scroll_drop_forward.gd" id="8_todo_scroll"]
+[ext_resource type="Script" path="res://scenes/tasks/task_list_drop_target.gd" id="7_task_drop"]
+[ext_resource type="Script" path="res://scenes/tasks/task_scroll_drop_forward.gd" id="8_task_scroll"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_scroll"]
 
@@ -214,75 +214,75 @@ theme_type_variation = &"Label_muted"
 text = "No journal entries yet. Use ＋ New Journal Entry to write one."
 autowrap_mode = 3
 
-[node name="TodoSidebar" type="PanelContainer" parent="MarginContainer/HSplitContainer" unique_id=1522059307]
+[node name="TaskSidebar" type="PanelContainer" parent="MarginContainer/HSplitContainer" unique_id=1522059307]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(340, 0)
 layout_mode = 2
 size_flags_vertical = 3
 theme_type_variation = &"PanelContainer_card"
-script = ExtResource("5_mission_sidebar")
+script = ExtResource("5_task_sidebar")
 
-[node name="TodoSidebarMargin" type="MarginContainer" parent="MarginContainer/HSplitContainer/TodoSidebar" unique_id=1786773478]
+[node name="TaskSidebarMargin" type="MarginContainer" parent="MarginContainer/HSplitContainer/TaskSidebar" unique_id=1786773478]
 layout_mode = 2
 theme_override_constants/margin_left = 11
 theme_override_constants/margin_top = 11
 theme_override_constants/margin_right = 11
 theme_override_constants/margin_bottom = 11
 
-[node name="TodoColumn" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin" unique_id=1645669518]
+[node name="TaskColumn" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin" unique_id=1645669518]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 9
 
-[node name="TodoHeaderBlock" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn" unique_id=1475197694]
+[node name="TaskHeaderBlock" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn" unique_id=1475197694]
 layout_mode = 2
 theme_override_constants/separation = 7
 
-[node name="TodoTitleRow" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock" unique_id=1809733585]
+[node name="TaskTitleRow" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock" unique_id=1809733585]
 layout_mode = 2
 
-[node name="TodoTitle" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/TodoTitleRow" unique_id=1690666540]
+[node name="TaskTitle" type="Label" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock/TaskTitleRow" unique_id=1690666540]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"Label_title"
 text = "Tasks"
 
-[node name="MissionPomodoro" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/TodoTitleRow" unique_id=1538882452 instance=ExtResource("3_pomo")]
+[node name="TaskPomodoro" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock/TaskTitleRow" unique_id=1538882452 instance=ExtResource("3_pomo")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="StatsRow" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock" unique_id=1391266645]
+[node name="StatsRow" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock" unique_id=1391266645]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TodoProgressLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/StatsRow" unique_id=959110627]
+[node name="TaskProgressLabel" type="Label" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock/StatsRow" unique_id=959110627]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"Label_muted"
 text = "0 / 0 complete"
 
-[node name="StreakLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock/StatsRow" unique_id=1800416001]
+[node name="StreakLabel" type="Label" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock/StatsRow" unique_id=1800416001]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_accent"
 text = "◆ 0 streak"
 
-[node name="TodoProgressBar" type="ProgressBar" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoHeaderBlock" unique_id=882807506]
+[node name="TaskProgressBar" type="ProgressBar" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock" unique_id=882807506]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 max_value = 1.0
 show_percentage = false
 
-[node name="NewTodoButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn" unique_id=39634421]
+[node name="NewTaskButton" type="Button" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn" unique_id=39634421]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Button_primary"
 text = "＋  New Task"
 
-[node name="TodoSplit" type="VSplitContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn" unique_id=1048728002]
+[node name="TaskSplit" type="VSplitContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn" unique_id=1048728002]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -290,7 +290,7 @@ size_flags_vertical = 3
 split_offsets = PackedInt32Array(0)
 split_offset = 0
 
-[node name="TodoMissionPanel" type="PanelContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit" unique_id=1952371124]
+[node name="TaskComposerPanel" type="PanelContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit" unique_id=1952371124]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 140)
@@ -299,7 +299,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_type_variation = &"PanelContainer_accent"
 
-[node name="MissionMargin" type="MarginContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel" unique_id=497840045]
+[node name="TaskComposerMargin" type="MarginContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel" unique_id=497840045]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -308,31 +308,31 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 8
 
-[node name="MissionVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin" unique_id=365644476]
+[node name="TaskComposerVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel/TaskComposerMargin" unique_id=365644476]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 6
 
-[node name="MissionHeader" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox" unique_id=1332876248]
+[node name="TaskComposerHeader" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel/TaskComposerMargin/TaskComposerVBox" unique_id=1332876248]
 layout_mode = 2
 
-[node name="MissionPrompt" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionHeader" unique_id=1011715622]
+[node name="TaskComposerPrompt" type="Label" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel/TaskComposerMargin/TaskComposerVBox/TaskComposerHeader" unique_id=1011715622]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"Label_accent"
 text = "◈  Task"
 
-[node name="MissionStatusOption" type="OptionButton" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionHeader" unique_id=2011495622]
+[node name="TaskStatusOption" type="OptionButton" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel/TaskComposerMargin/TaskComposerVBox/TaskComposerHeader" unique_id=2011495622]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="MissionTitleField" type="LineEdit" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox" unique_id=681903671]
+[node name="TaskTitleField" type="LineEdit" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel/TaskComposerMargin/TaskComposerVBox" unique_id=681903671]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "What needs doing?"
 
-[node name="MissionNotesField" type="TextEdit" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox" unique_id=627202081]
+[node name="TaskNotesField" type="TextEdit" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel/TaskComposerMargin/TaskComposerVBox" unique_id=627202081]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
@@ -341,52 +341,52 @@ size_flags_vertical = 3
 placeholder_text = "Notes (optional)"
 wrap_mode = 1
 
-[node name="MissionTagPicker" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox" instance=ExtResource("6_tag_picker")]
+[node name="TaskTagPicker" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel/TaskComposerMargin/TaskComposerVBox" instance=ExtResource("6_tag_picker")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="MissionActions" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox" unique_id=1127289808]
+[node name="TaskComposerActions" type="HBoxContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel/TaskComposerMargin/TaskComposerVBox" unique_id=1127289808]
 layout_mode = 2
 theme_override_constants/separation = 7
 alignment = 2
 
-[node name="MissionCancelButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions" unique_id=1259844051]
+[node name="TaskCancelButton" type="Button" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel/TaskComposerMargin/TaskComposerVBox/TaskComposerActions" unique_id=1259844051]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Button_ghost"
 text = "Cancel"
 
-[node name="MissionDeleteButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions" unique_id=665406695]
+[node name="TaskDeleteButton" type="Button" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel/TaskComposerMargin/TaskComposerVBox/TaskComposerActions" unique_id=665406695]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_type_variation = &"Button_danger"
 text = "Delete"
 
-[node name="MissionSaveButton" type="Button" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoMissionPanel/MissionMargin/MissionVBox/MissionActions" unique_id=51940567]
+[node name="TaskSaveButton" type="Button" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel/TaskComposerMargin/TaskComposerVBox/TaskComposerActions" unique_id=51940567]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Button_primary"
 text = "Save task"
 
-[node name="TodoScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit" unique_id=884632879]
+[node name="TaskScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit" unique_id=884632879]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_scroll")
-script = ExtResource("8_todo_scroll")
+script = ExtResource("8_task_scroll")
 
-[node name="TodoEntriesVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoScrollContainer" unique_id=1852606318]
+[node name="TaskEntriesVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskScrollContainer" unique_id=1852606318]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
 theme_override_constants/separation = 7
-script = ExtResource("7_todo_drop")
+script = ExtResource("7_task_drop")
 
-[node name="TodoEmptyLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoScrollContainer/TodoEntriesVBox" unique_id=1781153293]
+[node name="TaskEmptyLabel" type="Label" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskScrollContainer/TaskEntriesVBox" unique_id=1781153293]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_muted"

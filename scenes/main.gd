@@ -1,8 +1,8 @@
-## Main shell: hosts journal and mission panels, applies global UI scale.
+## Main shell: hosts journal and task panels, applies global UI scale.
 extends Control
 
 @onready var _journal_area: JournalArea = %JournalArea
-@onready var _mission_sidebar = %TodoSidebar
+@onready var _task_sidebar = %TaskSidebar
 @onready var _settings_button: Button = %SettingsButton
 
 
@@ -13,7 +13,7 @@ func _ready() -> void:
 		return
 	_apply_ui_scale()
 	_journal_area.initialize()
-	_mission_sidebar.initialize()
+	_task_sidebar.initialize()
 	PomodoroService.session_ended.connect(_on_pomodoro_session_ended)
 	Database.other_instance_detected.connect(_on_other_instance_detected)
 	Database.existing_database_detected.connect(_on_existing_database_detected)
@@ -22,7 +22,7 @@ func _ready() -> void:
 	if OS.is_debug_build():
 		print(
 			"Improvement ready — journal: %d, tasks: %d"
-			% [JournalService.get_entry_count(), TaskService.get_todo_count()]
+			% [JournalService.get_entry_count(), TaskService.get_task_count()]
 		)
 		_log_other_instance_status()
 
@@ -60,7 +60,7 @@ func _apply_ui_scale() -> void:
 
 
 func _on_pomodoro_session_ended(target_type: String, target_id: int, _completed: bool) -> void:
-	_mission_sidebar.on_pomodoro_session_ended(target_type, target_id)
+	_task_sidebar.on_pomodoro_session_ended(target_type, target_id)
 	_journal_area.refresh_list_deferred()
 
 

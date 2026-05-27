@@ -503,14 +503,14 @@ func soft_delete_journal_entry(entry_id: int) -> bool:
 
 # --- Tasks -------------------------------------------------------------------
 
-func count_todos(include_deleted: bool = false) -> int:
+func count_tasks(include_deleted: bool = false) -> int:
 	var where := "" if include_deleted else " WHERE deleted_at IS NULL"
 	if not _db.query("SELECT COUNT(*) AS c FROM tasks%s;" % where):
 		return 0
 	return int(_db.query_result[0].get("c", 0))
 
 
-func fetch_todos(include_deleted: bool = false, filter_tag_ids: Array = []) -> Array:
+func fetch_tasks(include_deleted: bool = false, filter_tag_ids: Array = []) -> Array:
 	var where_parts: PackedStringArray = []
 	if not include_deleted:
 		where_parts.append("t.deleted_at IS NULL")
@@ -539,20 +539,20 @@ func fetch_todos(include_deleted: bool = false, filter_tag_ids: Array = []) -> A
 	) % where
 	if bindings.is_empty():
 		if not _db.query(sql):
-			push_error("fetch_todos: %s" % _db.error_message)
+			push_error("fetch_tasks: %s" % _db.error_message)
 			return []
 	else:
 		if not _db.query_with_bindings(sql, bindings):
-			push_error("fetch_todos: %s" % _db.error_message)
+			push_error("fetch_tasks: %s" % _db.error_message)
 			return []
 	return _db.query_result.duplicate(true)
 
 
-func fetch_todo_by_id(todo_id: int) -> Dictionary:
+func fetch_task_by_id(task_id: int) -> Dictionary:
 	if not _db.query_with_bindings(
 		"SELECT id, created_at, updated_at, title, notes, status, priority, "
 		+ "due_at, sort_order, journal_entry_id, deleted_at FROM tasks WHERE id = ?;",
-		[todo_id]
+		[task_id]
 	):
 		return {}
 	if _db.query_result.is_empty():
@@ -560,7 +560,7 @@ func fetch_todo_by_id(todo_id: int) -> Dictionary:
 	return _db.query_result[0]
 
 
-func insert_todo(
+func insert_task(
 	title: String,
 	notes: String,
 	status: String,
@@ -571,7 +571,7 @@ func insert_todo(
 ) -> int:
 	var now := int(Time.get_unix_time_from_system())
 	if sort_order < 0:
-		sort_order = count_todos()
+		sort_order = count_tasks()
 	var due_val: Variant = due_at if due_at > 0 else null
 	var journal_val: Variant = journal_entry_id if journal_entry_id > 0 else null
 	if not _db.query_with_bindings(
@@ -579,12 +579,12 @@ func insert_todo(
 		+ "due_at, sort_order, journal_entry_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
 		[now, now, title, notes, status, priority, due_val, sort_order, journal_val]
 	):
-		push_error("insert_todo: %s" % _db.error_message)
+		push_error("insert_task: %s" % _db.error_message)
 		return -1
 	return int(_db.last_insert_rowid)
 
 
-func update_todo(item: TodoItem) -> bool:
+func update_task(item: TaskItem) -> bool:
 	var now := int(Time.get_unix_time_from_system())
 	var due_val: Variant = item.due_at if item.due_at > 0 else null
 	var journal_val: Variant = item.journal_entry_id if item.journal_entry_id > 0 else null
@@ -606,30 +606,30 @@ func update_todo(item: TodoItem) -> bool:
 	)
 
 
-func set_todo_updated_at(todo_id: int, updated_at: int) -> bool:
+func set_task_updated_at(task_id: int, updated_at: int) -> bool:
 	return _db.query_with_bindings(
 		"UPDATE tasks SET updated_at = ? WHERE id = ? AND deleted_at IS NULL;",
-		[updated_at, todo_id]
+		[updated_at, task_id]
 	)
 
 
-func soft_delete_todo(todo_id: int) -> bool:
+func soft_delete_task(task_id: int) -> bool:
 	var now := int(Time.get_unix_time_from_system())
 	return _db.query_with_bindings(
 		"UPDATE tasks SET deleted_at = ?, updated_at = ? WHERE id = ?;",
-		[now, now, todo_id]
+		[now, now, task_id]
 	)
 
 
-## Soft-deletes done missions with updated_at strictly before [param cutoff_unix]. Returns affected ids.
-func soft_delete_done_todos_before(cutoff_unix: int) -> Array[int]:
+## Soft-deletes done tasks with updated_at strictly before [param cutoff_unix]. Returns affected ids.
+func soft_delete_done_tasks_before(cutoff_unix: int) -> Array[int]:
 	if cutoff_unix <= 0:
 		return []
 	if not _db.query_with_bindings(
 		"SELECT id FROM tasks WHERE deleted_at IS NULL AND status = ? AND updated_at < ?;",
 		[DbConstants.TASK_DONE, cutoff_unix]
 	):
-		push_error("soft_delete_done_todos_before select: %s" % _db.error_message)
+		push_error("soft_delete_done_tasks_before select: %s" % _db.error_message)
 		return []
 	var ids: Array[int] = []
 	for row in _db.query_result:
@@ -637,12 +637,12 @@ func soft_delete_done_todos_before(cutoff_unix: int) -> Array[int]:
 	if ids.is_empty():
 		return []
 	var now := int(Time.get_unix_time_from_system())
-	for todo_id in ids:
+	for task_id in ids:
 		if not _db.query_with_bindings(
 			"UPDATE tasks SET deleted_at = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL;",
-			[now, now, todo_id]
+			[now, now, task_id]
 		):
-			push_error("soft_delete_done_todos_before: %s" % _db.error_message)
+			push_error("soft_delete_done_tasks_before: %s" % _db.error_message)
 	return ids
 
 
@@ -720,8 +720,8 @@ func fetch_tags_for_journal_entry(entry_id: int) -> Array:
 	return _db.query_result.duplicate(true)
 
 
-func fetch_tags_for_todo(todo_id: int) -> Array:
-	if _db == null or todo_id <= 0:
+func fetch_tags_for_task(task_id: int) -> Array:
+	if _db == null or task_id <= 0:
 		return []
 	if not _db.query_with_bindings(
 		"SELECT t.id, t.name, t.created_at "
@@ -729,9 +729,9 @@ func fetch_tags_for_todo(todo_id: int) -> Array:
 		+ "JOIN tags t ON t.id = tt.tag_id "
 		+ "WHERE tt.task_id = ? "
 		+ "ORDER BY t.name COLLATE NOCASE ASC;",
-		[todo_id]
+		[task_id]
 	):
-		push_error("fetch_tags_for_todo: %s" % _db.error_message)
+		push_error("fetch_tags_for_task: %s" % _db.error_message)
 		return []
 	return _db.query_result.duplicate(true)
 
@@ -750,7 +750,7 @@ func fetch_journal_entry_tags_map() -> Dictionary:
 	return _build_entity_tags_map("entry_id")
 
 
-func fetch_todo_tags_map() -> Dictionary:
+func fetch_task_tags_map() -> Dictionary:
 	if _db == null:
 		return {}
 	if not _db.query(
@@ -759,7 +759,7 @@ func fetch_todo_tags_map() -> Dictionary:
 		+ "JOIN tags t ON t.id = tt.tag_id "
 		+ "ORDER BY t.name COLLATE NOCASE ASC;"
 	):
-		push_error("fetch_todo_tags_map: %s" % _db.error_message)
+		push_error("fetch_task_tags_map: %s" % _db.error_message)
 		return {}
 	return _build_entity_tags_map("task_id")
 
@@ -797,23 +797,23 @@ func set_journal_entry_tags(entry_id: int, tag_ids: Array[int]) -> bool:
 	return true
 
 
-func set_todo_tags(todo_id: int, tag_ids: Array[int]) -> bool:
-	if _db == null or todo_id <= 0:
+func set_task_tags(task_id: int, tag_ids: Array[int]) -> bool:
+	if _db == null or task_id <= 0:
 		return false
 	if not _db.query_with_bindings(
 		"DELETE FROM task_tags WHERE task_id = ?;",
-		[todo_id]
+		[task_id]
 	):
-		push_error("set_todo_tags delete: %s" % _db.error_message)
+		push_error("set_task_tags delete: %s" % _db.error_message)
 		return false
 	for tag_id in tag_ids:
 		if tag_id <= 0:
 			continue
 		if not _db.query_with_bindings(
 			"INSERT INTO task_tags (task_id, tag_id) VALUES (?, ?);",
-			[todo_id, tag_id]
+			[task_id, tag_id]
 		):
-			push_error("set_todo_tags insert: %s" % _db.error_message)
+			push_error("set_task_tags insert: %s" % _db.error_message)
 			return false
 	return true
 
@@ -860,7 +860,7 @@ func update_pomodoro_session_target(session_id: int, target_id: int) -> bool:
 	)
 
 
-func fetch_todo_pomodoro_work_stats_map() -> Dictionary:
+func fetch_task_pomodoro_work_stats_map() -> Dictionary:
 	if not _db.query_with_bindings(
 		"SELECT target_id, "
 		+ "SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) AS completed_pomodoros, "
@@ -870,34 +870,34 @@ func fetch_todo_pomodoro_work_stats_map() -> Dictionary:
 		+ "GROUP BY target_id;",
 		[DbConstants.TARGET_TASK]
 	):
-		push_error("fetch_todo_pomodoro_work_stats_map: %s" % _db.error_message)
+		push_error("fetch_task_pomodoro_work_stats_map: %s" % _db.error_message)
 		return {}
 	var result: Dictionary = {}
 	for row in _db.query_result:
-		var todo_id := int(row.get("target_id", 0))
-		if todo_id <= 0:
+		var task_id := int(row.get("target_id", 0))
+		if task_id <= 0:
 			continue
-		result[todo_id] = {
+		result[task_id] = {
 			"completed_pomodoros": int(row.get("completed_pomodoros", 0)),
 			"total_work_sec": int(row.get("total_work_sec", 0)),
 		}
 	return result
 
 
-func fetch_todo_pomodoro_work_stats(todo_id: int) -> Dictionary:
-	if todo_id <= 0:
-		return _empty_todo_work_stats()
+func fetch_task_pomodoro_work_stats(task_id: int) -> Dictionary:
+	if task_id <= 0:
+		return _empty_task_work_stats()
 	if not _db.query_with_bindings(
 		"SELECT "
 		+ "SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) AS completed_pomodoros, "
 		+ "SUM(CASE WHEN ended_at IS NOT NULL AND ended_at > started_at "
 		+ "THEN (ended_at - started_at) ELSE 0 END) AS total_work_sec "
 		+ "FROM pomodoro_sessions WHERE target_type = ? AND target_id = ?;",
-		[DbConstants.TARGET_TASK, todo_id]
+		[DbConstants.TARGET_TASK, task_id]
 	):
-		return _empty_todo_work_stats()
+		return _empty_task_work_stats()
 	if _db.query_result.is_empty():
-		return _empty_todo_work_stats()
+		return _empty_task_work_stats()
 	var row := _db.query_result[0]
 	return {
 		"completed_pomodoros": int(row.get("completed_pomodoros", 0)),
@@ -905,7 +905,7 @@ func fetch_todo_pomodoro_work_stats(todo_id: int) -> Dictionary:
 	}
 
 
-func _empty_todo_work_stats() -> Dictionary:
+func _empty_task_work_stats() -> Dictionary:
 	return {"completed_pomodoros": 0, "total_work_sec": 0}
 
 
@@ -935,7 +935,7 @@ func fetch_daily_pomodoro_stats(day_anchor_unix: int) -> Dictionary:
 		summary["completed_pomodoros"] = DbRow.int_value(row.get("completed_pomodoros"))
 		summary["total_work_sec"] = DbRow.int_value(row.get("total_work_sec"))
 		summary["journal_work_sec"] = DbRow.int_value(row.get("journal_work_sec"))
-		summary["todo_work_sec"] = DbRow.int_value(row.get("task_work_sec"))
+		summary["task_work_sec"] = DbRow.int_value(row.get("task_work_sec"))
 	summary["hourly_work_sec"] = _fetch_daily_hourly_work_sec(day_anchor_unix)
 	return summary
 

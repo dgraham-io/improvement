@@ -16,8 +16,8 @@ static func should_run_cleanup(last_cleanup_day_key: String, now_unix: int) -> b
 static func ids_to_purge(items: Array, today_start_unix: int) -> Array[int]:
 	var ids: Array[int] = []
 	for item in items:
-		if item is TodoItem:
-			var todo := item as TodoItem
-			if todo.is_done() and todo.updated_at > 0 and todo.updated_at < today_start_unix:
-				ids.append(todo.id)
+		if item is TaskItem:
+			var task := item as TaskItem
+			if task.is_done() and task.updated_at > 0 and task.updated_at < today_start_unix:
+				ids.append(task.id)
 	return ids

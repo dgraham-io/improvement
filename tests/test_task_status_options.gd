@@ -1,7 +1,7 @@
-## GUT tests for mission status OptionButton helpers.
+## GUT tests for task status OptionButton helpers.
 extends GutTest
 
-const StatusOptions := preload("res://scripts/ui/mission_status_options.gd")
+const StatusOptions := preload("res://scripts/ui/task_status_options.gd")
 
 var _option: OptionButton
 

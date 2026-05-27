@@ -1,6 +1,6 @@
 # Data model
 
-SQLite **schema version 4** at runtime (`PRAGMA user_version = 4`). Canonical SQL: [`schema.sql`](schema.sql).
+SQLite **schema version 6** at runtime (`PRAGMA user_version = 6`). Canonical SQL: [`schema.sql`](schema.sql).
 
 **Runtime file:** `<chosen_folder>/improvement.db`.
 
@@ -10,9 +10,9 @@ SQLite **schema version 4** at runtime (`PRAGMA user_version = 4`). Canonical SQ
 
 ```mermaid
 erDiagram
-	journal_entries ||--o{ todos : "optional journal_entry_id"
+	journal_entries ||--o{ tasks : "optional journal_entry_id"
 	journal_entries ||--o{ pomodoro_sessions : "target"
-	todos ||--o{ pomodoro_sessions : "target"
+	tasks ||--o{ pomodoro_sessions : "target"
 
 	journal_entries {
 		int id PK
@@ -22,7 +22,7 @@ erDiagram
 		int deleted_at
 	}
 
-	todos {
+	tasks {
 		int id PK
 		int created_at
 		int updated_at
@@ -66,7 +66,7 @@ Timeline posts. **Soft delete:** `deleted_at` set to Unix seconds, or `NULL` if 
 
 **Default sort:** `created_at DESC` (newest first), configurable via `app_settings.journal_sort_newest_first`.
 
-### `todos`
+### `tasks`
 
 Task list. Optional `journal_entry_id` links to a journal entry.
 
@@ -93,12 +93,12 @@ Work intervals for journal or task targets.
 | `started_at` / `ended_at` | Unix UTC; `ended_at` NULL while running |
 | `planned_duration_sec` | Default **1500** (25 min) |
 | `completed` | `1` if timer finished; `0` if stopped early |
-| `target_type` | `none`, `journal`, `todo` |
+| `target_type` | `none`, `journal`, `task` |
 | `target_id` | FK when set |
 
 #### Pomodoro work tracking (computed)
 
-Per todo (`target_type = 'todo'`):
+Per task (`target_type = 'task'`):
 
 | Metric | Rule |
 |--------|------|
@@ -107,7 +107,7 @@ Per todo (`target_type = 'todo'`):
 
 UI replaces the old `P0` label with `TimeFormat.format_work_duration(total_work_sec)`.
 
-**API:** `Database.fetch_todo_pomodoro_work_stats()` / `fetch_todo_pomodoro_work_stats_map()`; `TodoService.get_work_stats()` / `get_work_stats_map()`.
+**API:** `Database.fetch_task_pomodoro_work_stats()` / `fetch_task_pomodoro_work_stats_map()`; `TaskService.get_work_stats()` / `get_work_stats_map()`.
 
 ### `app_settings`
 
@@ -120,23 +120,23 @@ UI replaces the old `P0` label with `TimeFormat.format_work_duration(total_work_
 
 ### `tags`
 
-Shared optional labels for journal entries and todos. Names are unique case-insensitively.
+Shared optional labels for journal entries and tasks. Names are unique case-insensitively.
 
 | Column | Notes |
 |--------|--------|
 | `name` | Display name (`COLLATE NOCASE`) |
 | `created_at` | Unix UTC seconds |
 
-**Junction tables:** `journal_entry_tags`, `todo_tags` (many-to-many). Assignments replaced wholesale on save.
+**Junction tables:** `journal_entry_tags`, `task_tags` (many-to-many). Assignments replaced wholesale on save.
 
-**Filter-ready queries:** `Database.fetch_journal_entries(..., filter_tag_ids)` and `Database.fetch_todos(..., filter_tag_ids)` return rows matching **any** selected tag (OR semantics).
+**Filter-ready queries:** `Database.fetch_journal_entries(..., filter_tag_ids)` and `Database.fetch_tasks(..., filter_tag_ids)` return rows matching **any** selected tag (OR semantics).
 
 ## GDScript models
 
 | Resource | Script |
 |----------|--------|
 | `JournalEntry` | [`scripts/models/journal_entry.gd`](../scripts/models/journal_entry.gd) |
-| `TodoItem` | [`scripts/models/todo_item.gd`](../scripts/models/todo_item.gd) |
+| `TaskItem` | [`scripts/models/task_item.gd`](../scripts/models/task_item.gd) |
 | `Tag` | [`scripts/models/tag.gd`](../scripts/models/tag.gd) |
 | `PomodoroSession` | [`scripts/models/pomodoro_session.gd`](../scripts/models/pomodoro_session.gd) |
 
@@ -151,7 +151,7 @@ Factory: `*.from_row(dict)` after SQLite queries via [`db_row.gd`](../scripts/da
 | `WindowLayout` | Window bounds → `app_settings` |
 | `JournalService` | Journal CRUD + search + signals |
 | `TaskService` | Task CRUD + reorder + work stats + signals |
-| `TagService` | Tag catalog + entry/todo assignments + signals |
+| `TagService` | Tag catalog + entry/task assignments + signals |
 | `PomodoroService` | Timer + DB sessions + `in_progress` on first task start |
 
 **Rule:** UI calls **services**, not `Database`, except bootstrap/low-level cases.
@@ -162,12 +162,12 @@ Factory: `*.from_row(dict)` after SQLite queries via [`db_row.gd`](../scripts/da
 - `search(query)` — `LIKE` on `body`
 - Signals: `entry_created`, `entry_updated`, `entry_deleted`
 
-### TodoService
+### TaskService
 
-- `list_todos`, `get_todo`, `create_todo`, `save_todo`, `set_status`, `delete_todo`
+- `list_tasks`, `get_task`, `create_task`, `save_task`, `set_status`, `delete_task`
 - `get_work_stats`, `get_work_stats_map`
-- `move_todo_relative_to` (drag reorder)
-- Signals: `todo_created`, `todo_updated`, `todo_deleted`, `todo_stats_changed`, `todo_reordered`
+- `move_task_relative_to` (drag reorder)
+- Signals: `task_created`, `task_updated`, `task_deleted`, `task_stats_changed`, `task_reordered`
 
 ### PomodoroService
 
@@ -182,7 +182,9 @@ Factory: `*.from_row(dict)` after SQLite queries via [`db_row.gd`](../scripts/da
 | **2** | Remove legacy `mood` (rebuild if present) |
 | **3** | Remove `title`; body-only journal entries |
 | **4** | Tags + junction tables for journal entries and todos |
-| **5+** | Add `_migrate_to_vN()`; never edit shipped migration SQL in place |
+| **5** | Rename `todos` → `tasks`, `todo_tags` → `task_tags` |
+| **6** | Pomodoro `target_type`: `'todo'` → `'task'` (rebuild CHECK) |
+| **7+** | Add `_migrate_to_vN()`; never edit shipped migration SQL in place |
 
 ## Not in v1
 

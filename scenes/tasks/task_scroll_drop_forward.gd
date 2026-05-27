@@ -1,7 +1,7 @@
-## Forwards drag-and-drop from the scroll viewport to the mission list (including below rows).
+## Forwards drag-and-drop from the scroll viewport to the task list (including below rows).
 extends ScrollContainer
 
-@onready var _list = $TodoEntriesVBox
+@onready var _list = $TaskEntriesVBox
 
 
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:

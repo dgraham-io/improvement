@@ -1,8 +1,8 @@
-## Autoload: tag catalog and assignments for journal entries and todos.
+## Autoload: tag catalog and assignments for journal entries and tasks.
 extends Node
 
 signal entry_tags_changed(entry_id: int)
-signal todo_tags_changed(todo_id: int)
+signal task_tags_changed(task_id: int)
 
 
 func _ready() -> void:
@@ -54,8 +54,8 @@ func get_tags_for_entry(entry_id: int) -> Array[Tag]:
 	return result
 
 
-func get_tags_for_todo(todo_id: int) -> Array[Tag]:
-	var rows := Database.fetch_tags_for_todo(todo_id)
+func get_tags_for_task(task_id: int) -> Array[Tag]:
+	var rows := Database.fetch_tags_for_task(task_id)
 	var result: Array[Tag] = []
 	for row in rows:
 		result.append(Tag.from_row(row))
@@ -66,8 +66,8 @@ func get_entry_tags_map() -> Dictionary:
 	return Database.fetch_journal_entry_tags_map()
 
 
-func get_todo_tags_map() -> Dictionary:
-	return Database.fetch_todo_tags_map()
+func get_task_tags_map() -> Dictionary:
+	return Database.fetch_task_tags_map()
 
 
 func set_entry_tags(entry_id: int, tag_ids: Array) -> bool:
@@ -79,12 +79,12 @@ func set_entry_tags(entry_id: int, tag_ids: Array) -> bool:
 	return true
 
 
-func set_todo_tags(todo_id: int, tag_ids: Array) -> bool:
-	if todo_id <= 0:
+func set_task_tags(task_id: int, tag_ids: Array) -> bool:
+	if task_id <= 0:
 		return false
-	if not Database.set_todo_tags(todo_id, _sanitize_tag_ids(tag_ids)):
+	if not Database.set_task_tags(task_id, _sanitize_tag_ids(tag_ids)):
 		return false
-	todo_tags_changed.emit(todo_id)
+	task_tags_changed.emit(task_id)
 	return true
 
 

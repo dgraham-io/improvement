@@ -1,5 +1,5 @@
-## Fills and reads mission status values on an OptionButton.
-class_name MissionStatusOptions
+## Fills and reads task status values on an OptionButton.
+class_name TaskStatusOptions
 extends RefCounted
 
 

@@ -63,8 +63,8 @@ func start_for(target_type: String, target_id: int) -> bool:
 func _mark_task_in_progress_if_needed(target_type: String, target_id: int) -> void:
 	if target_type != DbConstants.TARGET_TASK or target_id <= 0:
 		return
-	var todo: TodoItem = TaskService.get_todo(target_id)
-	if todo == null or todo.status != DbConstants.TASK_PENDING:
+	var task: TaskItem = TaskService.get_task(target_id)
+	if task == null or task.status != DbConstants.TASK_PENDING:
 		return
 	TaskService.set_status(target_id, DbConstants.TASK_IN_PROGRESS)
 

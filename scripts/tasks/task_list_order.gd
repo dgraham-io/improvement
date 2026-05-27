@@ -7,7 +7,7 @@ static func ordered_active_first(items: Array) -> Array:
 	var active: Array = []
 	var done: Array = []
 	for item in items:
-		if item is TodoItem and (item as TodoItem).is_done():
+		if item is TaskItem and (item as TaskItem).is_done():
 			done.append(item)
 		else:
 			active.append(item)
@@ -21,7 +21,7 @@ static func ordered_active_first(items: Array) -> Array:
 static func apply_sort_orders(ordered_items: Array) -> bool:
 	var changed := false
 	for i in ordered_items.size():
-		var item: TodoItem = ordered_items[i]
+		var item: TaskItem = ordered_items[i]
 		if item.sort_order != i:
 			item.sort_order = i
 			changed = true

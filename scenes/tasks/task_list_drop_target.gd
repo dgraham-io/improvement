@@ -5,7 +5,7 @@ signal reorder_to_index(dragged_id: int, insert_index: int)
 signal reorder_drag_started
 signal reorder_drag_ended
 
-const _TodoReorderInsert := preload("res://scripts/tasks/task_reorder_insert.gd")
+const _TaskReorderInsert := preload("res://scripts/tasks/task_reorder_insert.gd")
 const DROP_EDGE_PADDING := 10.0
 const DROP_GAP_HEIGHT := 18.0
 const DROP_GAP_COLOR := Color(0.133333, 0.866667, 1, 0.22)
@@ -39,9 +39,9 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	# While a todo is being reordered, continuously check if the mouse has left
+	# While a task is being reordered, continuously check if the mouse has left
 	# the list view entirely. If so, hide the gap (this covers dragging far up
-	# over the New Mission button, below the scroll, or completely outside the
+	# over the New Task button, below the scroll, or completely outside the
 	# list area where no _can_drop_data on the list is being called).
 	if _active_drag_id < 0:
 		set_process(false)
@@ -95,17 +95,17 @@ func _collect_rows() -> Array:
 	return rows
 
 
-func _row_index_for_id(rows: Array, todo_id: int) -> int:
+func _row_index_for_id(rows: Array, task_id: int) -> int:
 	for i in rows.size():
 		var row = rows[i]
-		if row != null and row.get("item") != null and row.get("item").id == todo_id:
+		if row != null and row.get("item") != null and row.get("item").id == task_id:
 			return i
 	return -1
 
 
 func _resolve_insert_index(local_y: float, data: Variant) -> int:
 	var rows := _collect_rows()
-	var dragged_id: int = int(data.get("todo_id", 0))
+	var dragged_id: int = int(data.get("task_id", 0))
 	if dragged_id != _active_drag_id:
 		var was_active := _active_drag_id >= 0
 		_active_drag_id = dragged_id
@@ -115,7 +115,7 @@ func _resolve_insert_index(local_y: float, data: Variant) -> int:
 			set_process(true)  # Watch for mouse leaving the list view while dragging
 	local_y = _clamp_local_y_for_list_top(local_y, rows)
 	var dragged_row_index := _row_index_for_id(rows, dragged_id)
-	return _TodoReorderInsert.insert_index_for_drag(
+	return _TaskReorderInsert.insert_index_for_drag(
 		local_y, rows, dragged_row_index, _drag_anchor_y, DROP_EDGE_PADDING
 	)
 
@@ -140,7 +140,7 @@ func _reset_drag_tracking() -> void:
 func _is_valid_drag(data: Variant) -> bool:
 	if not data is Dictionary:
 		return false
-	return int(data.get("todo_id", 0)) > 0
+	return int(data.get("task_id", 0)) > 0
 
 
 func handle_can_drop(at_position: Vector2, data: Variant) -> bool:
@@ -170,11 +170,11 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	if not _is_valid_drag(data):
 		_reset_drag_tracking()
 		_request_gap_hide()
-		return true   # Always return true for todo drags so Godot never shows the "no drop" cursor
+		return true   # Always return true for task drags so Godot never shows the "no drop" cursor
 
 	var insert_index := _resolve_insert_index(at_position.y, data)
 	var rows := _collect_rows()
-	var dragged_id: int = int(data.get("todo_id", 0))
+	var dragged_id: int = int(data.get("task_id", 0))
 	var dragged_row_index := _row_index_for_id(rows, dragged_id)
 
 	# Special handling for the two "self" indices that would normally be no-ops.
@@ -203,7 +203,7 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 		if not allow:
 			_request_gap_hide()
 			return true   # Suppress Godot's "no drop" cursor; gap visibility is our only feedback
-	elif not _TodoReorderInsert.would_change_order(dragged_row_index, insert_index, rows.size()):
+	elif not _TaskReorderInsert.would_change_order(dragged_row_index, insert_index, rows.size()):
 		_request_gap_hide()
 		return true   # Suppress Godot's "no drop" cursor; gap visibility is our only feedback
 
@@ -215,7 +215,7 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 func _drop_data(at_position: Vector2, data: Variant) -> void:
 	if not _is_valid_drag(data):
 		return
-	var dragged_id: int = int(data.get("todo_id", 0))
+	var dragged_id: int = int(data.get("task_id", 0))
 	var rows := _collect_rows()
 	var dragged_row_index := _row_index_for_id(rows, dragged_id)
 	var insert_index := _committed_index if _committed_index >= 0 else _resolve_insert_index(
@@ -243,7 +243,7 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 			_set_rows_reorder_drag_active(false)
 			_request_gap_hide()
 			return
-	elif not _TodoReorderInsert.would_change_order(dragged_row_index, insert_index, rows.size()):
+	elif not _TaskReorderInsert.would_change_order(dragged_row_index, insert_index, rows.size()):
 		_reset_drag_tracking()
 		_set_rows_reorder_drag_active(false)
 		_request_gap_hide()

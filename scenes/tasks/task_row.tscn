@@ -1,10 +1,10 @@
 [gd_scene load_steps=3 format=3 uid="uid://c8todorow00001"]
 
 [ext_resource type="Script" path="res://scenes/tasks/task_row.gd" id="1_row"]
-[ext_resource type="Script" path="res://scenes/tasks/mission_led_indicator.gd" id="2_led"]
+[ext_resource type="Script" path="res://scenes/tasks/task_led_indicator.gd" id="2_led"]
 [ext_resource type="Script" path="res://scenes/tasks/task_drag_handle.gd" id="3_drag"]
 
-[node name="TodoRow" type="PanelContainer"]
+[node name="TaskRow" type="PanelContainer"]
 custom_minimum_size = Vector2(0, 64)
 size_flags_horizontal = 3
 theme_type_variation = &"PanelContainer_card"
@@ -48,7 +48,7 @@ text = "⋮⋮"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MissionLed" type="Control" parent="MarginContainer/HBoxContainer"]
+[node name="TaskActiveLed" type="Control" parent="MarginContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 script = ExtResource("2_led")
@@ -85,7 +85,7 @@ layout_mode = 2
 theme_type_variation = &"Label_accent"
 text = ""
 
-[node name="MissionProgressBar" type="ProgressBar" parent="MarginContainer/HBoxContainer/VBoxContainer"]
+[node name="TaskProgressBar" type="ProgressBar" parent="MarginContainer/HBoxContainer/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 6)
 layout_mode = 2

@@ -1,4 +1,4 @@
-## Dropdown + create field for optional tags on journal entries and missions.
+## Dropdown + create field for optional tags on journal entries and tasks.
 class_name TagPicker
 extends VBoxContainer
 

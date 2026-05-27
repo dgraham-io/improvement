@@ -8,7 +8,7 @@ func _ready() -> void:
 
 
 func _get_drag_data(at_position: Vector2) -> Variant:
-	var row = _find_todo_row()
+	var row = _find_task_row()
 	if row == null:
 		return null
 	# Row enables passthrough so the list (not buttons) owns drop targeting.
@@ -16,7 +16,7 @@ func _get_drag_data(at_position: Vector2) -> Variant:
 
 
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
-	var row = _find_todo_row()
+	var row = _find_task_row()
 	if row == null:
 		return false
 	# Convert handle-local coords to row-local so the row's forwarding logic works correctly.
@@ -26,7 +26,7 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 
 
 func _drop_data(at_position: Vector2, data: Variant) -> void:
-	var row = _find_todo_row()
+	var row = _find_task_row()
 	if row == null:
 		return
 	var handle_global := get_global_transform() * at_position
@@ -37,7 +37,7 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 const _TaskRowScript := preload("res://scenes/tasks/task_row.gd")
 
 
-func _find_todo_row():
+func _find_task_row():
 	var node: Node = self
 	while node != null:
 		if node is Control and (node as Control).get_script() == _TaskRowScript:

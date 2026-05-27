@@ -13,7 +13,7 @@ const ACCENT_DIM := Color(0.133333, 0.866667, 1, 0.35)
 @onready var _goal_progress: ProgressBar = %GoalProgressBar
 @onready var _goal_caption: Label = %GoalCaptionLabel
 @onready var _journal_value: Label = %JournalValueLabel
-@onready var _missions_value: Label = %MissionsValueLabel
+@onready var _tasks_value: Label = %TasksValueLabel
 @onready var _sessions_value: Label = %SessionsValueLabel
 @onready var _empty_hint: Label = %EmptyHintLabel
 @onready var _stats_grid: GridContainer = %StatsGrid
@@ -27,7 +27,7 @@ func setup(stats: DailyWorkStats) -> void:
 	_pomodoro_value.text = str(stats.completed_pomodoros)
 	_sessions_value.text = str(stats.session_count)
 	_journal_value.text = TimeFormat.format_work_duration(stats.journal_work_sec)
-	_missions_value.text = TimeFormat.format_work_duration(stats.todo_work_sec)
+	_tasks_value.text = TimeFormat.format_work_duration(stats.task_work_sec)
 	var has_work := stats.has_work()
 	_empty_hint.visible = not has_work
 	_stats_grid.visible = has_work

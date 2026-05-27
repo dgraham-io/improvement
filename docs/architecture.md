@@ -30,10 +30,10 @@ flowchart TB
 	Main[scenes/main.gd shell]
 	Setup[scenes/setup/initial_setup_dialog]
 	JournalArea[JournalArea controller]
-	MissionSidebar[MissionSidebar controller]
+	TaskSidebar[TaskSidebar controller]
 	Theme[improvement_theme.tres]
 	Main --> JournalArea
-	Main --> MissionSidebar
+	Main --> TaskSidebar
 	Main --> Theme
 	AppSetup --> Setup
   end
@@ -41,7 +41,7 @@ flowchart TB
   subgraph application [Application layer]
 	AppSetupSvc[AppSetup autoload]
 	JournalSvc[JournalService]
-	TodoSvc[TodoService]
+	TaskSvc[TaskService]
 	TimerSvc[PomodoroService]
 	WinLayout[WindowLayout]
   end
@@ -55,11 +55,11 @@ flowchart TB
   end
 
   JournalUI --> JournalSvc
-  TodoUI --> TodoSvc
+  TaskUI --> TaskSvc
   JournalUI --> TimerSvc
-  TodoUI --> TimerSvc
+  TaskUI --> TimerSvc
   JournalSvc --> DbAutoload
-  TodoSvc --> DbAutoload
+  TaskSvc --> DbAutoload
   TimerSvc --> DbAutoload
   WinLayout --> DbAutoload
   AppSetupSvc --> AppConfig
@@ -77,7 +77,7 @@ flowchart TB
 - **Main scene:** `res://scenes/main.tscn` (`uid://d4bhhy4ln2jhd`).
 - **Root script:** `scenes/main.gd` — shell, UI scale, pomodoro cross-panel refresh; `content_scale_factor = 1.0`.
 - **Journal controller:** `scenes/journal/journal_area.gd` on `JournalArea` — timeline, composer, header stats.
-- **Task controller:** `scenes/todos/mission_sidebar.gd` on `TodoSidebar` — list, task editor, progress, top-task pomodoro.
+- **Task controller:** `scenes/tasks/task_sidebar.gd` on `TaskSidebar` — list, task composer, progress, top-task pomodoro.
 
 ### First run
 
@@ -98,11 +98,11 @@ Main (Control, theme)
 		│   └── JournalSplit (VSplit)
 		│       ├── ComposerPanel (inline TextEdit + Pomodoro)
 		│       └── JournalScroll → journal_entry_row instances
-		└── TodoSidebar (Panel)
-			├── Header, progress, NewMissionButton
-			└── TodoSplit (VSplit)
-				├── TodoMissionPanel (inline edit + status)
-				└── TodoScroll → todo_row instances
+		└── TaskSidebar (Panel)
+			├── Header, progress, NewTaskButton
+			└── TaskSplit (VSplit)
+				├── TaskComposerPanel (inline edit + status)
+				└── TaskScroll → task_row instances
 ```
 
 ### Row scenes (shipped)
@@ -110,8 +110,8 @@ Main (Control, theme)
 | Scene | Role |
 |-------|------|
 | `scenes/journal/journal_entry_row.tscn` | Timestamps + body preview; edit |
-| `scenes/todos/todo_row.tscn` | Active LED, title, notes, priority strip, **work time**, progress bar, **Done** / **Edit**, drag handle |
-| `scenes/ui/pomodoro_timer.tscn` | Start/pause/stop; bound to journal or todo target |
+| `scenes/tasks/task_row.tscn` | Active LED, title, notes, priority strip, **work time**, progress bar, **Done** / **Edit**, drag handle |
+| `scenes/ui/pomodoro_timer.tscn` | Start/pause/stop; bound to journal or task target |
 | `scenes/setup/initial_setup_dialog.tscn` | DB folder picker + `FileDialog` |
 
 ### Editing model (current)
@@ -133,7 +133,7 @@ Main (Control, theme)
 
 - **Bootstrap:** [`scripts/app/app_config.gd`](../scripts/app/app_config.gd) → `user://app_config.json`.
 - **Database:** [`scripts/autoload/database.gd`](../scripts/autoload/database.gd) — `PRAGMA user_version` **4**; tables per [data-model.md](data-model.md).
-- **Services:** `JournalService`, `TodoService`, `PomodoroService`.
+- **Services:** `JournalService`, `TaskService`, `PomodoroService`.
 - **WindowLayout:** persists window bounds to `app_settings` on desktop export.
 - **Search:** journal `LIKE` on body (FTS5 deferred).
 
@@ -185,7 +185,7 @@ Details: [data-model.md](data-model.md), [schema.sql](schema.sql).
 |-------|-------------|--------|
 | **Next-1** | DB open failure UX (no hang on `ready_changed`) | **Roadmap** |
 | **Next-2** | User-visible save/API errors | **Roadmap** |
-| **Next-3** | Remove unused `TodoItemDialog` | **Roadmap** |
+| **Next-3** | ~~Remove unused task item dialog~~ | **Done** |
 | **0** | Split shell, theme, scale | **Done** |
 | **1** | Database v1–v3 + services + models | **Done** |
 | **2** | Row scenes + lists + inline editors | **Done** |
@@ -248,7 +248,7 @@ These are sensible next investments **after** roadmap items **3** and **6**, or 
 ```
 improvement/
 ├── docs/{architecture.md,data-model.md,schema.sql}
-├── scenes/{main,journal,todos,setup,ui,dialogs}/
+├── scenes/{main,journal,tasks,setup,ui}/
 ├── scripts/{app,autoload,database,models,tools}/
 ├── assets/{fonts,themes,icons,textures}/
 ├── addons/godot-sqlite/

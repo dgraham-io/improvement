@@ -2,10 +2,10 @@
 extends PanelContainer
 
 const _TagDisplay := preload("res://scripts/ui/tag_display.gd")
-const _TodoTitleFormat := preload("res://scripts/tasks/task_title_format.gd")
+const _TaskTitleFormat := preload("res://scripts/tasks/task_title_format.gd")
 const _DragHandleScript := preload("res://scenes/tasks/task_drag_handle.gd")
 
-signal edit_requested(item: TodoItem)
+signal edit_requested(item: TaskItem)
 
 const PRIORITY_COLORS := [
 	Color(0.45, 0.5, 0.62, 0.7),
@@ -15,16 +15,16 @@ const PRIORITY_COLORS := [
 ]
 const EMPTY_WORK_STATS := {"completed_pomodoros": 0, "total_work_sec": 0}
 
-var item: TodoItem
+var item: TaskItem
 
-@onready var _mission_led: Control = %MissionLed
+@onready var _active_led: Control = %TaskActiveLed
 @onready var _done_button: Button = %DoneButton
 @onready var _title_label: RichTextLabel = %TitleLabel
 @onready var _notes_label: Label = %NotesLabel
 @onready var _tags_label: Label = %TagsLabel
 @onready var _work_time_label: Label = %WorkTimeLabel
 @onready var _priority_strip: ColorRect = %PriorityStrip
-@onready var _progress_bar: ProgressBar = %MissionProgressBar
+@onready var _progress_bar: ProgressBar = %TaskProgressBar
 
 var _work_stats: Dictionary = EMPTY_WORK_STATS
 
@@ -38,7 +38,7 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	preview.add_theme_font_size_override("font_size", 16)
 	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_drag_preview(preview)
-	var payload := {"todo_id": item.id}
+	var payload := {"task_id": item.id}
 	var list = _find_list_drop_target()
 	if list != null:
 		var global_pos := get_global_transform() * _at_position
@@ -100,21 +100,21 @@ func _find_list_drop_target():
 	return null
 
 
-func setup(todo_item, work_stats: Dictionary = EMPTY_WORK_STATS, tags: Array = []) -> void:
-	item = todo_item
+func setup(task_item, work_stats: Dictionary = EMPTY_WORK_STATS, tags: Array = []) -> void:
+	item = task_item
 	_work_stats = work_stats
-	_mission_led.set_active(false)
-	_apply_title(todo_item)
-	_notes_label.text = todo_item.notes.strip_edges()
+	_active_led.set_active(false)
+	_apply_title(task_item)
+	_notes_label.text = task_item.notes.strip_edges()
 	_notes_label.visible = not _notes_label.text.is_empty()
 	var tag_text := _TagDisplay.format_tag_names(tags)
 	_tags_label.text = tag_text
 	_tags_label.visible = not tag_text.is_empty()
-	_apply_priority_strip(todo_item.priority)
+	_apply_priority_strip(task_item.priority)
 	_apply_work_stats(work_stats)
-	_apply_progress(todo_item, work_stats)
-	_apply_done_style(todo_item.is_done())
-	_update_action_buttons(todo_item)
+	_apply_progress(task_item, work_stats)
+	_apply_done_style(task_item.is_done())
+	_update_action_buttons(task_item)
 
 
 func update_work_stats(work_stats: Dictionary) -> void:
@@ -125,18 +125,18 @@ func update_work_stats(work_stats: Dictionary) -> void:
 	_apply_progress(item, work_stats)
 
 
-func set_mission_active(active: bool) -> void:
+func set_task_active(active: bool) -> void:
 	if item != null and item.is_done():
 		active = false
-	_mission_led.set_active(active)
+	_active_led.set_active(active)
 
 
-func _apply_title(todo_item) -> void:
-	_title_label.text = _TodoTitleFormat.display_text(todo_item.title, todo_item.is_done())
+func _apply_title(task_item) -> void:
+	_title_label.text = _TaskTitleFormat.display_text(task_item.title, task_item.is_done())
 
 
-func _update_action_buttons(todo_item) -> void:
-	_done_button.visible = not todo_item.is_done()
+func _update_action_buttons(task_item) -> void:
+	_done_button.visible = not task_item.is_done()
 
 
 func _apply_priority_strip(priority: int) -> void:
@@ -160,13 +160,13 @@ func _apply_work_stats(work_stats: Dictionary) -> void:
 	_work_time_label.visible = true
 
 
-func _apply_progress(todo_item, work_stats: Dictionary) -> void:
+func _apply_progress(task_item, work_stats: Dictionary) -> void:
 	var completed := int(work_stats.get("completed_pomodoros", 0))
-	if todo_item.is_done():
+	if task_item.is_done():
 		_progress_bar.value = 1.0
 	elif completed > 0:
 		_progress_bar.value = clampf(float(completed) * 0.2, 0.2, 0.85)
-	elif todo_item.status == DbConstants.TASK_IN_PROGRESS:
+	elif task_item.status == DbConstants.TASK_IN_PROGRESS:
 		_progress_bar.value = 0.55
 	else:
 		_progress_bar.value = 0.15
@@ -191,7 +191,7 @@ func _on_done_pressed() -> void:
 		and PomodoroService.active_target_id == item.id
 	):
 		PomodoroService.stop(false)
-	TaskService.complete_todo(item)
+	TaskService.complete_task(item)
 
 
 func _on_edit_pressed() -> void:
