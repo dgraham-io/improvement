@@ -162,7 +162,7 @@ func _on_todo_tags_changed(_todo_id: int) -> void:
 func _on_todo_deleted(todo_id: int) -> void:
 	if _editing_todo != null and _editing_todo.id == todo_id:
 		_close_mission_composer()
-	if PomodoroService.has_active_todo_session() and PomodoroService.active_target_id == todo_id:
+	if PomodoroService.has_active_task_session() and PomodoroService.active_target_id == todo_id:
 		PomodoroService.stop(false)
 	refresh_list_deferred()
 
@@ -268,7 +268,7 @@ func _update_mission_pomodoro_target() -> void:
 		return
 	var top_id := top_todo.id
 	if (
-		PomodoroService.has_active_todo_session()
+		PomodoroService.has_active_task_session()
 		and _tracked_top_todo_id > 0
 		and top_id != _tracked_top_todo_id
 	):
@@ -279,7 +279,7 @@ func _update_mission_pomodoro_target() -> void:
 
 func _apply_todo_active_leds() -> void:
 	var active_id := 0
-	if PomodoroService.has_active_todo_session() and PomodoroService.is_running:
+	if PomodoroService.has_active_task_session() and PomodoroService.is_running:
 		active_id = PomodoroService.active_target_id
 	for child in _todo_vbox.get_children():
 		if child == _todo_empty_label:

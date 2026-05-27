@@ -187,7 +187,7 @@ func _on_done_pressed() -> void:
 	if item == null or item.is_done():
 		return
 	if (
-		PomodoroService.has_active_todo_session()
+		PomodoroService.has_active_task_session()
 		and PomodoroService.active_target_id == item.id
 	):
 		PomodoroService.stop(false)

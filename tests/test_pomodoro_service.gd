@@ -28,14 +28,14 @@ func test_is_active_target_matches_running_session() -> void:
 	assert_false(_pomo.is_active_target("todo", 3))
 
 
-func test_has_active_todo_session_when_task_target_running() -> void:
+func test_has_active_task_session_when_task_target_running() -> void:
 	_pomo._session_id = 1
 	_pomo.active_target_type = DbConstants.TARGET_TASK
-	assert_true(_pomo.has_active_todo_session())
+	assert_true(_pomo.has_active_task_session())
 	_pomo.active_target_type = DbConstants.TARGET_JOURNAL
-	assert_false(_pomo.has_active_todo_session())
+	assert_false(_pomo.has_active_task_session())
 	_pomo._session_id = 0
-	assert_false(_pomo.has_active_todo_session())
+	assert_false(_pomo.has_active_task_session())
 
 
 func test_pause_resume_updates_running_state() -> void:

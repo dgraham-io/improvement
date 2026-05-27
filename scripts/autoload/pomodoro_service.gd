@@ -125,7 +125,7 @@ func stop_if_journal() -> void:
 		stop(false)
 
 
-func has_active_todo_session() -> bool:
+func has_active_task_session() -> bool:
 	return _session_id > 0 and active_target_type == DbConstants.TARGET_TASK
 
 
