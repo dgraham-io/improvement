@@ -20,9 +20,9 @@ Desktop prototype with **SQLite-backed** journal and missions, inline editing, a
 | Drag reorder, done checkbox, row edit/delete | Shipped |
 | First-run DB folder setup (e.g. Dropbox) | Shipped |
 | Theme + Roboto | Shipped |
-| UI scale | Fixed at **1.0** (slider planned in Settings) |
-| SQLite schema + migrations (v3) | Shipped |
-| `JournalService` / `TodoService` / `PomodoroService` | Shipped |
+| UI scale | System detection + stored override (defaults ~1.0; full Settings on roadmap) |
+| SQLite schema + migrations (v4 + tags) | Shipped |
+| `JournalService` / `TodoService` / `PomodoroService` / `TagService` | Shipped |
 | Pomodoro → mission `in_progress` + work time on rows | Shipped |
 | Window size/position persistence (desktop export) | Shipped |
 | Settings screen | Planned (roadmap) |
@@ -64,7 +64,7 @@ Godot often embeds the game in the editor. Use the **Game** tab → disable **Em
 
 ### UI scale
 
-Runtime scale is **1.0** ([`scenes/main.gd`](scenes/main.gd)). A Settings control for `app_settings.ui_scale` is on the [roadmap](#roadmap).
+Runtime scale uses system DPI detection with optional `app_settings.ui_scale` override (see [`scenes/main.gd`](scenes/main.gd) + `UiScaleDetector`). Full Settings UI on the [roadmap](#roadmap).
 
 ## Project structure
 
@@ -78,7 +78,7 @@ improvement/
 │   ├── todos/todo_row.tscn
 │   ├── setup/initial_setup_dialog.tscn
 │   ├── ui/pomodoro_timer.tscn
-│   └── dialogs/todo_item_dialog.tscn
+│   └── setup/initial_setup_dialog.tscn
 ├── scripts/
 │   ├── app/app_config.gd
 │   ├── autoload/          # AppSetup, Database, WindowLayout, services
@@ -104,16 +104,16 @@ improvement/
 
 1. **Database open failure** — if SQLite cannot open, show a clear error (retry / pick folder); do not leave the app waiting forever on `Database.ready_changed`.
 2. **User-visible save errors** — surface failed creates/updates/deletes (status line or dialog), not only `push_error` in the console.
-3. **Remove unused `TodoItemDialog`** — delete `scenes/dialogs/todo_item_dialog.*` or wire it up; inline mission editor is canonical.
 
 ### Done
 
-4. ~~SQLite schema + services~~ ([data model](docs/data-model.md)).
-5. ~~Journal and mission UI bound to services~~.
+3. ~~Remove unused `TodoItemDialog`~~ (and stray `mission_led_check.gd.uid`).
+4. ~~SQLite schema v4 + tags + TagService~~ ([data model](docs/data-model.md)).
+5. ~~Journal and mission UI bound to services~~ (including tag pickers).
 
 ### Later
 
-6. **User preferences UI** — `app_settings`: journal sort, theme options, **UI scale** slider → `content_scale_factor`.
+6. **User preferences UI** — `app_settings`: journal sort, theme options, explicit `ui_scale` control.
 7. **Optional sync / backup** — Dropbox / iCloud or explicit export/import beyond placing `improvement.db` in a synced folder.
 8. **Swap panel while editing entries** — switch between the journal composer and mission editor without losing unsaved text (e.g. keep drafts, or prompt to save/discard before changing focus).
 

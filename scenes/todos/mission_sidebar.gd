@@ -43,6 +43,8 @@ func _connect_ui() -> void:
 	_mission_save_button.pressed.connect(_on_mission_save_pressed)
 	_mission_title_field.text_submitted.connect(_on_mission_title_submitted)
 	_todo_vbox.reorder_to_index.connect(_on_todo_reorder_to_index)
+	_todo_vbox.reorder_drag_started.connect(_on_reorder_drag_started)
+	_todo_vbox.reorder_drag_ended.connect(_on_reorder_drag_ended)
 
 
 func _connect_services() -> void:
@@ -97,6 +99,51 @@ func _refresh_todo_work_stats(todo_id: int) -> void:
 func _on_pomodoro_state_changed() -> void:
 	_update_mission_pomodoro_target()
 	_apply_todo_active_leds()
+
+
+func _on_reorder_drag_started() -> void:
+	_set_reorder_header_passthrough(true)
+
+
+func _on_reorder_drag_ended() -> void:
+	_set_reorder_header_passthrough(false)
+
+
+func _set_reorder_header_passthrough(active: bool) -> void:
+	# When reordering todos, make the header area (especially the "New Mission" button)
+	# ignore the mouse so the sidebar itself becomes the drop target.
+	# This prevents Godot from showing the "no drop" cursor icon over the button
+	# while still allowing our gap logic to control visual feedback.
+	var controls: Array[Control] = [_new_todo_button]
+	for ctrl in controls:
+		if ctrl == null:
+			continue
+		if active:
+			if not ctrl.has_meta("_saved_mouse_filter"):
+				ctrl.set_meta("_saved_mouse_filter", ctrl.mouse_filter)
+			ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		elif ctrl.has_meta("_saved_mouse_filter"):
+			ctrl.mouse_filter = int(ctrl.get_meta("_saved_mouse_filter"))
+			ctrl.remove_meta("_saved_mouse_filter")
+
+
+# Accept todo drags anywhere in the sidebar (including over the New Mission button area)
+# so Godot never shows the forbidden "no drop" cursor during reordering.
+# Real drop handling is still performed only by TodoListDropTarget.
+func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
+	if data is Dictionary and data.has("todo_id"):
+		# Mouse is somewhere in the sidebar (including over "New Mission" button
+		# or other header areas) but not in a position the list itself is handling.
+		# Force the gap to close since this is a no-op drop zone for reordering.
+		_todo_vbox.hide_gap()
+		return true
+	return false
+
+
+func _drop_data(_at_position: Vector2, _data: Variant) -> void:
+	# Intentionally do nothing here.
+	# Drops inside the actual list are handled by TodoListDropTarget.
+	pass
 
 
 func _on_todo_service_changed(item: TodoItem) -> void:

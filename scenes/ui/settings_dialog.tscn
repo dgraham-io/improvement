@@ -1,0 +1,129 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8settings01"]
+
+[ext_resource type="Script" path="res://scenes/ui/settings_dialog.gd" id="1_script"]
+[ext_resource type="Theme" uid="uid://bjs7igpj47wt0" path="res://assets/themes/improvement_theme.tres" id="2_theme"]
+
+[node name="SettingsDialog" type="CanvasLayer"]
+layer = 100
+theme = ExtResource("2_theme")
+script = ExtResource("1_script")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.0196078, 0.0392157, 0.0784314, 0.82)
+
+[node name="Center" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+theme_type_variation = &"PanelContainer_card"
+
+[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_type_variation = &"Label_title"
+text = "Settings"
+
+[node name="ScaleSection" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ScaleHeader" type="HBoxContainer" parent="Center/Panel/Margin/VBox/ScaleSection"]
+layout_mode = 2
+
+[node name="ScaleLabel" type="Label" parent="Center/Panel/Margin/VBox/ScaleSection/ScaleHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI Scale"
+
+[node name="ScaleValue" type="Label" parent="Center/Panel/Margin/VBox/ScaleSection/ScaleHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_accent"
+text = "1.00"
+
+[node name="ScaleSlider" type="HSlider" parent="Center/Panel/Margin/VBox/ScaleSection"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.75
+max_value = 2.5
+step = 0.05
+value = 1.0
+ticks_on_borders = true
+
+[node name="ScaleHint" type="Label" parent="Center/Panel/Margin/VBox/ScaleSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Label_muted"
+text = "Changes take effect after restarting the app."
+autowrap_mode = 3
+
+[node name="JournalSection" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="JournalLabel" type="Label" parent="Center/Panel/Margin/VBox/JournalSection"]
+layout_mode = 2
+text = "Journal"
+
+[node name="SortRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/JournalSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SortLabel" type="Label" parent="Center/Panel/Margin/VBox/JournalSection/SortRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Sort order"
+
+[node name="NewestFirstCheck" type="CheckButton" parent="Center/Panel/Margin/VBox/JournalSection/SortRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Newest first"
+
+[node name="Spacer" type="Control" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 8)
+
+[node name="Actions" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 10
+
+[node name="CancelButton" type="Button" parent="Center/Panel/Margin/VBox/Actions"]
+layout_mode = 2
+theme_type_variation = &"Button_ghost"
+text = "Cancel"
+
+[node name="SaveButton" type="Button" parent="Center/Panel/Margin/VBox/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Button_primary"
+text = "Save"
+
+[connection signal="value_changed" from="Center/Panel/Margin/VBox/ScaleSection/ScaleSlider" to="." method="_on_scale_slider_changed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/Actions/CancelButton" to="." method="_on_cancel_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/Actions/SaveButton" to="." method="_on_save_pressed"]

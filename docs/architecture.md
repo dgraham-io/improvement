@@ -43,6 +43,8 @@ flowchart TB
 	JournalSvc[JournalService]
 	TodoSvc[TodoService]
 	TimerSvc[PomodoroService]
+	TagSvc[TagService]
+	SoundSvc[SoundService]
 	WinLayout[WindowLayout]
   end
 
@@ -61,6 +63,8 @@ flowchart TB
   JournalSvc --> DbAutoload
   TodoSvc --> DbAutoload
   TimerSvc --> DbAutoload
+  TagSvc --> DbAutoload
+  SoundSvc -.-> TimerSvc
   WinLayout --> DbAutoload
   AppSetupSvc --> AppConfig
 ```
@@ -96,21 +100,21 @@ Main (Control, theme)
 		│   ├── Header (title, XP/entry placeholders)
 		│   ├── NewJournalButton
 		│   └── JournalSplit (VSplit)
-		│       ├── ComposerPanel (inline TextEdit + Pomodoro)
-		│       └── JournalScroll → journal_entry_row instances
+		│       ├── ComposerPanel (inline TextEdit + Pomodoro + TagPicker)
+		│       └── JournalScroll → journal_entry_row instances (with tags)
 		└── TodoSidebar (Panel)
 			├── Header, progress, NewMissionButton
 			└── TodoSplit (VSplit)
-				├── TodoMissionPanel (inline edit + status)
-				└── TodoScroll → todo_row instances
+				├── TodoMissionPanel (inline edit + status + TagPicker)
+				└── TodoScroll → todo_row instances (with tags)
 ```
 
 ### Row scenes (shipped)
 
 | Scene | Role |
 |-------|------|
-| `scenes/journal/journal_entry_row.tscn` | Timestamps + body preview; edit |
-| `scenes/todos/todo_row.tscn` | Active LED, title, notes, priority strip, **work time**, progress bar, **Done** / **Edit**, drag handle |
+| `scenes/journal/journal_entry_row.tscn` | Timestamps + body preview + tags; edit |
+| `scenes/todos/todo_row.tscn` | Active LED, title, notes, priority strip, **work time**, progress bar, **Done** / **Edit**, drag handle + tags |
 | `scenes/ui/pomodoro_timer.tscn` | Start/pause/stop; bound to journal or todo target |
 | `scenes/setup/initial_setup_dialog.tscn` | DB folder picker + `FileDialog` |
 
@@ -126,14 +130,14 @@ Main (Control, theme)
 | UI toolkit | Godot **Control** + theme |
 | Lists | `ScrollContainer` → `VBoxContainer` → row `PanelContainer`s |
 | Typography | Roboto via `improvement_theme.tres` |
-| UI scale | **1.0** fixed; `app_settings.ui_scale` stored for future Settings UI |
+| UI scale | System DPI / GDK detection + explicit `app_settings.ui_scale` override (still defaults near 1.0); full Settings UI on roadmap |
 | Mission metadata | Priority strip (0–3); **work time** from aggregated Pomodoros (not `P0` label) |
 
 ### Data layer (shipped)
 
 - **Bootstrap:** [`scripts/app/app_config.gd`](../scripts/app/app_config.gd) → `user://app_config.json`.
-- **Database:** [`scripts/autoload/database.gd`](../scripts/autoload/database.gd) — `PRAGMA user_version` **3**; tables per [data-model.md](data-model.md).
-- **Services:** `JournalService`, `TodoService`, `PomodoroService`.
+- **Database:** [`scripts/autoload/database.gd`](../scripts/autoload/database.gd) — `PRAGMA user_version` **4** (tags + junctions); tables per [data-model.md](data-model.md).
+- **Services:** `JournalService`, `TodoService`, `PomodoroService`, `TagService`, `SoundService`.
 - **WindowLayout:** persists window bounds to `app_settings` on desktop export.
 - **Search:** journal `LIKE` on body (FTS5 deferred).
 
@@ -159,6 +163,8 @@ Main (Control, theme)
 | `JournalService` | Journal CRUD, search, sort preference, signals |
 | `TodoService` | Mission CRUD, reorder, `get_work_stats*`, signals |
 | `PomodoroService` | Timer state, persistence, `in_progress` promotion, `session_ended` |
+| `TagService` | Tag catalog + many-to-many assignments for journal entries and todos |
+| `SoundService` | Plays completion chime for finished Pomodoros |
 
 UI rebuilds lists on service signals; mission work stats refresh on `session_ended` without full list reload.
 
@@ -185,13 +191,13 @@ Details: [data-model.md](data-model.md), [schema.sql](schema.sql).
 |-------|-------------|--------|
 | **Next-1** | DB open failure UX (no hang on `ready_changed`) | **Roadmap** |
 | **Next-2** | User-visible save/API errors | **Roadmap** |
-| **Next-3** | Remove unused `TodoItemDialog` | **Roadmap** |
-| **0** | Split shell, theme, scale | **Done** |
-| **1** | Database v1–v3 + services + models | **Done** |
+| **0** | Split shell, theme, scale | **Done** (scale detection + stored override shipped; full Settings UI pending) |
+| **1** | Database v1–v4 (tags) + services + models | **Done** |
 | **2** | Row scenes + lists + inline editors | **Done** |
 | **2b** | First-run setup + empty DB | **Done** |
 | **2c** | Pomodoro + mission work stats | **Done** (top mission + journal only) |
-| **3** | Settings UI + `ui_scale` slider | **Roadmap** |
+| **2d** | Tags (picker + display + filtering) | **Done** |
+| **3** | Settings UI + explicit `ui_scale` control | **Roadmap** |
 | **6** | Sync / backup UX | **Roadmap** |
 | **8** | Swap panel while editing entries (journal ↔ mission without losing drafts) | **Roadmap** |
 | — | Encryption | **Shelved** (see recommendations) |
@@ -267,4 +273,4 @@ improvement/
 
 ---
 
-*Last updated: 2026-05 — reflects setup dialog, schema v3, inline editors, Pomodoro work stats.*
+*Last updated: 2026-06 — reflects schema v4 + tags, UI scale detection, dead code removal (TodoItemDialog), full TagService integration.*

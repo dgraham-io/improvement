@@ -114,7 +114,7 @@ UI replaces the old `P0` label with `TimeFormat.format_work_duration(total_work_
 | Key | Default | Purpose |
 |-----|---------|---------|
 | `db_directory` | from setup | Absolute folder containing `improvement.db` |
-| `ui_scale` | `1.0` | For future Settings UI (**runtime fixed at 1.0**) |
+| `ui_scale` | `1.0` | Stored override for `UiScaleDetector` (applied at startup in `main.gd`) |
 | `journal_sort_newest_first` | `true` | Timeline direction |
 | `window_width`, `window_height`, `window_x`, `window_y`, `window_mode` | — | Desktop window layout (`WindowLayout`) |
 

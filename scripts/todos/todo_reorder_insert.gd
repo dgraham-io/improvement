@@ -2,7 +2,7 @@
 class_name TodoReorderInsert
 extends RefCounted
 
-const MOTION_THRESHOLD := 6.0
+const MOTION_THRESHOLD := 4.0
 
 
 ## [param local_y] is in the same coordinate space as each row's [member Control.position].
@@ -50,16 +50,33 @@ static func insert_index_for_drag(
 		return mini(insert_at, dragged_row_index)
 	if moving_down:
 		return maxi(insert_at, dragged_row_index + 1)
+
+	# Neutral zone (mouse hasn't moved far enough from grab point to trigger
+	# the strong moving_up/moving_down bias).
+	# Use the original grab position (drag_anchor_y) as the decision point.
+	# This makes small upward movements from a low grab point immediately open
+	# the gap above the item, matching user intent and the final drop position.
 	if dragged_row_index < rows.size():
-		var row: Control = rows[dragged_row_index] as Control
-		if row != null:
-			var top := row.position.y
-			var bottom := row.position.y + row.size.y
-			if local_y >= top and local_y <= bottom:
-				if local_y <= drag_anchor_y:
-					return dragged_row_index
-				return dragged_row_index + 1
+		if local_y <= drag_anchor_y:
+			return dragged_row_index
+		return dragged_row_index + 1
+
 	return insert_at
+
+
+## Returns true if inserting the dragged row at [param proposed] would result in a different order.
+## Used to gate visual drop feedback (gap) and actual acceptance.
+static func would_change_order(dragged_row_index: int, proposed: int, row_count: int) -> bool:
+	if dragged_row_index < 0:
+		return true
+	# These two positions are no-ops (item stays where it was)
+	if proposed == dragged_row_index:
+		return false
+	if proposed == dragged_row_index + 1:
+		return false
+	if proposed < 0 or proposed > row_count:
+		return false
+	return true
 
 
 ## Y coordinate (local to [param list_container]) for a horizontal drop indicator line.

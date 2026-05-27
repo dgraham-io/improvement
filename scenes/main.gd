@@ -3,6 +3,7 @@ extends Control
 
 @onready var _journal_area: JournalArea = %JournalArea
 @onready var _mission_sidebar: MissionSidebar = %TodoSidebar
+@onready var _settings_button: Button = %SettingsButton
 
 
 func _ready() -> void:
@@ -16,6 +17,7 @@ func _ready() -> void:
 	PomodoroService.session_ended.connect(_on_pomodoro_session_ended)
 	Database.other_instance_detected.connect(_on_other_instance_detected)
 	Database.existing_database_detected.connect(_on_existing_database_detected)
+	_settings_button.pressed.connect(_on_settings_pressed)
 
 	if OS.is_debug_build():
 		print(
@@ -94,3 +96,10 @@ func _on_existing_database_detected(db_path: String) -> void:
 	dialog.popup_centered()
 	dialog.confirmed.connect(dialog.queue_free)
 	dialog.canceled.connect(dialog.queue_free)
+
+
+func _on_settings_pressed() -> void:
+	const SettingsDialogScene := preload("res://scenes/ui/settings_dialog.tscn")
+	var dialog: SettingsDialog = SettingsDialogScene.instantiate()
+	get_tree().root.add_child(dialog)
+	dialog.closed.connect(func(): pass)  # dialog cleans itself up

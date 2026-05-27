@@ -86,6 +86,13 @@ layout_mode = 2
 theme_type_variation = &"Label_muted"
 text = "0 entries"
 
+[node name="SettingsButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock" unique_id=987654321]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Button_ghost"
+text = "⚙"
+tooltip_text = "Settings"
+
 [node name="NewJournalButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea" unique_id=722315545]
 unique_name_in_owner = true
 layout_mode = 2

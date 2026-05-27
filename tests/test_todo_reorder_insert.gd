@@ -51,3 +51,18 @@ func test_edge_padding_makes_top_slot_easier() -> void:
 	# Padded top split is at y=30; values between 20 and 30 count as insert before first row.
 	assert_eq(TodoReorderInsert.insert_index_from_local_y(28.0, rows, 10.0), 0)
 	assert_eq(TodoReorderInsert.insert_index_from_local_y(38.0, rows, 10.0), 1)
+
+
+func test_would_change_order_noop_positions() -> void:
+	# Dragging row 1 (0-based). Positions 1 and 2 are no-ops.
+	assert_false(TodoReorderInsert.would_change_order(1, 1, 4))
+	assert_false(TodoReorderInsert.would_change_order(1, 2, 4))
+
+	# Other positions are meaningful moves
+	assert_true(TodoReorderInsert.would_change_order(1, 0, 4))
+	assert_true(TodoReorderInsert.would_change_order(1, 3, 4))
+	assert_true(TodoReorderInsert.would_change_order(1, 4, 4))
+
+
+func test_would_change_order_for_new_drag() -> void:
+	assert_true(TodoReorderInsert.would_change_order(-1, 0, 3))  # new drag always ok

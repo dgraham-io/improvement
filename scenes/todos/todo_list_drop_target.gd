@@ -3,6 +3,8 @@ class_name TodoListDropTarget
 extends VBoxContainer
 
 signal reorder_to_index(dragged_id: int, insert_index: int)
+signal reorder_drag_started
+signal reorder_drag_ended
 
 const _TodoReorderInsert := preload("res://scripts/todos/todo_reorder_insert.gd")
 const DROP_EDGE_PADDING := 10.0
@@ -34,6 +36,23 @@ func _ready() -> void:
 	_close_timer = _make_debounce_timer(GAP_CLOSE_DEBOUNCE_SEC, _on_close_debounced)
 	add_child(_close_timer)
 
+	set_process(false)  # Only process while a reorder drag is active to watch for mouse leaving the list view
+
+
+func _process(_delta: float) -> void:
+	# While a todo is being reordered, continuously check if the mouse has left
+	# the list view entirely. If so, hide the gap (this covers dragging far up
+	# over the New Mission button, below the scroll, or completely outside the
+	# list area where no _can_drop_data on the list is being called).
+	if _active_drag_id < 0:
+		set_process(false)
+		return
+
+	var mouse_pos := get_viewport().get_mouse_position()
+	var list_rect := get_global_rect()
+	if not list_rect.has_point(mouse_pos):
+		_request_gap_hide()
+
 
 func _make_debounce_timer(wait_sec: float, callback: Callable) -> Timer:
 	var timer := Timer.new()
@@ -48,6 +67,7 @@ func _notification(what: int) -> void:
 		_reset_drag_tracking()
 		_set_rows_reorder_drag_active(false)
 		_request_gap_hide()
+		reorder_drag_ended.emit()
 
 
 func clear_rows() -> void:
@@ -85,8 +105,12 @@ func _resolve_insert_index(local_y: float, data: Variant) -> int:
 	var rows := _collect_rows()
 	var dragged_id: int = int(data.get("todo_id", 0))
 	if dragged_id != _active_drag_id:
+		var was_active := _active_drag_id >= 0
 		_active_drag_id = dragged_id
 		_drag_anchor_y = float(data.get("list_anchor_y", local_y))
+		if not was_active:
+			reorder_drag_started.emit()
+			set_process(true)  # Watch for mouse leaving the list view while dragging
 	local_y = _clamp_local_y_for_list_top(local_y, rows)
 	var dragged_row_index := _row_index_for_id(rows, dragged_id)
 	return _TodoReorderInsert.insert_index_for_drag(
@@ -108,6 +132,7 @@ func _clamp_local_y_for_list_top(local_y: float, rows: Array) -> float:
 func _reset_drag_tracking() -> void:
 	_active_drag_id = -1
 	_drag_anchor_y = 0.0
+	set_process(false)
 
 
 func _is_valid_drag(data: Variant) -> bool:
@@ -143,8 +168,43 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	if not _is_valid_drag(data):
 		_reset_drag_tracking()
 		_request_gap_hide()
-		return false
+		return true   # Always return true for todo drags so Godot never shows the "no drop" cursor
+
 	var insert_index := _resolve_insert_index(at_position.y, data)
+	var rows := _collect_rows()
+	var dragged_id: int = int(data.get("todo_id", 0))
+	var dragged_row_index := _row_index_for_id(rows, dragged_id)
+
+	# Special handling for the two "self" indices that would normally be no-ops.
+	# These numeric values (dragged_row_index and dragged_row_index+1) are exactly
+	# what is needed to move the item one slot up or down after the removal logic
+	# in the service. We allow them when the mouse position clearly indicates the
+	# intended direction.
+	var is_potential_noop = (dragged_row_index >= 0 and
+		(insert_index == dragged_row_index or insert_index == dragged_row_index + 1))
+
+	if is_potential_noop:
+		var allow = false
+		if dragged_row_index < rows.size():
+			var row := rows[dragged_row_index] as Control
+			if row != null:
+				var row_top := row.position.y
+				var row_bottom := row.position.y + row.size.y
+				if insert_index == dragged_row_index:
+					# "Insert before self" = move up one. Allow if mouse is above the row.
+					if at_position.y < row_top:
+						allow = true
+				elif insert_index == dragged_row_index + 1:
+					# "Insert after self" = move down one. Allow if mouse is below the row.
+					if at_position.y > row_bottom:
+						allow = true
+		if not allow:
+			_request_gap_hide()
+			return true   # Suppress Godot's "no drop" cursor; gap visibility is our only feedback
+	elif not _TodoReorderInsert.would_change_order(dragged_row_index, insert_index, rows.size()):
+		_request_gap_hide()
+		return true   # Suppress Godot's "no drop" cursor; gap visibility is our only feedback
+
 	_insert_index = insert_index
 	_request_gap_at(insert_index)
 	return true
@@ -154,9 +214,39 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	if not _is_valid_drag(data):
 		return
 	var dragged_id: int = int(data.get("todo_id", 0))
+	var rows := _collect_rows()
+	var dragged_row_index := _row_index_for_id(rows, dragged_id)
 	var insert_index := _committed_index if _committed_index >= 0 else _resolve_insert_index(
 		at_position.y, data
 	)
+
+	# Apply the same directional allowance for one-slot moves as in _can_drop_data.
+	# (We no longer return early here for cursor reasons; the gap is already hidden.)
+	var is_potential_noop = (dragged_row_index >= 0 and
+		(insert_index == dragged_row_index or insert_index == dragged_row_index + 1))
+
+	if is_potential_noop:
+		var allow = false
+		if dragged_row_index < rows.size():
+			var row := rows[dragged_row_index] as Control
+			if row != null:
+				var row_top := row.position.y
+				var row_bottom := row.position.y + row.size.y
+				if insert_index == dragged_row_index and at_position.y < row_top:
+					allow = true
+				elif insert_index == dragged_row_index + 1 and at_position.y > row_bottom:
+					allow = true
+		if not allow:
+			_reset_drag_tracking()
+			_set_rows_reorder_drag_active(false)
+			_request_gap_hide()
+			return
+	elif not _TodoReorderInsert.would_change_order(dragged_row_index, insert_index, rows.size()):
+		_reset_drag_tracking()
+		_set_rows_reorder_drag_active(false)
+		_request_gap_hide()
+		return
+
 	_reset_drag_tracking()
 	_set_rows_reorder_drag_active(false)
 	_request_gap_hide()
@@ -225,6 +315,12 @@ func _force_hide_gap() -> void:
 	_close_timer.stop()
 	_pending_index = -1
 	_finish_gap_hidden()
+
+
+## Public method so other parts of the UI (e.g. header area during reordering)
+## can force the drop gap to close when the cursor leaves the actual list.
+func hide_gap() -> void:
+	_request_gap_hide()
 
 
 func _animate_gap_height(to_height: float, duration: float, on_complete: Callable = Callable()) -> void:
