@@ -11,12 +11,15 @@ var _enabled: bool = false
 
 
 func _ready() -> void:
-	if PomodoroService.state_changed.is_connected(_refresh):
-		PomodoroService.state_changed.disconnect(_refresh)
-	PomodoroService.state_changed.connect(_refresh)
-	if _action_button.pressed.is_connected(_on_action_pressed):
-		_action_button.pressed.disconnect(_on_action_pressed)
-	_action_button.pressed.connect(_on_action_pressed)
+	var state_cb := Callable(self, "_refresh")
+	if PomodoroService.state_changed.is_connected(state_cb):
+		PomodoroService.state_changed.disconnect(state_cb)
+	PomodoroService.state_changed.connect(state_cb)
+
+	var pressed_cb := Callable(self, "_on_action_pressed")
+	if _action_button.pressed.is_connected(pressed_cb):
+		_action_button.pressed.disconnect(pressed_cb)
+	_action_button.pressed.connect(pressed_cb)
 	_refresh()
 
 
