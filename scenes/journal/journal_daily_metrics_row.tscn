@@ -10,21 +10,19 @@ script = ExtResource("1_script")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 12
+theme_type_variation = &"MarginContainer_metrics"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 10
+theme_type_variation = &"VBoxContainer_summary"
 
 [node name="HeaderRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_type_variation = &"HBoxContainer_section"
 
 [node name="AccentDot" type="ColorRect" parent="MarginContainer/VBoxContainer/HeaderRow"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(8, 8)
 layout_mode = 2
 size_flags_vertical = 4
@@ -33,13 +31,12 @@ color = Color(0.658824, 0.333333, 0.968627, 0.95)
 [node name="HeaderText" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HeaderRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 2
+theme_type_variation = &"VBoxContainer_chart_column"
 
 [node name="DayHeadingLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderRow/HeaderText"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"Label_title"
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"Label_day_heading"
 text = "Today"
 
 [node name="DaySubtitleLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderRow/HeaderText"]
@@ -55,12 +52,12 @@ text = "Focus recap"
 
 [node name="HeroRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_type_variation = &"HBoxContainer_hero"
 
 [node name="FocusColumn" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HeroRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 2
+theme_type_variation = &"VBoxContainer_chart_column"
 
 [node name="FocusCaption" type="Label" parent="MarginContainer/VBoxContainer/HeroRow/FocusColumn"]
 layout_mode = 2
@@ -70,14 +67,13 @@ text = "Total focus"
 [node name="FocusValueLabel" type="Label" parent="MarginContainer/VBoxContainer/HeroRow/FocusColumn"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.133333, 0.866667, 1, 1)
-theme_override_font_sizes/font_size = 34
+theme_type_variation = &"Label_stat_hero"
 text = "0m"
 
 [node name="PomodoroColumn" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HeroRow"]
 layout_mode = 2
 alignment = 2
-theme_override_constants/separation = 2
+theme_type_variation = &"VBoxContainer_chart_column"
 
 [node name="PomodoroCaption" type="Label" parent="MarginContainer/VBoxContainer/HeroRow/PomodoroColumn"]
 layout_mode = 2
@@ -88,8 +84,7 @@ horizontal_alignment = 2
 [node name="PomodoroValueLabel" type="Label" parent="MarginContainer/VBoxContainer/HeroRow/PomodoroColumn"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.92549, 0.282353, 0.6, 1)
-theme_override_font_sizes/font_size = 34
+theme_type_variation = &"Label_stat_warm"
 text = "0"
 horizontal_alignment = 2
 
@@ -105,16 +100,14 @@ value = 0.35
 [node name="GoalCaptionLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"Label_muted"
-theme_override_font_sizes/font_size = 13
+theme_type_variation = &"Label_caption_sm"
 text = "0m of 4h focus goal"
 
 [node name="StatsGrid" type="GridContainer" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 columns = 3
-theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 4
+theme_type_variation = &"GridContainer_stats"
 
 [node name="JournalCaption" type="Label" parent="MarginContainer/VBoxContainer/StatsGrid"]
 layout_mode = 2
@@ -135,25 +128,22 @@ text = "Sessions"
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_accent"
-text = "0m"
 
 [node name="TasksValueLabel" type="Label" parent="MarginContainer/VBoxContainer/StatsGrid"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_accent"
-text = "0m"
 
 [node name="SessionsValueLabel" type="Label" parent="MarginContainer/VBoxContainer/StatsGrid"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_accent"
-text = "0"
 
 [node name="HourlyBars" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 3
+theme_type_variation = &"GridContainer_chart_footer"
 alignment = 2
 
 [node name="EmptyHintLabel" type="Label" parent="MarginContainer/VBoxContainer"]

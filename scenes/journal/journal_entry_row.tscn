@@ -10,15 +10,12 @@ script = ExtResource("1_row")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 2
-theme_override_constants/margin_left = 11
-theme_override_constants/margin_top = 9
-theme_override_constants/margin_right = 11
-theme_override_constants/margin_bottom = 9
+theme_type_variation = &"MarginContainer_entry"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 6
+theme_type_variation = &"VBoxContainer_relaxed"
 
 [node name="HeaderRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -48,14 +45,13 @@ autowrap_mode = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_type_variation = &"Label_accent"
-theme_override_font_sizes/font_size = 14
+theme_type_variation = &"Label_accent_body"
 text = "Work · Personal"
 
 [node name="ActionsRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 alignment = 2
-theme_override_constants/separation = 6
+theme_type_variation = &"HBoxContainer_compact"
 
 [node name="EditButton" type="Button" parent="MarginContainer/VBoxContainer/ActionsRow"]
 layout_mode = 2

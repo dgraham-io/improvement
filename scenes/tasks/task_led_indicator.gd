@@ -4,15 +4,13 @@ extends Control
 
 const LED_SIZE := Vector2(12, 26)
 const CORNER_RADIUS := 6
-const GLOW_COLOR := Color(0.133333, 0.866667, 1, 1)
-const CORE_COLOR := Color(0.55, 0.98, 1, 1)
-const OFF_FILL := Color(0.06, 0.08, 0.14, 1)
-const OFF_BORDER := Color(0.28, 0.32, 0.42, 0.55)
 
 var _active := false
+var _palette_host: Control
 
 
 func _ready() -> void:
+	_palette_host = _find_palette_host()
 	custom_minimum_size = LED_SIZE + Vector2(8, 8)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resized.connect(queue_redraw)
@@ -23,6 +21,19 @@ func set_active(active: bool) -> void:
 		return
 	_active = active
 	queue_redraw()
+
+
+func _find_palette_host() -> Control:
+	var node: Node = self
+	while node != null:
+		if node is Control:
+			return node as Control
+		node = node.get_parent()
+	return self
+
+
+func _palette_color(key: StringName) -> Color:
+	return ThemePalette.color(_palette_host, key, ImprovementThemeTypes.TASK_LED)
 
 
 func _draw() -> void:
@@ -38,25 +49,40 @@ func _led_rect(size_scale: Vector2 = Vector2.ONE) -> Rect2:
 
 
 func _draw_lit_led(hovered: bool) -> void:
-	var glow := 1.1 if hovered else 1.0
-	_draw_rounded_fill(_led_rect(Vector2(1.22 * glow, 1.2 * glow)), Color(GLOW_COLOR, 0.14))
-	_draw_rounded_fill(_led_rect(Vector2(1.08 * glow, 1.08 * glow)), Color(GLOW_COLOR, 0.24))
-	_draw_rounded_border(_led_rect(), GLOW_COLOR, 0.55, 1.25)
-	_draw_rounded_fill(_led_rect(Vector2(0.76, 0.76)), CORE_COLOR)
-	var core := _led_rect(Vector2(0.76, 0.76))
+	var glow := _palette_color(ImprovementThemeTypes.LED_GLOW)
+	var core := _palette_color(ImprovementThemeTypes.LED_CORE)
+	var glow_scale := 1.1 if hovered else 1.0
+	_draw_rounded_fill(_led_rect(Vector2(1.22 * glow_scale, 1.2 * glow_scale)), Color(glow, 0.14))
+	_draw_rounded_fill(_led_rect(Vector2(1.08 * glow_scale, 1.08 * glow_scale)), Color(glow, 0.24))
+	_draw_rounded_border(_led_rect(), glow, 0.55, 1.25)
+	_draw_rounded_fill(_led_rect(Vector2(0.76, 0.76)), core)
+	var core_rect := _led_rect(Vector2(0.76, 0.76))
 	var spec := Rect2(
-		core.position + Vector2(core.size.x * 0.12, core.size.y * 0.1),
-		Vector2(core.size.x * 0.45, core.size.y * 0.22)
+		core_rect.position + Vector2(core_rect.size.x * 0.12, core_rect.size.y * 0.1),
+		Vector2(core_rect.size.x * 0.45, core_rect.size.y * 0.22)
 	)
-	_draw_rounded_fill(spec, Color(1, 1, 1, 0.38), CORNER_RADIUS / 2)
+	_draw_rounded_fill(
+		spec,
+		_palette_color(ImprovementThemeTypes.LED_SPECULAR),
+		CORNER_RADIUS / 2
+	)
 
 
 func _draw_off_led() -> void:
-	_draw_rounded_fill(_led_rect(), OFF_FILL)
-	_draw_rounded_border(_led_rect(), OFF_BORDER, 1.0, 1.0)
+	_draw_rounded_fill(_led_rect(), _palette_color(ImprovementThemeTypes.LED_OFF_FILL))
+	_draw_rounded_border(
+		_led_rect(),
+		_palette_color(ImprovementThemeTypes.LED_OFF_BORDER),
+		1.0,
+		1.0
+	)
 	var inner := _led_rect(Vector2(0.7, 0.55))
 	inner.position.y += LED_SIZE.y * 0.08
-	_draw_rounded_fill(inner, Color(0, 0, 0, 0.2), CORNER_RADIUS - 2)
+	_draw_rounded_fill(
+		inner,
+		_palette_color(ImprovementThemeTypes.LED_INNER_SHADOW),
+		CORNER_RADIUS - 2
+	)
 
 
 func _draw_rounded_fill(rect: Rect2, color: Color, radius: int = CORNER_RADIUS) -> void:

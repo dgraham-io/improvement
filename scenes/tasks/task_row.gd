@@ -8,12 +8,6 @@ const _AppMessage := preload("res://scripts/ui/app_message.gd")
 
 signal edit_requested(item: TaskItem)
 
-const PRIORITY_COLORS := [
-	Color(0.45, 0.5, 0.62, 0.7),
-	Color(0.133333, 0.866667, 1, 0.9),
-	Color(0.658824, 0.333333, 0.968627, 0.9),
-	Color(0.92549, 0.282353, 0.6, 0.95),
-]
 const EMPTY_WORK_STATS := {"completed_pomodoros": 0, "total_work_sec": 0}
 
 var item: TaskItem
@@ -141,8 +135,11 @@ func _update_action_buttons(task_item) -> void:
 
 
 func _apply_priority_strip(priority: int) -> void:
-	var tier := clampi(priority, 0, PRIORITY_COLORS.size() - 1)
-	_priority_strip.color = PRIORITY_COLORS[tier]
+	_priority_strip.color = ThemePalette.color(
+		self,
+		ImprovementThemeTypes.priority_key(priority),
+		ImprovementThemeTypes.TASK_ROW
+	)
 
 
 func _apply_work_stats(work_stats: Dictionary) -> void:
@@ -175,11 +172,18 @@ func _apply_progress(task_item, work_stats: Dictionary) -> void:
 
 func _apply_done_style(done: bool) -> void:
 	if done:
-		_title_label.modulate = Color(0.55, 0.58, 0.68, 1.0)
-		_work_time_label.modulate = Color(0.5, 0.5, 0.55, 1.0)
+		_title_label.modulate = ThemePalette.color(
+			self, ImprovementThemeTypes.DONE_TITLE, ImprovementThemeTypes.TASK_ROW
+		)
+		_work_time_label.modulate = ThemePalette.color(
+			self, ImprovementThemeTypes.DONE_WORK_TIME, ImprovementThemeTypes.TASK_ROW
+		)
 	else:
-		_title_label.modulate = Color(1, 1, 1, 1)
-		_work_time_label.modulate = Color(1, 1, 1, 1)
+		var reset := ThemePalette.color(
+			self, ImprovementThemeTypes.DONE_RESET, ImprovementThemeTypes.TASK_ROW
+		)
+		_title_label.modulate = reset
+		_work_time_label.modulate = reset
 	if item != null:
 		_apply_title(item)
 

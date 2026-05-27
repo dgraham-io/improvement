@@ -9,6 +9,7 @@ signal closed
 signal settings_applied
 signal backup_imported
 
+@onready var _dim: ColorRect = $Dim
 @onready var _scale_slider: HSlider = %ScaleSlider
 @onready var _scale_value: Label = %ScaleValue
 @onready var _scale_hint: Label = %ScaleHint
@@ -29,6 +30,7 @@ func _ready() -> void:
 	_viewport_scale_at_open = get_tree().root.content_scale_factor
 	_load_current_settings()
 	_update_scale_controls()
+	_sync_dialog_chrome()
 	_scale_hint.text = "UI scale applies immediately when you save."
 	_db_path_label.text = Database.get_db_file_path()
 
@@ -56,6 +58,13 @@ func _load_current_settings() -> void:
 
 	_original_newest_first = JournalService.get_sort_newest_first()
 	_newest_first_check.button_pressed = _original_newest_first
+
+
+func _sync_dialog_chrome() -> void:
+	_dim.color = _dim.get_theme_color(
+		ImprovementThemeTypes.OVERLAY,
+		ImprovementThemeTypes.OVERLAY_DIM
+	)
 
 
 func _on_scale_slider_changed(_value: float) -> void:
@@ -163,10 +172,14 @@ func _show_info(title: String, message: String) -> void:
 	dialog.canceled.connect(dialog.queue_free)
 
 
-func _on_cancel_pressed() -> void:
-	_restore_viewport_scale()
+func _close_dialog() -> void:
 	closed.emit()
 	queue_free()
+
+
+func _on_cancel_pressed() -> void:
+	_restore_viewport_scale()
+	_close_dialog()
 
 
 func _on_save_pressed() -> void:
@@ -221,5 +234,4 @@ func _on_save_pressed() -> void:
 			]
 		)
 
-	closed.emit()
-	queue_free()
+	_close_dialog()

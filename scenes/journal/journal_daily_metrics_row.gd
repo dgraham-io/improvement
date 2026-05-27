@@ -3,9 +3,8 @@ class_name JournalDailyMetricsRow
 extends PanelContainer
 
 const FOCUS_GOAL_SEC := 4 * 3600
-const ACCENT := Color(0.133333, 0.866667, 1, 1)
-const ACCENT_DIM := Color(0.133333, 0.866667, 1, 0.35)
 
+@onready var _accent_dot: ColorRect = %AccentDot
 @onready var _day_heading: Label = %DayHeadingLabel
 @onready var _day_subtitle: Label = %DaySubtitleLabel
 @onready var _focus_value: Label = %FocusValueLabel
@@ -18,6 +17,14 @@ const ACCENT_DIM := Color(0.133333, 0.866667, 1, 0.35)
 @onready var _empty_hint: Label = %EmptyHintLabel
 @onready var _stats_grid: GridContainer = %StatsGrid
 @onready var _hourly_bars: HBoxContainer = %HourlyBars
+
+
+func _ready() -> void:
+	_accent_dot.color = ThemePalette.color(
+		self,
+		ImprovementThemeTypes.METRICS_ACCENT_DOT,
+		ImprovementThemeTypes.METRICS_ROW
+	)
 
 
 func setup(stats: DailyWorkStats) -> void:
@@ -77,8 +84,7 @@ func _build_hourly_chart(hourly_work_sec: PackedInt32Array) -> void:
 		var tick := Label.new()
 		tick.text = "·" if hour % 6 != 0 else str(hour)
 		tick.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		tick.add_theme_font_size_override("font_size", 10)
-		tick.add_theme_color_override("font_color", ACCENT_DIM)
+		tick.theme_type_variation = &"Label_chart_tick"
 		column.add_child(tick)
 		_hourly_bars.add_child(column)
 

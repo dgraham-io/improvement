@@ -32,16 +32,13 @@ theme_type_variation = &"PanelContainer_card"
 
 [node name="MarginContainer" type="MarginContainer" parent="Center/Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 14
+theme_type_variation = &"MarginContainer_setup"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Center/Panel/MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 10
+theme_type_variation = &"VBoxContainer_dialog"
 
 [node name="TitleLabel" type="Label" parent="Center/Panel/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
@@ -58,7 +55,7 @@ autowrap_mode = 3
 
 [node name="PathRow" type="HBoxContainer" parent="Center/Panel/MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_type_variation = &"HBoxContainer_section"
 
 [node name="PathField" type="LineEdit" parent="Center/Panel/MarginContainer/VBoxContainer/PathRow"]
 unique_name_in_owner = true
@@ -81,14 +78,13 @@ autowrap_mode = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_type_variation = &"Label_muted"
-theme_override_colors/font_color = Color(0.92549, 0.4, 0.5, 1)
+theme_type_variation = &"Label_error"
 autowrap_mode = 3
 
 [node name="ActionsRow" type="HBoxContainer" parent="Center/Panel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 alignment = 2
-theme_override_constants/separation = 8
+theme_type_variation = &"HBoxContainer_section"
 
 [node name="LocalButton" type="Button" parent="Center/Panel/MarginContainer/VBoxContainer/ActionsRow"]
 layout_mode = 2

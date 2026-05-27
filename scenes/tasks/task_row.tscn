@@ -12,15 +12,12 @@ script = ExtResource("1_row")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 7
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 7
+theme_type_variation = &"MarginContainer_card"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_type_variation = &"HBoxContainer_section"
 
 [node name="DragHandle" type="Control" parent="MarginContainer/HBoxContainer"]
 custom_minimum_size = Vector2(28, 0)
@@ -43,7 +40,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_type_variation = &"Label_muted"
-theme_override_font_sizes/font_size = 14
 text = "⋮⋮"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -63,11 +59,11 @@ color = Color(0.133333, 0.866667, 1, 0.85)
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 5
+theme_type_variation = &"VBoxContainer_compact"
 
 [node name="TitleRow" type="HBoxContainer" parent="MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_type_variation = &"HBoxContainer_compact"
 
 [node name="TitleLabel" type="RichTextLabel" parent="MarginContainer/HBoxContainer/VBoxContainer/TitleRow"]
 unique_name_in_owner = true
@@ -83,7 +79,6 @@ text = "Task title"
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_accent"
-text = ""
 
 [node name="TaskProgressBar" type="ProgressBar" parent="MarginContainer/HBoxContainer/VBoxContainer"]
 unique_name_in_owner = true
@@ -98,7 +93,6 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"Label_muted"
-theme_override_font_sizes/font_size = 14
 text = "Notes"
 autowrap_mode = 3
 
@@ -106,13 +100,12 @@ autowrap_mode = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_type_variation = &"Label_accent"
-theme_override_font_sizes/font_size = 14
+theme_type_variation = &"Label_accent_body"
 text = "Work · Personal"
 
 [node name="ActionsColumn" type="VBoxContainer" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_type_variation = &"VBoxContainer_tight"
 
 [node name="DoneButton" type="Button" parent="MarginContainer/HBoxContainer/ActionsColumn"]
 unique_name_in_owner = true

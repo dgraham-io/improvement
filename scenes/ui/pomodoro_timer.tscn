@@ -3,14 +3,13 @@
 [ext_resource type="Script" path="res://scenes/ui/pomodoro_timer.gd" id="1_pomo"]
 
 [node name="PomodoroTimer" type="HBoxContainer"]
-theme_override_constants/separation = 6
+theme_type_variation = &"HBoxContainer_compact"
 alignment = 1
 script = ExtResource("1_pomo")
 
 [node name="TimeLabel" type="Label" parent="."]
 layout_mode = 2
-theme_type_variation = &"Label_accent"
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"Label_timer"
 text = "25:00"
 
 [node name="ActionButton" type="Button" parent="."]
