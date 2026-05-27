@@ -20,12 +20,12 @@ Desktop prototype with **SQLite-backed** journal and tasks, inline editing, and 
 | Drag reorder, done checkbox, row edit/delete | Shipped |
 | First-run DB folder setup (e.g. Dropbox) | Shipped |
 | Theme + Roboto | Shipped |
-| UI scale | Defaults to **system detection**; override via `app_settings.ui_scale` (Settings UI planned) |
+| UI scale | Defaults to **system detection**; override in **Settings** (gear icon) |
 | SQLite schema + migrations (v4; tags) | Shipped |
 | `JournalService` / `TaskService` / `PomodoroService` | Shipped |
 | Pomodoro → task `in_progress` + work time on rows | Shipped |
 | Window size/position persistence (desktop export) | Shipped |
-| Settings screen | Planned (roadmap) |
+| Settings screen | Shipped |
 | Encryption at rest | Not scheduled — see [recommendations](docs/architecture.md#recommendations-not-on-roadmap) |
 | Cloud sync / backup UX | Planned (roadmap) |
 
@@ -112,7 +112,7 @@ improvement/
 
 ### Later
 
-6. **User preferences UI** — `app_settings`: journal sort, theme options, **UI scale** slider → `content_scale_factor`.
+6. ~~**User preferences UI**~~ — Settings dialog: journal sort, **UI scale** (manual or system), applies immediately.
 7. **Optional sync / backup** — Dropbox / iCloud or explicit export/import beyond placing `improvement.db` in a synced folder.
 8. **Swap panel while editing entries** — switch between the journal composer and task editor without losing unsaved text (e.g. keep drafts, or prompt to save/discard before changing focus).
 

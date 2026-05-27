@@ -126,7 +126,7 @@ Main (Control, theme)
 | UI toolkit | Godot **Control** + theme |
 | Lists | `ScrollContainer` → `VBoxContainer` → row `PanelContainer`s |
 | Typography | Roboto via `improvement_theme.tres` |
-| UI scale | Defaults to system detection; can be overridden by `app_settings.ui_scale` (no Settings UI yet) |
+| UI scale | Defaults to system detection; override via Settings → `app_settings.ui_scale` (applies immediately) |
 | Task metadata | Priority strip (0–3); **work time** from aggregated Pomodoros (not `P0` label) |
 
 ### Data layer (shipped)
@@ -191,7 +191,7 @@ Details: [data-model.md](data-model.md), [schema.sql](schema.sql).
 | **2** | Row scenes + lists + inline editors | **Done** |
 | **2b** | First-run setup + empty DB | **Done** |
 | **2c** | Pomodoro + task work stats | **Done** (top task + journal only) |
-| **3** | Settings UI + `ui_scale` slider | **Roadmap** |
+| **3** | Settings UI + `ui_scale` slider | **Done** |
 | **6** | Sync / backup UX | **Roadmap** |
 | **8** | Swap panel while editing entries (journal ↔ task without losing drafts) | **Roadmap** |
 | — | Encryption | **Shelved** (see recommendations) |

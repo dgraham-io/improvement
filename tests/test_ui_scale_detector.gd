@@ -19,5 +19,3 @@ func test_dpi_fallback_produces_sane_values() -> void:
 	assert_true(result.scale > 0.0)
 
 
-func test_prefers_explicit_override_when_different_from_one() -> void:
-	pending("Override preference logic lives in main.gd and is covered indirectly.")

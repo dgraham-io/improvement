@@ -11,7 +11,7 @@ func _ready() -> void:
 		await Database.ready_changed
 	if not Database.is_ready:
 		return
-	_apply_ui_scale()
+	UiScaleSettings.apply_to_viewport(get_tree())
 	_journal_area.initialize()
 	_task_sidebar.initialize()
 	PomodoroService.session_ended.connect(_on_pomodoro_session_ended)
@@ -20,43 +20,16 @@ func _ready() -> void:
 	_settings_button.pressed.connect(_on_settings_pressed)
 
 	if OS.is_debug_build():
+		var scale_info: Dictionary = UiScaleSettings.resolve()
+		print(
+			"UI Scale: %.2f  (source: %s)"
+			% [scale_info.get("scale", 1.0), scale_info.get("source", "")]
+		)
 		print(
 			"Improvement ready — journal: %d, tasks: %d"
 			% [JournalService.get_entry_count(), TaskService.get_task_count()]
 		)
 		_log_other_instance_status()
-
-
-func _apply_ui_scale() -> void:
-	var scale := 1.0
-	var source := "default"
-	
-	# 1. Check if the user has explicitly set a scale in settings (future Settings UI)
-	var stored := Database.get_setting(DbConstants.SETTING_UI_SCALE, "")
-	if not stored.is_empty():
-		var parsed := stored.to_float()
-		if parsed > 0.25 and abs(parsed - 1.0) > 0.01:   # treat 1.0 as "not overridden"
-			scale = parsed
-			source = "stored setting"
-	
-	# 2. If no explicit user override, run system detection with fallbacks
-	if source == "default":
-		var detection := UiScaleDetector.detect()
-		scale = detection.scale
-		source = detection.source
-	
-	# Safety clamp
-	scale = clamp(scale, 0.5, 4.0)
-	
-	get_tree().root.content_scale_factor = scale
-	
-	if OS.is_debug_build():
-		print("UI Scale: %.2f  (source: %s)" % [scale, source])
-		if source == "default":
-			var detection := UiScaleDetector.detect()
-			print("   Raw system detection → scale: %.2f, source: %s" % [detection.scale, detection.source])
-
-
 
 
 func _on_pomodoro_session_ended(target_type: String, target_id: int, _completed: bool) -> void:
@@ -102,4 +75,15 @@ func _on_settings_pressed() -> void:
 	const SettingsDialogScene := preload("res://scenes/ui/settings_dialog.tscn")
 	var dialog := SettingsDialogScene.instantiate()
 	get_tree().root.add_child(dialog)
+	dialog.settings_applied.connect(_on_settings_applied)
 	dialog.closed.connect(func(): pass)  # dialog cleans itself up
+
+
+func _on_settings_applied() -> void:
+	UiScaleSettings.apply_to_viewport(get_tree())
+	if OS.is_debug_build():
+		var scale_info: Dictionary = UiScaleSettings.resolve()
+		print(
+			"UI Scale: %.2f  (source: %s)"
+			% [scale_info.get("scale", 1.0), scale_info.get("source", "")]
+		)

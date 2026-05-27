@@ -78,8 +78,13 @@ ticks_on_borders = true
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Label_muted"
-text = "Changes take effect after restarting the app."
+text = "UI scale applies immediately when you save."
 autowrap_mode = 3
+
+[node name="UseSystemScaleCheck" type="CheckButton" parent="Center/Panel/Margin/VBox/ScaleSection"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Match system UI scale"
 
 [node name="JournalSection" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
@@ -125,5 +130,6 @@ theme_type_variation = &"Button_primary"
 text = "Save"
 
 [connection signal="value_changed" from="Center/Panel/Margin/VBox/ScaleSection/ScaleSlider" to="." method="_on_scale_slider_changed"]
+[connection signal="toggled" from="Center/Panel/Margin/VBox/ScaleSection/UseSystemScaleCheck" to="." method="_on_use_system_scale_toggled"]
 [connection signal="pressed" from="Center/Panel/Margin/VBox/Actions/CancelButton" to="." method="_on_cancel_pressed"]
 [connection signal="pressed" from="Center/Panel/Margin/VBox/Actions/SaveButton" to="." method="_on_save_pressed"]
