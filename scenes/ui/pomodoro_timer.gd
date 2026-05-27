@@ -71,6 +71,6 @@ func _refresh() -> void:
 
 func _format_time(total_sec: int) -> String:
 	var safe := maxi(0, total_sec)
-	var minutes := safe / 60
-	var seconds := safe % 60
+	var minutes := int(safe / 60)
+	var seconds := int(safe % 60)
 	return "%d:%02d" % [minutes, seconds]
