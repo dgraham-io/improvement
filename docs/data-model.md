@@ -109,6 +109,21 @@ UI replaces the old `P0` label with `TimeFormat.format_work_duration(total_work_
 
 **API:** `Database.fetch_task_pomodoro_work_stats()` / `fetch_task_pomodoro_work_stats_map()`; `TaskService.get_work_stats()` / `get_work_stats_map()`.
 
+#### Daily work stats (aggregated)
+
+The journal pane shows a daily metrics row ([`scenes/journal/journal_daily_metrics_row.tscn`](../scenes/journal/journal_daily_metrics_row.tscn)) summarising one local calendar day of pomodoro activity. The aggregation runs across **both** `journal` and `task` targets in `pomodoro_sessions` filtered by `started_at` within `[day_start_unix, day_start_unix + 86400)`.
+
+| Metric | Rule |
+|--------|------|
+| `total_work_sec` | `SUM(ended_at - started_at)` over ended sessions |
+| `completed_pomodoros` | `COUNT(*)` where `completed = 1` |
+| `session_count` | `COUNT(*)` over all sessions started in the day |
+| `journal_work_sec` | `total_work_sec` restricted to `target_type = 'journal'` |
+| `task_work_sec` | `total_work_sec` restricted to `target_type = 'task'` |
+| `hourly_work_sec` | 24-element `PackedInt32Array`; seconds of work bucketed by local hour |
+
+**API:** `Database.fetch_daily_pomodoro_stats(day_anchor_unix)` → `Dictionary`; `PomodoroService.get_daily_work_stats(day_start_unix)` → [`DailyWorkStats`](../scripts/models/daily_work_stats.gd).
+
 ### `app_settings`
 
 | Key | Default | Purpose |
@@ -152,7 +167,8 @@ Factory: `*.from_row(dict)` after SQLite queries via [`db_row.gd`](../scripts/da
 | `JournalService` | Journal CRUD + search + signals |
 | `TaskService` | Task CRUD + reorder + work stats + signals |
 | `TagService` | Tag catalog + entry/task assignments + signals |
-| `PomodoroService` | Timer + DB sessions + `in_progress` on first task start |
+| `PomodoroService` | Timer + DB sessions + `in_progress` on first task start + daily work stats |
+| `SoundService` | Plays feedback sound on completed pomodoro (listens to `PomodoroService.session_ended`) |
 
 **Rule:** UI calls **services**, not `Database`, except bootstrap/low-level cases.
 

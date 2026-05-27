@@ -16,7 +16,7 @@ See also: [README](../README.md) · [Data model](data-model.md) · [SQL schema](
 | Local-first data | SQLite `<chosen_folder>/improvement.db`; bootstrap in `user://app_config.json` |
 | Pomodoro discipline | One active timer; sessions in DB; task work time in UI |
 | Privacy later | Encryption at rest — not scheduled ([recommendations](#recommendations-not-on-roadmap)) |
-| Optional cloud | Sync/backup on [roadmap](../README.md#roadmap) item **6** |
+| Optional cloud | Backup export/import shipped (Settings); cloud sync via folder choice (e.g. Dropbox) |
 
 **Non-goals (for now):** 3D, physics, multiplayer, real-time collaboration.
 
@@ -42,7 +42,9 @@ flowchart TB
 	AppSetupSvc[AppSetup autoload]
 	JournalSvc[JournalService]
 	TaskSvc[TaskService]
+	TagSvc[TagService]
 	TimerSvc[PomodoroService]
+	SoundSvc[SoundService]
 	WinLayout[WindowLayout]
   end
 
@@ -54,13 +56,17 @@ flowchart TB
 	AppConfig -.-> DbAutoload
   end
 
-  JournalUI --> JournalSvc
-  TaskUI --> TaskSvc
-  JournalUI --> TimerSvc
-  TaskUI --> TimerSvc
+  JournalArea --> JournalSvc
+  TaskSidebar --> TaskSvc
+  JournalArea --> TimerSvc
+  TaskSidebar --> TimerSvc
+  JournalArea --> TagSvc
+  TaskSidebar --> TagSvc
   JournalSvc --> DbAutoload
   TaskSvc --> DbAutoload
+  TagSvc --> DbAutoload
   TimerSvc --> DbAutoload
+  TimerSvc -. session_ended .-> SoundSvc
   WinLayout --> DbAutoload
   AppSetupSvc --> AppConfig
 ```
@@ -132,8 +138,8 @@ Main (Control, theme)
 ### Data layer (shipped)
 
 - **Bootstrap:** [`scripts/app/app_config.gd`](../scripts/app/app_config.gd) → `user://app_config.json`.
-- **Database:** [`scripts/autoload/database.gd`](../scripts/autoload/database.gd) — `PRAGMA user_version` **4**; tables per [data-model.md](data-model.md).
-- **Services:** `JournalService`, `TaskService`, `PomodoroService`.
+- **Database:** [`scripts/autoload/database.gd`](../scripts/autoload/database.gd) — `PRAGMA user_version` **6**; tables per [data-model.md](data-model.md).
+- **Services:** `JournalService`, `TaskService`, `TagService`, `PomodoroService`, `SoundService`.
 - **WindowLayout:** persists window bounds to `app_settings` on desktop export.
 - **Search:** journal `LIKE` on body (FTS5 deferred).
 
@@ -158,7 +164,9 @@ Main (Control, theme)
 | `WindowLayout` | Save/restore window size and position |
 | `JournalService` | Journal CRUD, search, sort preference, signals |
 | `TaskService` | Task CRUD, reorder, `get_work_stats*`, signals |
-| `PomodoroService` | Timer state, persistence, `in_progress` promotion, `session_ended` |
+| `TagService` | Tag catalog + entry/task assignments; `entry_tags_changed`, `task_tags_changed` |
+| `PomodoroService` | Timer state, persistence, `in_progress` promotion, `session_ended`, daily work stats |
+| `SoundService` | Plays feedback sound on completed pomodoro (`session_ended` listener) |
 
 UI rebuilds lists on service signals; task work stats refresh on `session_ended` without full list reload.
 
@@ -195,7 +203,7 @@ Details: [data-model.md](data-model.md), [schema.sql](schema.sql).
 | **6** | Sync / backup UX | **Done** |
 | **8** | Swap panel while editing entries (journal ↔ task without losing drafts) | **Done** |
 | — | Encryption | **Shelved** (see recommendations) |
-| — | Pomodoro per-row / polish | **Deferred** (see recommendations) |
+| — | Pomodoro per-row / polish | **Not on roadmap** (see recommendations) |
 
 ---
 
@@ -249,22 +257,25 @@ These are sensible next investments **after** roadmap items **3** and **6**, or 
 improvement/
 ├── docs/{architecture.md,data-model.md,schema.sql}
 ├── scenes/{main,journal,tasks,setup,ui}/
-├── scripts/{app,autoload,database,models,tools}/
-├── assets/{fonts,themes,icons,textures}/
-├── addons/godot-sqlite/
+├── scripts/{app,autoload,database,journal,models,tags,tasks,tools,ui,util}/
+├── assets/{fonts,icons,sounds,textures,themes}/
+├── addons/{godot-sqlite,gut}/
+├── tests/                  # GUT specs (test_*.gd); config in .gutconfig.json
 ├── export_presets.cfg
 ├── project.godot
 └── README.md
 ```
 
+**Tests:** [GUT](https://github.com/bitwes/Gut) is enabled in [project.godot](../project.godot); specs live in [`tests/`](../tests/) and follow the `test_*.gd` convention from [`.gutconfig.json`](../.gutconfig.json). Run from the editor's **GUT** bottom panel or headless via `godot --path . --headless -s res://addons/gut/gut_cmdln.gd`.
+
 ---
 
 ## References
 
-- [Godot UI layout](https://docs.godotengine.org/en/4.6/tutorials/ui/size_and_anchors.html)
+- [Godot UI layout](https://docs.godotengine.org/en/4.7/tutorials/ui/size_and_anchors.html)
 - [godot-sqlite](https://github.com/godot-sqlite/godot-sqlite)
-- [Game embedding](https://docs.godotengine.org/en/4.6/tutorials/editor/game_embedding.html) (editor only)
+- [Game embedding](https://docs.godotengine.org/en/4.7/tutorials/editor/game_embedding.html) (editor only)
 
 ---
 
-*Last updated: 2026-05 — reflects setup dialog, schema v3, inline editors, Pomodoro work stats.*
+*Last updated: 2026-05 — reflects setup dialog, schema v6, inline editors, Pomodoro work stats, tags, daily metrics row.*
