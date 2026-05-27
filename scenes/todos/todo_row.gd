@@ -4,9 +4,9 @@ extends PanelContainer
 
 const _TagDisplay := preload("res://scripts/ui/tag_display.gd")
 const _TodoTitleFormat := preload("res://scripts/todos/todo_title_format.gd")
+const _DragHandleScript := preload("res://scenes/todos/todo_drag_handle.gd")
 
 signal edit_requested(item: TodoItem)
-signal reorder_requested(dragged_id: int, target_id: int, insert_before: bool)
 
 const PRIORITY_COLORS := [
 	Color(0.45, 0.5, 0.62, 0.7),
@@ -30,29 +30,72 @@ var item: TodoItem
 var _work_stats: Dictionary = EMPTY_WORK_STATS
 
 
-func create_drag_data() -> Variant:
+func _get_drag_data(_at_position: Vector2) -> Variant:
 	if item == null:
 		return null
+	set_reorder_drag_active(true)
 	var preview := Label.new()
 	preview.text = item.title
 	preview.add_theme_font_size_override("font_size", 16)
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_drag_preview(preview)
-	return {"todo_id": item.id}
+	var payload := {"todo_id": item.id}
+	var list := _find_list_drop_target()
+	if list != null:
+		var global_pos := get_global_transform() * _at_position
+		var list_local: Vector2 = list.get_global_transform().affine_inverse() * global_pos
+		payload["list_anchor_y"] = list_local.y
+	return payload
 
 
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
-	if item == null or not data is Dictionary:
-		return false
-	var dragged_id: int = int(data.get("todo_id", 0))
-	return dragged_id > 0 and dragged_id != item.id
+	return _forward_drop_to_list(at_position, data)
 
 
 func _drop_data(at_position: Vector2, data: Variant) -> void:
-	var dragged_id: int = int(data.get("todo_id", 0))
-	if dragged_id <= 0 or item == null or dragged_id == item.id:
+	_forward_drop_to_list(at_position, data, true)
+
+
+func set_reorder_drag_active(active: bool) -> void:
+	for child in get_children():
+		_apply_drag_passthrough(child, active)
+
+
+func _apply_drag_passthrough(node: Node, active: bool) -> void:
+	if node.get_script() == _DragHandleScript:
 		return
-	var insert_before := at_position.y < size.y * 0.5
-	reorder_requested.emit(dragged_id, item.id, insert_before)
+	if node is Control:
+		var control := node as Control
+		if active:
+			if not control.has_meta("_saved_mouse_filter"):
+				control.set_meta("_saved_mouse_filter", control.mouse_filter)
+			control.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		elif control.has_meta("_saved_mouse_filter"):
+			control.mouse_filter = int(control.get_meta("_saved_mouse_filter"))
+			control.remove_meta("_saved_mouse_filter")
+	for child in node.get_children():
+		_apply_drag_passthrough(child, active)
+
+
+func _forward_drop_to_list(at_position: Vector2, data: Variant, apply_drop: bool = false) -> bool:
+	var list := _find_list_drop_target()
+	if list == null:
+		return false
+	var global_pos := get_global_transform() * at_position
+	var local_in_list := list.get_global_transform().affine_inverse() * global_pos
+	if apply_drop:
+		list.handle_drop(local_in_list, data)
+		return true
+	return list.handle_can_drop(local_in_list, data)
+
+
+func _find_list_drop_target() -> TodoListDropTarget:
+	var node: Node = get_parent()
+	while node != null:
+		if node is TodoListDropTarget:
+			return node as TodoListDropTarget
+		node = node.get_parent()
+	return null
 
 
 func setup(todo_item: TodoItem, work_stats: Dictionary = EMPTY_WORK_STATS, tags: Array = []) -> void:

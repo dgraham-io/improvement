@@ -3,9 +3,9 @@ class_name MissionSidebar
 extends PanelContainer
 
 const TODO_ROW_SCENE := preload("res://scenes/todos/todo_row.tscn")
-const _VBoxListUtil := preload("res://scripts/ui/vbox_list_util.gd")
 const _MissionStatusOptions := preload("res://scripts/ui/mission_status_options.gd")
 const _MissionComposerLogic := preload("res://scripts/todos/mission_composer_logic.gd")
+const MISSION_SPLIT_OPEN_OFFSET := 180
 
 var _editing_todo: TodoItem = null
 var _tracked_top_todo_id: int = 0
@@ -22,7 +22,8 @@ var _tracked_top_todo_id: int = 0
 @onready var _mission_delete_button: Button = %MissionDeleteButton
 @onready var _mission_cancel_button: Button = %MissionCancelButton
 @onready var _mission_pomodoro: PomodoroTimerWidget = %MissionPomodoro
-@onready var _todo_vbox: VBoxContainer = %TodoEntriesVBox
+@onready var _todo_split: VSplitContainer = %TodoSplit
+@onready var _todo_vbox: TodoListDropTarget = %TodoEntriesVBox
 @onready var _todo_empty_label: Label = %TodoEmptyLabel
 
 
@@ -41,6 +42,7 @@ func _connect_ui() -> void:
 	_mission_delete_button.pressed.connect(_on_mission_delete_pressed)
 	_mission_save_button.pressed.connect(_on_mission_save_pressed)
 	_mission_title_field.text_submitted.connect(_on_mission_title_submitted)
+	_todo_vbox.reorder_to_index.connect(_on_todo_reorder_to_index)
 
 
 func _connect_services() -> void:
@@ -58,7 +60,7 @@ func refresh_list_deferred() -> void:
 
 
 func refresh_list() -> void:
-	_VBoxListUtil.clear_children_except(_todo_vbox, _todo_empty_label)
+	_todo_vbox.clear_rows()
 	var items := TodoService.list_todos()
 	var work_stats_map := TodoService.get_work_stats_map()
 	var tags_map := TagService.get_todo_tags_map()
@@ -67,7 +69,6 @@ func refresh_list() -> void:
 		var row: TodoRow = TODO_ROW_SCENE.instantiate()
 		_todo_vbox.add_child(row)
 		row.edit_requested.connect(_on_todo_edit_requested)
-		row.reorder_requested.connect(_on_todo_reorder_requested)
 		var stats: Dictionary = work_stats_map.get(item.id, TodoRow.EMPTY_WORK_STATS)
 		var item_tags: Array = tags_map.get(item.id, [])
 		row.setup(item, stats, item_tags)
@@ -129,10 +130,14 @@ func _on_new_todo_pressed() -> void:
 
 func _show_mission_composer() -> void:
 	_todo_mission_panel.visible = true
+	_todo_mission_panel.custom_minimum_size.y = 140
+	_todo_split.split_offset = MISSION_SPLIT_OPEN_OFFSET
 
 
 func _hide_mission_composer() -> void:
 	_todo_mission_panel.visible = false
+	_todo_mission_panel.custom_minimum_size.y = 0
+	_todo_split.split_offset = 0
 
 
 func _close_mission_composer() -> void:
@@ -253,8 +258,8 @@ func _update_todo_progress(items: Array[TodoItem]) -> void:
 		_todo_progress_bar.value = 0.0
 
 
-func _on_todo_reorder_requested(dragged_id: int, target_id: int, insert_before: bool) -> void:
-	TodoService.move_todo_relative_to(dragged_id, target_id, insert_before)
+func _on_todo_reorder_to_index(dragged_id: int, insert_index: int) -> void:
+	TodoService.move_todo_to_index(dragged_id, insert_index)
 
 
 func _on_todo_edit_requested(item: TodoItem) -> void:

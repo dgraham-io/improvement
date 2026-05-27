@@ -138,27 +138,39 @@ func set_status(todo_id: int, status: String, emit_updated: bool = true) -> bool
 
 func move_todo_relative_to(dragged_id: int, target_id: int, insert_before: bool) -> bool:
 	var items := list_todos()
-	var from_idx := -1
 	var target_idx := -1
+	for i in items.size():
+		if items[i].id == target_id:
+			target_idx = i
+			break
+	if target_idx < 0:
+		return false
+	var insert_idx := target_idx if insert_before else target_idx + 1
+	return move_todo_to_index(dragged_id, insert_idx)
+
+
+## Insert [param dragged_id] at [param insert_index] in the current list order (0 = top).
+func move_todo_to_index(dragged_id: int, insert_index: int) -> bool:
+	var items := list_todos()
+	var from_idx := -1
 	for i in items.size():
 		if items[i].id == dragged_id:
 			from_idx = i
-		if items[i].id == target_id:
-			target_idx = i
-	if from_idx < 0 or target_idx < 0 or from_idx == target_idx:
+			break
+	if from_idx < 0:
 		return false
 	var moved := items[from_idx]
 	items.remove_at(from_idx)
-	if from_idx < target_idx:
-		target_idx -= 1
-	var insert_idx := target_idx if insert_before else target_idx + 1
-	insert_idx = clampi(insert_idx, 0, items.size())
-	items.insert(insert_idx, moved)
+	insert_index = clampi(insert_index, 0, items.size())
+	if from_idx < insert_index:
+		insert_index -= 1
+	items.insert(insert_index, moved)
 	for i in items.size():
 		items[i].sort_order = i
 		if not Database.update_todo(items[i]):
 			return false
 	normalize_list_order()
+	todo_reordered.emit()
 	return true
 
 

@@ -4,14 +4,15 @@ extends Control
 
 func _ready() -> void:
 	mouse_default_cursor_shape = Control.CURSOR_MOVE
-	tooltip_text = "Drag to reorder"
+	tooltip_text = "Drag to reorder (drop between missions or at list ends)"
 
 
-func _get_drag_data(_at_position: Vector2) -> Variant:
+func _get_drag_data(at_position: Vector2) -> Variant:
 	var row := _find_todo_row()
 	if row == null:
 		return null
-	return row.create_drag_data()
+	# Row enables passthrough so the list (not buttons) owns drop targeting.
+	return row._get_drag_data(at_position)
 
 
 func _find_todo_row() -> TodoRow:

@@ -7,6 +7,10 @@
 [ext_resource type="Texture2D" uid="uid://boihexead64ec" path="res://assets/textures/ui/bg_gradient.tres" id="2_bg"]
 [ext_resource type="PackedScene" uid="uid://c8pomodoro01" path="res://scenes/ui/pomodoro_timer.tscn" id="3_pomo"]
 [ext_resource type="PackedScene" uid="uid://c8tagpicker01" path="res://scenes/ui/tag_picker.tscn" id="6_tag_picker"]
+[ext_resource type="Script" path="res://scenes/todos/todo_list_drop_target.gd" id="7_todo_drop"]
+[ext_resource type="Script" path="res://scenes/todos/todo_scroll_drop_forward.gd" id="8_todo_scroll"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_scroll"]
 
 [node name="Main" type="Control" unique_id=673025731]
 layout_mode = 3
@@ -272,11 +276,12 @@ theme_type_variation = &"Button_primary"
 text = "＋  New Mission"
 
 [node name="TodoSplit" type="VSplitContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn" unique_id=1048728002]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-split_offsets = PackedInt32Array(180)
-split_offset = 180
+split_offsets = PackedInt32Array(0)
+split_offset = 0
 
 [node name="TodoMissionPanel" type="PanelContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit" unique_id=1952371124]
 unique_name_in_owner = true
@@ -363,12 +368,16 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_scroll")
+script = ExtResource("8_todo_scroll")
 
 [node name="TodoEntriesVBox" type="VBoxContainer" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoScrollContainer" unique_id=1852606318]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 0
 theme_override_constants/separation = 7
+script = ExtResource("7_todo_drop")
 
 [node name="TodoEmptyLabel" type="Label" parent="MarginContainer/HSplitContainer/TodoSidebar/TodoSidebarMargin/TodoColumn/TodoSplit/TodoScrollContainer/TodoEntriesVBox" unique_id=1781153293]
 unique_name_in_owner = true
