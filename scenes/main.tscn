@@ -74,9 +74,21 @@ layout_mode = 2
 
 [node name="JournalTitle" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock" unique_id=2003677379]
 layout_mode = 2
-size_flags_horizontal = 3
 theme_type_variation = &"Label_title"
 text = "▌ JOURNAL"
+
+[node name="NewJournalButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Button_ghost"
+theme_override_font_sizes/font_size = 20
+text = "＋"
+tooltip_text = "New journal entry"
+
+[node name="JournalHeaderSpacer" type="Control" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
 
 [node name="XpPlaceholder" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock" unique_id=1712306731]
 layout_mode = 2
@@ -100,12 +112,6 @@ layout_mode = 2
 theme_type_variation = &"Button_ghost"
 text = "⚙"
 tooltip_text = "Settings"
-
-[node name="NewJournalButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea" unique_id=722315545]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"Button_primary"
-text = "＋  New Journal Entry"
 
 [node name="JournalSplit" type="VSplitContainer" parent="MarginContainer/HSplitContainer/JournalArea" unique_id=1029892727]
 layout_mode = 2
@@ -258,9 +264,21 @@ layout_mode = 2
 
 [node name="TaskTitle" type="Label" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock/TaskTitleRow" unique_id=1690666540]
 layout_mode = 2
-size_flags_horizontal = 3
 theme_type_variation = &"Label_title"
 text = "▌ TASKS"
+
+[node name="NewTaskButton" type="Button" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock/TaskTitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Button_ghost"
+theme_override_font_sizes/font_size = 20
+text = "＋"
+tooltip_text = "New task"
+
+[node name="TaskTitleSpacer" type="Control" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock/TaskTitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
 
 [node name="TaskPomodoro" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock/TaskTitleRow" unique_id=1538882452 instance=ExtResource("3_pomo")]
 unique_name_in_owner = true
@@ -289,12 +307,6 @@ custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 max_value = 1.0
 show_percentage = false
-
-[node name="NewTaskButton" type="Button" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn" unique_id=39634421]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"Button_primary"
-text = "＋  New Task"
 
 [node name="TaskSplit" type="VSplitContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn" unique_id=1048728002]
 unique_name_in_owner = true
