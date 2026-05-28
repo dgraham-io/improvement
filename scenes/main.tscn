@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scenes/ui/corner_brackets.gd" id="9_brackets"]
 [ext_resource type="Script" path="res://scenes/ui/hud_grid_backdrop.gd" id="10_grid"]
 [ext_resource type="Script" path="res://scenes/ui/hud_scanlines.gd" id="11_scan"]
+[ext_resource type="FontFile" uid="uid://b6qsvhh6ywxbg" path="res://assets/fonts/SairaSemiCondensed-Bold.ttf" id="13_font_bold"]
 
 [node name="Main" type="Control" unique_id=673025731]
 layout_mode = 3
@@ -75,14 +76,17 @@ layout_mode = 2
 [node name="JournalTitle" type="Label" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock" unique_id=2003677379]
 layout_mode = 2
 theme_type_variation = &"Label_title"
-text = "▌ JOURNAL"
+text = "JOURNAL"
 
 [node name="NewJournalButton" type="Button" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Button_ghost"
-theme_override_font_sizes/font_size = 20
-text = "＋"
+theme_override_colors/font_color = Color(0.15, 0.75, 0.95, 1)
+theme_override_colors/font_hover_color = Color(0.45, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("13_font_bold")
+theme_override_font_sizes/font_size = 26
+text = "+"
 tooltip_text = "New journal entry"
 
 [node name="JournalHeaderSpacer" type="Control" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock"]
@@ -265,14 +269,17 @@ layout_mode = 2
 [node name="TaskTitle" type="Label" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock/TaskTitleRow" unique_id=1690666540]
 layout_mode = 2
 theme_type_variation = &"Label_title"
-text = "▌ TASKS"
+text = "TASKS"
 
 [node name="NewTaskButton" type="Button" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock/TaskTitleRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"Button_ghost"
-theme_override_font_sizes/font_size = 20
-text = "＋"
+theme_override_colors/font_color = Color(0.15, 0.75, 0.95, 1)
+theme_override_colors/font_hover_color = Color(0.45, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("13_font_bold")
+theme_override_font_sizes/font_size = 26
+text = "+"
 tooltip_text = "New task"
 
 [node name="TaskTitleSpacer" type="Control" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock/TaskTitleRow"]
