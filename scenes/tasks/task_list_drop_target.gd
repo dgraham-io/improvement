@@ -8,7 +8,6 @@ signal reorder_drag_ended
 const _TaskReorderInsert := preload("res://scripts/tasks/task_reorder_insert.gd")
 const DROP_EDGE_PADDING := 10.0
 const DROP_GAP_HEIGHT := 18.0
-const DROP_GAP_COLOR := Color(0.133333, 0.866667, 1, 0.22)
 const GAP_CLOSE_DEBOUNCE_SEC := 0.2
 const GAP_OPEN_ANIM_SEC := 0.12
 const GAP_CLOSE_ANIM_SEC := 0.1
@@ -27,7 +26,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_drop_gap = ColorRect.new()
 	_drop_gap.name = "DropGapSpacer"
-	_drop_gap.color = DROP_GAP_COLOR
+	_drop_gap.color = ThemePalette.color(self, &"drop_gap", &"TaskList")
 	_drop_gap.custom_minimum_size = Vector2(0.0, 0.0)
 	_drop_gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_drop_gap.visible = false

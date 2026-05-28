@@ -4,6 +4,7 @@ extends RefCounted
 
 const TASK_ROW := &"TaskRow"
 const TASK_LED := &"TaskLed"
+const TASK_LIST := &"TaskList"
 const METRICS_ROW := &"MetricsRow"
 const OVERLAY_DIM := &"OverlayDim"
 

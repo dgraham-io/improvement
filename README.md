@@ -119,6 +119,8 @@ Pomodoro and encryption are **not** on the roadmap; see [recommendations](docs/a
 | [Godot SQLite](https://github.com/godot-sqlite/godot-sqlite) | [`addons/godot-sqlite/`](addons/godot-sqlite/) | [MIT](addons/godot-sqlite/LICENSE.md) |
 | Roboto font | [`assets/fonts/`](assets/fonts/) | [Apache License 2.0](https://fonts.google.com/specimen/Roboto/license) (Google Fonts) |
 | Orbitron font | [`assets/fonts/`](assets/fonts/) | [SIL OFL 1.1](assets/fonts/Orbitron-OFL.txt) (Google Fonts) |
+| Saira Semi Condensed font | [`assets/fonts/`](assets/fonts/) | [SIL OFL 1.1](assets/fonts/SairaSemiCondensed-OFL.txt) (Google Fonts) |
+| JetBrains Mono font | [`assets/fonts/`](assets/fonts/) | [SIL OFL 1.1](assets/fonts/JetBrainsMono-OFL.txt) (Google Fonts) |
 
 ## License
 
