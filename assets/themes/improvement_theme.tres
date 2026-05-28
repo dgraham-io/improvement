@@ -562,3 +562,7 @@ Label_timer/base_type = &"Label"
 Label_timer/colors/font_color = Color(0.97, 0.64, 0.1, 1)
 Label_timer/font_sizes/font_size = 16
 Label_timer/fonts/font = SubResource("FontVariation_mono_regular")
+CornerBrackets/colors/core = Color(0.97, 0.64, 0.1, 0.85)
+HudGrid/colors/minor = Color(0.97, 0.64, 0.1, 0.05)
+HudGrid/colors/major = Color(0.97, 0.64, 0.1, 0.18)
+HudScanlines/colors/line = Color(0, 0, 0, 0.1)

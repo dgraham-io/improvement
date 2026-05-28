@@ -9,6 +9,9 @@
 [ext_resource type="PackedScene" uid="uid://c8tagpicker01" path="res://scenes/ui/tag_picker.tscn" id="6_tag_picker"]
 [ext_resource type="Script" path="res://scenes/tasks/task_list_drop_target.gd" id="7_task_drop"]
 [ext_resource type="Script" path="res://scenes/tasks/task_scroll_drop_forward.gd" id="8_task_scroll"]
+[ext_resource type="Script" path="res://scenes/ui/corner_brackets.gd" id="9_brackets"]
+[ext_resource type="Script" path="res://scenes/ui/hud_grid_backdrop.gd" id="10_grid"]
+[ext_resource type="Script" path="res://scenes/ui/hud_scanlines.gd" id="11_scan"]
 
 [node name="Main" type="Control" unique_id=673025731]
 layout_mode = 3
@@ -31,6 +34,16 @@ mouse_filter = 2
 texture = ExtResource("2_bg")
 expand_mode = 1
 stretch_mode = 6
+
+[node name="HudGridBackdrop" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("10_grid")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=447209330]
 layout_mode = 1
@@ -189,6 +202,11 @@ size_flags_horizontal = 3
 [node name="JournalPomodoro" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel/ComposerMargin/ComposerVBox/ComposerActions" unique_id=519141075 instance=ExtResource("3_pomo")]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="ComposerBrackets" type="Control" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit/ComposerPanel"]
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("9_brackets")
 
 [node name="JournalScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalSplit" unique_id=1473126322]
 layout_mode = 2
@@ -366,6 +384,11 @@ layout_mode = 2
 theme_type_variation = &"Button_primary"
 text = "Save task"
 
+[node name="TaskComposerBrackets" type="Control" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit/TaskComposerPanel"]
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("9_brackets")
+
 [node name="TaskScrollContainer" type="ScrollContainer" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskSplit" unique_id=884632879]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -388,4 +411,14 @@ layout_mode = 2
 theme_type_variation = &"Label_muted"
 text = "No tasks yet. Use ＋ New Task to add one."
 autowrap_mode = 3
+
+[node name="HudScanlines" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("11_scan")
 
