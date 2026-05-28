@@ -4,9 +4,12 @@ extends Control
 
 const LED_SIZE := Vector2(12, 26)
 const CORNER_RADIUS := 6
+const PULSE_PERIOD_SEC := 1.6
+const PULSE_AMOUNT := 0.5
 
 var _active := false
 var _palette_host: Control
+var _t: float = 0.0
 
 
 func _ready() -> void:
@@ -14,13 +17,30 @@ func _ready() -> void:
 	custom_minimum_size = LED_SIZE + Vector2(8, 8)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resized.connect(queue_redraw)
+	set_process(_active)
+
+
+func _process(delta: float) -> void:
+	if not _active:
+		return
+	_t += delta / PULSE_PERIOD_SEC
+	if _t >= 1.0:
+		_t -= 1.0
+	queue_redraw()
 
 
 func set_active(active: bool) -> void:
 	if _active == active:
 		return
 	_active = active
+	set_process(_active)
 	queue_redraw()
+
+
+func _pulse_factor() -> float:
+	# Sine breathing in [1 - PULSE_AMOUNT, 1].
+	var phase := sin(_t * TAU)
+	return 1.0 - PULSE_AMOUNT * 0.5 + (PULSE_AMOUNT * 0.5) * phase
 
 
 func _find_palette_host() -> Control:
@@ -51,10 +71,11 @@ func _led_rect(size_scale: Vector2 = Vector2.ONE) -> Rect2:
 func _draw_lit_led(hovered: bool) -> void:
 	var glow := _palette_color(ImprovementThemeTypes.LED_GLOW)
 	var core := _palette_color(ImprovementThemeTypes.LED_CORE)
-	var glow_scale := 1.1 if hovered else 1.0
-	_draw_rounded_fill(_led_rect(Vector2(1.22 * glow_scale, 1.2 * glow_scale)), Color(glow, 0.14))
-	_draw_rounded_fill(_led_rect(Vector2(1.08 * glow_scale, 1.08 * glow_scale)), Color(glow, 0.24))
-	_draw_rounded_border(_led_rect(), glow, 0.55, 1.25)
+	var p := _pulse_factor()
+	var glow_scale := 1.1 if hovered else (1.0 + 0.05 * (p - 0.75))
+	_draw_rounded_fill(_led_rect(Vector2(1.22 * glow_scale, 1.2 * glow_scale)), Color(glow, 0.14 * p))
+	_draw_rounded_fill(_led_rect(Vector2(1.08 * glow_scale, 1.08 * glow_scale)), Color(glow, 0.24 * p))
+	_draw_rounded_border(_led_rect(), glow, 0.55 * p, 1.25)
 	_draw_rounded_fill(_led_rect(Vector2(0.76, 0.76)), core)
 	var core_rect := _led_rect(Vector2(0.76, 0.76))
 	var spec := Rect2(

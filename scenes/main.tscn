@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scenes/ui/corner_brackets.gd" id="9_brackets"]
 [ext_resource type="Script" path="res://scenes/ui/hud_grid_backdrop.gd" id="10_grid"]
 [ext_resource type="Script" path="res://scenes/ui/hud_scanlines.gd" id="11_scan"]
+[ext_resource type="Script" path="res://scenes/ui/hud_scan_bar.gd" id="12_scanbar"]
 
 [node name="Main" type="Control" unique_id=673025731]
 layout_mode = 3
@@ -76,7 +77,7 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"Label_title"
-text = "Journal"
+text = "▌ JOURNAL"
 
 [node name="XpPlaceholder" type="HBoxContainer" parent="MarginContainer/HSplitContainer/JournalArea/JournalHeaderBlock" unique_id=1712306731]
 layout_mode = 2
@@ -260,7 +261,7 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"Label_title"
-text = "Tasks"
+text = "▌ TASKS"
 
 [node name="TaskPomodoro" parent="MarginContainer/HSplitContainer/TaskSidebar/TaskSidebarMargin/TaskColumn/TaskHeaderBlock/TaskTitleRow" unique_id=1538882452 instance=ExtResource("3_pomo")]
 unique_name_in_owner = true
@@ -411,6 +412,16 @@ layout_mode = 2
 theme_type_variation = &"Label_muted"
 text = "No tasks yet. Use ＋ New Task to add one."
 autowrap_mode = 3
+
+[node name="HudScanBar" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("12_scanbar")
 
 [node name="HudScanlines" type="Control" parent="."]
 layout_mode = 1
