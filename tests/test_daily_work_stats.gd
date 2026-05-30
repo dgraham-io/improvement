@@ -21,12 +21,21 @@ func after_each() -> void:
 	_remove_directory_recursive(_test_dir)
 
 
-func test_local_day_start_normalizes_to_midnight() -> void:
-	var noon := TimeFmt.local_day_start(1_700_000_000)
-	var parts := Time.get_datetime_dict_from_unix_time(noon)
-	assert_eq(parts.hour, 0)
-	assert_eq(parts.minute, 0)
-	assert_eq(parts.second, 0)
+func test_local_day_start_normalizes_to_local_midnight() -> void:
+	var tz := Time.get_time_zone_from_system()
+	var offset_sec: int = tz.get("bias", 0) * 60
+
+	var sample := 1_700_000_000
+	var day_start := TimeFmt.local_day_start(sample)
+
+	# The returned unix time, when interpreted in local time, must be midnight.
+	var local_parts := Time.get_datetime_dict_from_unix_time(day_start - offset_sec)
+	assert_eq(local_parts.hour, 0, "local_day_start must produce local midnight (hour)")
+	assert_eq(local_parts.minute, 0, "local_day_start must produce local midnight (minute)")
+	assert_eq(local_parts.second, 0, "local_day_start must produce local midnight (second)")
+
+	# Idempotent
+	assert_eq(TimeFmt.local_day_start(day_start), day_start)
 
 
 func test_format_day_heading_today_and_yesterday() -> void:

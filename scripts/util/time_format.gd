@@ -61,22 +61,36 @@ static func format_work_duration(total_sec: int) -> String:
 
 
 ## Unix time at local midnight for the calendar day containing [param unix_seconds].
+## Correctly accounts for the OS timezone (unlike the previous UTC-mixed implementation).
 static func local_day_start(unix_seconds: int) -> int:
 	if unix_seconds <= 0:
 		return 0
-	var parts := Time.get_datetime_dict_from_unix_time(unix_seconds)
-	parts.hour = 0
-	parts.minute = 0
-	parts.second = 0
-	return int(Time.get_unix_time_from_datetime_dict(parts))
+	var tz := Time.get_time_zone_from_system()
+	var bias_min: int = tz.get("bias", 0)
+	var offset_sec: int = bias_min * 60
+
+	# Adjust the unix timestamp so get_datetime_dict_from_unix_time returns local wall-clock components.
+	var local_parts := Time.get_datetime_dict_from_unix_time(unix_seconds - offset_sec)
+	local_parts.hour = 0
+	local_parts.minute = 0
+	local_parts.second = 0
+
+	# get_unix_time_from_datetime_dict treats the dict as UTC; re-apply the real offset.
+	var midnight_as_if_utc := Time.get_unix_time_from_datetime_dict(local_parts)
+	return int(midnight_as_if_utc + offset_sec)
 
 
 ## Stable local date key `YYYY-MM-DD` for grouping timeline days.
+## Correctly accounts for the OS timezone.
 static func local_day_key(unix_seconds: int) -> String:
 	if unix_seconds <= 0:
 		return ""
-	var parts := Time.get_datetime_dict_from_unix_time(unix_seconds)
-	return "%04d-%02d-%02d" % [parts.year, parts.month, parts.day]
+	var tz := Time.get_time_zone_from_system()
+	var bias_min: int = tz.get("bias", 0)
+	var offset_sec: int = bias_min * 60
+
+	var local_parts := Time.get_datetime_dict_from_unix_time(unix_seconds - offset_sec)
+	return "%04d-%02d-%02d" % [local_parts.year, local_parts.month, local_parts.day]
 
 
 ## Primary heading for a daily metrics card (Today, Yesterday, or weekday + date).
