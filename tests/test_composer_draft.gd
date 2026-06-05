@@ -26,7 +26,7 @@ func test_task_from_fields_round_trip() -> void:
 		[1] as Array[int],
 		DbConstants.TASK_IN_PROGRESS,
 		9,
-		"Save task",
+		"Save",
 		false
 	)
 	assert_eq(draft.get("title", ""), "Title")

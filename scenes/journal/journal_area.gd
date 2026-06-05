@@ -150,7 +150,7 @@ func _reset_composer() -> void:
 	_composer_tag_picker.clear()
 	_composer_tag_picker.refresh()
 	_composer_timestamps.text = "New entry — timestamps are set when you save."
-	_composer_save_button.text = "Save"
+	_composer_save_button.text = "Save"  # standardized primary action label for both journal + task composers
 	_composer_delete_button.visible = false
 	_composer_cancel_button.visible = true
 
@@ -167,7 +167,7 @@ func _load_entry_into_composer(entry: JournalEntry) -> void:
 		entry.created_at,
 		entry.updated_at
 	)
-	_composer_save_button.text = "Save"
+	_composer_save_button.text = "Save"  # standardized primary action label for both journal + task composers
 	_composer_delete_button.visible = true
 	_composer_cancel_button.visible = true
 	_composer_field.grab_focus()
@@ -189,7 +189,7 @@ func _on_composer_cancel_pressed() -> void:
 func _on_composer_save_pressed() -> void:
 	var body := _composer_field.text.strip_edges()
 	if body.is_empty():
-		_AppMessage.show_error(self, "Cannot save entry", "Write something in the journal field first.")
+		_AppMessage.show_error(self, "Cannot save journal entry", "Write something in the journal field first.")
 		return
 	var tag_ids := _composer_tag_picker.get_selected_tag_ids()
 	if _editing_entry == null:
@@ -198,7 +198,7 @@ func _on_composer_save_pressed() -> void:
 			_AppMessage.show_save_failed(self, "journal entry")
 			return
 		if not TagService.set_entry_tags(created.id, tag_ids):
-			_AppMessage.show_save_failed(self, "entry tags")
+			_AppMessage.show_save_failed(self, "journal entry tags")
 			return
 		PomodoroService.attach_target(DbConstants.TARGET_JOURNAL, created.id)
 		_close_composer(false)
@@ -208,7 +208,7 @@ func _on_composer_save_pressed() -> void:
 			_AppMessage.show_save_failed(self, "journal entry")
 			return
 		if not TagService.set_entry_tags(_editing_entry.id, tag_ids):
-			_AppMessage.show_save_failed(self, "entry tags")
+			_AppMessage.show_save_failed(self, "journal entry tags")
 
 
 func _on_composer_delete_pressed() -> void:
@@ -242,7 +242,7 @@ func _restore_from_snapshot(draft: Dictionary) -> void:
 	_composer_tag_picker.refresh()
 	_composer_tag_picker.set_selected_tags(_ComposerDraft.tags_from_ids(draft.get("tag_ids", [])))
 	_composer_timestamps.text = str(draft.get("timestamps_text", ""))
-	_composer_save_button.text = str(draft.get("save_button_text", "Save"))
+	_composer_save_button.text = str(draft.get("save_button_text", "Save"))  # standardized "Save" (see task_sidebar too; panel header provides context)
 	_composer_delete_button.visible = bool(draft.get("delete_visible", false))
 	_update_journal_pomodoro_target()
 

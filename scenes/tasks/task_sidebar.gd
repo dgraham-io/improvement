@@ -214,7 +214,7 @@ func _reset_task_composer() -> void:
 	_composer_tag_picker.clear()
 	_composer_tag_picker.refresh()
 	_composer_status_option.select(0)
-	_composer_save_button.text = "Save task"
+	_composer_save_button.text = "Save"  # standardized to "Save" (matches journal composer + Settings; was "Save task" only for new)
 	_composer_delete_button.visible = false
 	_composer_cancel_button.visible = true
 
@@ -229,7 +229,7 @@ func _load_task_into_composer(item: TaskItem) -> void:
 	_composer_tag_picker.refresh()
 	_composer_tag_picker.set_selected_tags(TagService.get_tags_for_task(item.id))
 	_TaskStatusOptions.select_status(_composer_status_option, item.status)
-	_composer_save_button.text = "Save"
+	_composer_save_button.text = "Save"  # standardized to "Save" (matches journal composer + Settings; was "Save task" only for new)
 	_composer_delete_button.visible = true
 	_composer_cancel_button.visible = true
 	_composer_title_field.grab_focus()
@@ -361,7 +361,7 @@ func _restore_from_snapshot(draft: Dictionary) -> void:
 	_composer_tag_picker.set_selected_tags(_ComposerDraft.tags_from_ids(draft.get("tag_ids", [])))
 	var status := str(draft.get("status", DbConstants.TASK_PENDING))
 	_TaskStatusOptions.select_status(_composer_status_option, status)
-	_composer_save_button.text = str(draft.get("save_button_text", "Save task"))
+	_composer_save_button.text = str(draft.get("save_button_text", "Save"))  # standardized "Save" default (see journal_area.gd too)
 	_composer_delete_button.visible = bool(draft.get("delete_visible", false))
 
 

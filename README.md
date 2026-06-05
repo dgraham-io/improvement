@@ -17,10 +17,10 @@ Desktop prototype with **SQLite-backed** journal and tasks, inline editing, and 
 | Split journal / task layout | Shipped |
 | Journal timeline + inline composer | Shipped |
 | Task list + inline task editor | Shipped |
-| Drag reorder, done checkbox, row edit/delete | Shipped |
+| Drag reorder, Done button, row edit/delete | Shipped |
 | First-run DB folder setup (e.g. Dropbox) | Shipped |
 | Theme + Roboto | Shipped |
-| UI scale | Defaults to **system detection**; override in **Settings** (gear icon) |
+| UI scale | Defaults to **system detection**; override in **Settings** (⚙ gear icon) |
 | SQLite schema + migrations (v6; tasks, tags) | Shipped |
 | `JournalService` / `TaskService` / `PomodoroService` | Shipped |
 | Pomodoro → task `in_progress` + work time on rows | Shipped |
@@ -32,8 +32,8 @@ Desktop prototype with **SQLite-backed** journal and tasks, inline editing, and 
 ## Current app (what ships today)
 
 - **Two-pane shell:** journal (left), tasks (right), resizable split, global theme.
-- **Journal:** scrollable entry rows; **+ New Journal Entry** opens an inline composer; edit/delete per row; Pomodoro on the composer when editing.
-- **Tasks:** scrollable rows with priority strip, progress bar, **work time** label (from Pomodoros), and checkbox; **+ New Task** opens an inline task panel; drag to reorder; Pomodoro on the **top** task in the list.
+- **Journal:** scrollable entry rows; **+ button** (New journal entry) opens an inline composer; edit/delete per row; Pomodoro on the composer when editing.
+- **Tasks:** scrollable rows with priority strip, progress bar, **work time** label (from Pomodoros), and Done button; **+ button** (New task) opens an inline task panel; drag to reorder; Pomodoro on the **top** task in the list.
 - **Data:** `improvement.db` in a folder you pick at first run; path stored in `user://app_config.json` (Godot user data).
 - **Empty first run** — no sample journal entries or tasks.
 - **Export:** Windows Desktop preset → [`export_presets.cfg`](export_presets.cfg) (`Applications/Improvement/` on this machine).
@@ -108,7 +108,7 @@ All items below are **shipped**. Future ideas (Pomodoro polish, encryption) are 
 5. ~~**Journal and task UI bound to services**~~.
 6. ~~**User preferences UI**~~ — Settings: journal sort, **UI scale** (manual or system), applies immediately.
 7. ~~**Optional sync / backup**~~ — Settings → export/import `.improvement-backup.zip` (Dropbox folder sync still supported).
-8. ~~**Swap panel while editing**~~ — unsaved journal/task composer text is parked when you open the other panel; use **+ New Journal** / **+ New Task** again to resume the draft.
+8. ~~**Swap panel while editing**~~ — unsaved journal/task composer text is parked when you open the other panel; use the **+ button** (New Journal / New Task) again to resume the draft.
 
 Pomodoro and encryption are **not** on the roadmap; see [recommendations](docs/architecture.md#recommendations-not-on-roadmap) in the architecture doc.
 
